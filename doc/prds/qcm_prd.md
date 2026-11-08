@@ -2,17 +2,18 @@
 
 | | |
 |---|---|
-| **Version** | 0.1 (brouillon) |
+| **Version** | 0.2 (brouillon) |
 | **Date** | 8 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §9 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
+| **Plan** | [qcm_plan.md](../plans/qcm_plan.md) (MVP) |
 
 ---
 
 ## 1. Vision
 
-Le module QCM gère des **banques de questions à choix multiples**, permet de composer des **examens** à partir de ces banques et propose deux **modes de passage** : un mode **étude**, où l'étudiant voit immédiatement s'il a bien répondu, et un mode **examen**, chronométré et sans correction avant la fin.
+Le module QCM gère des **banques de questions à choix multiples**, permet de composer des **examens** à partir de ces banques et propose deux **modes** : un mode **étude**, où l'étudiant voit immédiatement s'il a bien répondu, et un mode **examen**, chronométré et sans correction avant la fin.
 
 Le module est utilisable **seul**, dès sa première version, sans les autres modules de Mentor. Intégré à Mentor, il fournit les évaluations de fin de chapitre, les examens blancs et les questions des cartes Leitner (voir [PRD Mentor](mentor_prd.md), UC-11 à UC-13, UC-19, UC-20).
 
@@ -33,6 +34,16 @@ Premier cas d'application : la préparation à l'examen théorique des élèves 
 - Délivrance de résultats officiels : les examens du module sont des examens d'entraînement.
 - Répétition espacée : relève du module Leitner, qui réutilise les questions QCM.
 
+### 1.3 Périmètre du MVP
+
+Le MVP se limite à l'**édition des questions d'une banque** et à l'**étude libre** (UC-03, UC-04 et UC-11, chacun en version réduite, détail dans le [plan](../plans/qcm_plan.md) §2). Il vise un usage immédiat, sans administration :
+
+- **pas de connexion ni de rôles** : un utilisateur unique gère les banques et les questions, compose les examens, s'entraîne en mode étude et passe des examens blancs ;
+- **pas de statut brouillon / publié** : toute question enregistrée est utilisable ; le statut est reporté à un lot ultérieur ;
+- **pas d'appartenance des banques** : la notion de propriétaire d'une banque, et la visibilité qu'en ont les autres formateurs, sont reportées à un lot ultérieur.
+
+Les comptes, les rôles et les accès arrivent au lot v1 (§8). Les cas d'utilisation sont rédigés avec les rôles cibles ; dans le MVP, l'utilisateur unique tient tous les rôles.
+
 ---
 
 ## 2. Acteurs
@@ -45,11 +56,13 @@ Premier cas d'application : la préparation à l'examen théorique des élèves 
 
 Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudiant).
 
+Dans le MVP, il n'y a ni compte ni rôle : un **utilisateur unique**, sans connexion, fait tout (§1.3). Les rôles ci-dessus arrivent au lot v1.
+
 ---
 
 ## 3. Glossaire
 
-- **Banque de questions** : ensemble nommé de questions, avec une description. Une banque appartient à un formateur et peut être partagée avec d'autres formateurs (Q4).
+- **Banque de questions** : ensemble nommé de questions, avec une description. Tous les formateurs voient toutes les banques ; l'appartenance d'une banque à un formateur et sa visibilité pour les autres sont reportées à un lot ultérieur (Q4).
 - **Question** :
   - un **énoncé** ;
   - une **bonne réponse** ;
@@ -57,8 +70,8 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
   - une **explication générale facultative** de la bonne réponse ;
   - une **illustration facultative** (image, schéma, carte…) sur laquelle la question peut porter ;
   - un **module facultatif** (météorologie, réglementation…) qui sert à organiser les examens et les séances d'étude ;
-  - un **statut** : *brouillon* (invisible des étudiants) ou *publiée*.
-- **Module** : thème d'une question. La liste des modules est commune à une banque ou à l'ensemble des banques (Q3). Une question sans module est rangée dans « Sans module ».
+  - plus tard, un **statut** : *brouillon* (invisible des étudiants) ou *publiée* (lot ultérieur, §1.3).
+- **Module** : thème d'une question, saisi en texte libre. La liste des modules est **propre à chaque banque** : c'est l'ensemble des noms de module utilisés par ses questions. Une question sans module est rangée dans « Sans module ».
 - **Examen** : épreuve définie par le formateur, avec un titre, une liste de questions ou des règles de tirage, une durée maximale et des seuils de réussite.
   - **Examen fixe** : les questions sont choisies une à une par le formateur ; tous les étudiants ont les mêmes.
   - **Examen à tirage** : le formateur indique un nombre de questions par module (et les banques sources) ; les questions sont tirées au hasard à chaque passage.
@@ -75,24 +88,26 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 | ID | Cas d'utilisation | Acteur principal | Lot |
 |---|---|---|---|
 | **A. Comptes et accès** |||
-| UC-01 | Gérer les comptes et les inscriptions | Administrateur | MVP |
-| UC-02 | Donner accès aux banques et aux examens | Formateur | MVP |
+| UC-01 | Gérer les comptes et les inscriptions | Administrateur | v1 |
+| UC-02 | Donner accès aux banques et aux examens | Formateur | v1 |
 | **B. Banques et questions** |||
 | UC-03 | Gérer les banques de questions | Formateur | MVP |
 | UC-04 | Gérer les questions | Formateur | MVP |
-| UC-05 | Copier ou déplacer des questions entre banques | Formateur | MVP |
-| UC-06 | Exporter des questions | Formateur | MVP |
-| UC-07 | Importer des questions | Formateur | MVP |
+| UC-05 | Copier ou déplacer des questions entre banques | Formateur | Lot 2 |
+| UC-06 | Exporter des questions | Formateur | Lot 2 |
+| UC-07 | Importer des questions | Formateur | Lot 2 |
 | **C. Examens** |||
-| UC-08 | Créer un examen | Formateur | MVP |
-| UC-09 | Consulter les résultats des étudiants | Formateur | MVP |
+| UC-08 | Créer un examen | Formateur | Lot 2 |
+| UC-09 | Consulter les résultats des étudiants | Formateur | v1 |
 | UC-10 | Consulter les statistiques des questions | Formateur | v1 |
 | **D. Étude et examen** |||
 | UC-11 | Étudier en mode étude | Étudiant | MVP |
-| UC-12 | Passer un examen | Étudiant | MVP |
-| UC-13 | Consulter la correction d'un examen | Étudiant | MVP |
-| UC-14 | Consulter son historique et sa progression | Étudiant | MVP |
+| UC-12 | Passer un examen | Étudiant | Lot 2 |
+| UC-13 | Consulter la correction d'un examen | Étudiant | Lot 2 |
+| UC-14 | Consulter son historique et sa progression | Étudiant | Lot 2 |
 | UC-15 | Signaler une question | Étudiant | v1 |
+
+Dans le MVP, les cas d'utilisation MVP sont tous réalisés par l'utilisateur unique, sans connexion (§1.3).
 
 ---
 
@@ -117,7 +132,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 - **Acteur** : Formateur (ou administrateur).
 - **Scénario nominal**
   1. Le formateur choisit une banque ou un examen.
-  2. Il donne l'accès à des étudiants, un par un ou par groupe (Q6).
+  2. Il donne l'accès à des étudiants, un par un. L'accès par groupe est reporté (v2, Q6).
   3. Les étudiants voient la banque dans leur liste et peuvent l'étudier ; ils voient l'examen et peuvent le passer.
 - **Variantes**
   - 2a. Pour un examen, le formateur peut fixer une période d'ouverture (date de début, date de fin) et un nombre maximal de passages.
@@ -128,7 +143,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 #### UC-03 — Gérer les banques de questions
 
 - **Acteur** : Formateur.
-- **Scénario** : créer une banque (nom, description), la renommer, la dupliquer, la supprimer. La liste des banques affiche pour chacune le nombre de questions, par module et par statut.
+- **Scénario** : créer une banque (nom, description), la renommer, la dupliquer, la supprimer. La liste des banques affiche pour chacune le nombre de questions, au total et par module.
 - **Règles**
   - La suppression d'une banque demande une confirmation qui indique le nombre de questions et d'examens concernés.
   - Une banque dont des questions sont utilisées par un examen ou par des passages passés ne perd pas l'historique : voir la règle d'archivage de UC-04.
@@ -139,13 +154,15 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 - **Scénario nominal**
   1. Dans une banque, le formateur crée une question : énoncé, bonne réponse, mauvaises réponses avec explications facultatives, explication générale facultative, illustration facultative, module facultatif.
   2. Il prévisualise la question telle que l'étudiant la verra.
-  3. Il l'enregistre en *brouillon* ou la *publie*.
+  3. Il l'enregistre ; la question est aussitôt utilisable en étude et en examen.
 - **Variantes**
   - 1a. Modifier une question existante.
   - 1b. Supprimer une question, après confirmation.
-  - 1c. Rechercher et filtrer les questions d'une banque : texte, module, statut, présence d'une illustration.
-  - 1d. Agir sur une sélection de questions : publier, repasser en brouillon, changer de module, supprimer.
+  - 1c. Rechercher et filtrer les questions d'une banque : texte, module, présence d'une illustration.
+  - 1d. Agir sur une sélection de questions : changer de module, supprimer.
+  - 3a. *Lot ultérieur* : enregistrer la question en *brouillon* ou la *publier* ; publier ou repasser en brouillon une sélection de questions.
 - **Règles**
+  - **Saisie du module** : le champ est en texte libre ; le système propose les noms de module déjà utilisés dans la banque, pour que le formateur les réutilise plutôt que d'en créer de proches (« Météo » et « Météorologie »).
   - Une question a exactement une bonne réponse et au moins une mauvaise réponse ; trois mauvaises réponses sont proposées par défaut.
   - L'ordre des réponses est mélangé à chaque affichage pour l'étudiant ; le formateur peut l'interdire pour une question dont les réponses se réfèrent les unes aux autres (« aucune des réponses précédentes »).
   - **Archivage** : une question déjà utilisée dans un passage n'est pas effacée. La supprimer la retire de la banque et des examens futurs, mais les corrections des passages passés continuent de l'afficher telle qu'elle était.
@@ -160,7 +177,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 - **Règles**
   - Une copie est une nouvelle question indépendante de l'originale, illustration comprise.
   - Un déplacement conserve la question et son historique. Si la question est utilisée par un examen fixe, le système le signale et l'examen continue d'utiliser la question.
-  - Le formateur doit avoir les droits de modification sur la banque cible.
+  - La question garde son nom de module ; s'il n'existait pas dans la banque cible, il s'ajoute à la liste des modules de cette banque.
 
 #### UC-06 — Exporter des questions
 
@@ -168,7 +185,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 - **Scénario** : le formateur exporte une banque entière ou une sélection de questions, dans l'un des deux formats :
   - **CSV** seul, sans les illustrations ;
   - **ZIP** contenant le fichier CSV et un répertoire avec les illustrations référencées.
-- **Contenu d'une ligne CSV** : énoncé, bonne réponse, mauvaises réponses et leurs explications, explication générale, module, nom du fichier d'illustration, statut. Le format est documenté dans la documentation utilisateur, avec un fichier exemple téléchargeable.
+- **Contenu d'une ligne CSV** : énoncé, bonne réponse, mauvaises réponses et leurs explications, explication générale, module, nom du fichier d'illustration. Le format est documenté dans la documentation utilisateur, avec un fichier exemple téléchargeable.
 - **Règle** : un fichier exporté peut être réimporté sans modification (UC-07).
 
 #### UC-07 — Importer des questions
@@ -184,8 +201,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
   - 3a. Le formateur annule : rien n'est importé.
 - **Règles**
   - L'import est tout ou rien pour les lignes valides : une ligne en erreur n'empêche pas l'import des autres, mais aucune ligne n'est importée à moitié.
-  - Les questions importées sont en *brouillon* par défaut, sauf si le fichier indique leur statut (Q9).
-  - Les modules inconnus sont créés à l'import, et le rapport le signale.
+  - Les noms de module du fichier sont repris tels quels. Le rapport avant import liste ceux qui n'existent pas encore dans la banque cible, pour repérer les fautes de frappe.
 
 ### C. Examens
 
@@ -199,25 +215,26 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
      - **examen à tirage** : il indique, pour chaque module, le nombre de questions à tirer, et les banques sources.
   3. Il fixe les **seuils de réussite** : un taux global, et facultativement un taux par module.
   4. Il choisit les options du passage :
-     - correction affichée à la fin du passage, après la date de fin de l'examen, ou jamais ;
-     - nombre maximal de passages par étudiant ;
+     - correction affichée à la fin du passage, après la date de fin de l'examen (à partir de v1, UC-02), ou jamais ;
+     - nombre maximal de passages ;
      - ordre des questions mélangé ou fixe.
-  5. Il prévisualise l'examen, puis le publie et donne l'accès (UC-02).
+  5. Il prévisualise l'examen et l'enregistre. À partir de v1, il donne l'accès aux étudiants (UC-02).
 - **Variantes**
-  - 2a. Examen à tirage dont un module manque de questions publiées : le système le signale à la création et indique le nombre disponible.
-  - 5a. Modifier un examen publié : les passages déjà commencés ou terminés ne changent pas.
+  - 2a. Examen à tirage dont un module manque de questions : le système le signale à la création et indique le nombre disponible.
+  - 5a. Modifier un examen déjà passé : les passages déjà commencés ou terminés ne changent pas.
   - 5b. Dupliquer un examen pour en créer une variante.
 - **Règles**
   - Un examen est **réussi** si le taux global atteint son seuil **et** si chaque module qui a un seuil l'atteint.
   - Une question sans réponse compte comme fausse.
-  - Les questions en *brouillon* ne sont jamais tirées ni proposées à un étudiant.
+  - Lot ultérieur : les questions en *brouillon* ne sont jamais tirées ni proposées à un étudiant.
+  - Quand un examen ou une session d'étude porte sur plusieurs banques, les modules de même nom sont regroupés, **sans tenir compte des majuscules** (« Météo » et « météo » forment un seul module) : le nombre de questions et le taux de réussite se calculent sur ce nom.
 
 #### UC-09 — Consulter les résultats des étudiants
 
 - **Acteur** : Formateur.
 - **Scénario** : pour un examen, le formateur voit la liste des passages : étudiant, date, durée, taux global, taux par module, réussite. Pour un étudiant, il voit l'historique de ses passages et sa progression par module. Il peut ouvrir la correction d'un passage.
 - **Variantes** : filtrer par examen, étudiant, période, réussite ; exporter les résultats en CSV.
-- **Règle** : le formateur ne voit que les résultats des étudiants à qui il a donné accès (Q6).
+- **Règle** : le formateur ne voit que les résultats des étudiants à qui il a donné accès.
 
 #### UC-10 — Consulter les statistiques des questions
 
@@ -229,7 +246,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 #### UC-11 — Étudier en mode étude
 
 - **Acteur** : Étudiant.
-- **Préconditions** : l'étudiant a accès à au moins une banque.
+- **Préconditions** : au moins une banque contient des questions ; à partir de v1, l'étudiant y a accès (UC-02).
 - **Scénario nominal**
   1. L'étudiant choisit une ou plusieurs banques.
   2. Pour chaque module, le système affiche le nombre de questions disponibles ; l'étudiant indique combien il en veut, ou choisit « toutes ».
@@ -242,13 +259,13 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
   - 2a. **Filtres de tirage** (lot v1) : questions jamais vues, ou questions déjà échouées.
   - 4a. L'étudiant passe une question sans répondre : elle n'entre pas dans le pourcentage.
   - 7a. Depuis le bilan, l'étudiant relance une session sur les seules questions échouées.
-  - 7b. L'étudiant quitte avant la fin : la session est enregistrée telle quelle et il peut la reprendre (Q10).
+  - 7b. L'étudiant quitte avant la fin : les réponses déjà données sont conservées et comptent dans sa progression (UC-14), mais la session ne peut pas être reprise. La reprise d'une session interrompue est reportée (v2, Q10).
 - **Règle** : les réponses du mode étude alimentent la progression de l'étudiant (UC-14) et les statistiques des questions (UC-10).
 
 #### UC-12 — Passer un examen
 
 - **Acteur** : Étudiant.
-- **Préconditions** : l'examen lui est ouvert, dans sa période d'ouverture, et il n'a pas atteint le nombre maximal de passages.
+- **Préconditions** : le nombre maximal de passages n'est pas atteint ; à partir de v1, l'examen est ouvert à l'étudiant et dans sa période d'ouverture (UC-02).
 - **Scénario nominal**
   1. L'étudiant choisit un examen. Le système affiche les consignes, le nombre de questions, la durée maximale et les seuils de réussite.
   2. L'étudiant démarre ; le compte à rebours commence et reste visible.
@@ -259,7 +276,7 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
   7. Il termine l'examen. Avant validation, le système lui rappelle le nombre de questions non répondues et marquées, et lui demande de confirmer.
   8. Le système calcule le résultat : taux global, taux par module, réussite ou échec selon les seuils.
 - **Variantes**
-  - 1a. **Examen libre** : l'étudiant lance un examen tiré au hasard sur les banques auxquelles il a accès, en choisissant le nombre de questions par module ou en prenant les valeurs par défaut. Durée et seuils par défaut : à définir (Q11).
+  - 1a. **Examen libre** : l'étudiant lance un examen tiré au hasard sur les banques (à partir de v1, celles auxquelles il a accès), en choisissant le nombre de questions par module ou en prenant les valeurs par défaut. Durée et seuils par défaut : à définir (Q11).
   - 2a. **Temps écoulé** : à la fin du compte à rebours, l'examen est terminé automatiquement avec les réponses déjà données. Un avertissement est affiché avant la fin (par exemple 5 minutes et 1 minute avant).
   - 2b. **Coupure** (réseau, fermeture du navigateur) : les réponses déjà données sont conservées ; l'étudiant reprend le passage là où il en était. Le chronomètre continue de tourner pendant la coupure (Q12).
   - 3a. L'étudiant change une réponse déjà donnée : la dernière réponse compte.
@@ -300,12 +317,12 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 
 ## 7. Exigences non fonctionnelles
 
-- **Utilisation autonome** : le module fonctionne sans les autres modules de Mentor ; les comptes et les rôles sont ceux du socle.
+- **Utilisation autonome** : le module fonctionne sans les autres modules de Mentor. Le MVP fonctionne sans compte ; à partir de v1, les comptes et les rôles sont ceux du socle.
 - **Plateforme** : application web responsive ; le mode étude et le mode examen sont utilisables sur téléphone.
 - **Fiabilité de l'examen** : chaque réponse est enregistrée dès qu'elle est donnée ; une coupure ne fait perdre aucune réponse.
 - **Performances** : passage d'une question à la suivante en moins d'une seconde ; import de 1 000 questions en moins d'une minute.
-- **Sécurité** : un étudiant n'accède jamais aux bonnes réponses d'un examen avant la fin de son passage, ni aux banques et examens qui ne lui sont pas ouverts.
-- **RGPD** : données personnelles minimales ; export et suppression des données d'un utilisateur sur demande ; hébergement en UE.
+- **Sécurité** (à partir de v1, avec les rôles) : un étudiant n'accède jamais aux bonnes réponses d'un examen avant la fin de son passage, ni aux banques et examens qui ne lui sont pas ouverts.
+- **RGPD** (à partir de v1 ; le MVP ne gère aucune donnée personnelle) : données personnelles minimales ; export et suppression des données d'un utilisateur sur demande ; hébergement en UE.
 - **Accessibilité** : navigation complète au clavier, texte alternatif pour les illustrations, contrastes suffisants, taille de police ajustable. Un temps supplémentaire par étudiant (tiers-temps) est à envisager (Q14).
 - **Langue** : français en v1, interface traduisible.
 
@@ -315,9 +332,10 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
-| **MVP** | UC-01 à UC-09, UC-11 à UC-14 ; questions avec une illustration image | Un formateur importe une banque existante (CSV ou ZIP) ; un étudiant s'entraîne en mode étude et passe un examen blanc chronométré, puis consulte sa correction |
-| **v1** | UC-10 statistiques des questions ; UC-15 signalements ; filtres de tirage (questions jamais vues, échouées) ; groupes d'étudiants (Q6) | Le formateur repère et corrige les questions problématiques à partir des données d'usage |
-| **v2** | Autres médias (son, vidéo) ; autres types de questions (Q1) ; tiers-temps (Q14) | À définir |
+| **MVP** | UC-03, UC-04 et UC-11 en version réduite : banques, édition des questions avec une image, étude libre avec correction immédiate et bilan par module ; sans connexion ni rôles, un utilisateur unique (§1.3). Détail et éléments reportés : [plan](../plans/qcm_plan.md) §2 | L'utilisateur crée une banque, y saisit des questions sur plusieurs modules, et fait une session d'étude dont le bilan par module est juste |
+| **Lot 2** | Compléments de UC-03, UC-04 et UC-11 reportés du MVP ; UC-05 copie / déplacement ; UC-06 et UC-07 export / import CSV et ZIP ; UC-08 examens ; UC-12 passage d'examen ; UC-13 correction ; UC-14 historique et progression ; utilisateur unique | L'utilisateur importe une banque existante, passe un examen blanc chronométré et consulte sa correction |
+| **v1** | UC-01 comptes et rôles ; UC-02 accès aux banques et aux examens ; UC-09 résultats des étudiants ; UC-10 statistiques des questions ; UC-15 signalements ; filtres de tirage (questions jamais vues, échouées) | Un formateur suit les résultats de ses étudiants et corrige les questions problématiques à partir des données d'usage |
+| **v2** | Statut brouillon / publié ; groupes d'étudiants (Q6) ; reprise d'une session d'étude interrompue (Q10) ; appartenance des banques et visibilité entre formateurs (Q4) ; autres médias (son, vidéo) ; autres types de questions (Q1) ; tiers-temps (Q14) | À définir |
 
 ---
 
@@ -326,18 +344,20 @@ Un même compte peut cumuler plusieurs rôles (par exemple formateur et étudian
 **Contenu des questions**
 - Q1. Faut-il prévoir plus tard des questions à plusieurs bonnes réponses, ou d'autres types (vrai / faux, réponse numérique, appariement) ?
 - Q2. Faut-il un niveau de difficulté par question, pour équilibrer les examens à tirage ?
-- Q3. La liste des modules est-elle commune à toutes les banques, ou propre à chaque banque ? Une question peut-elle avoir plusieurs modules ?
+- ~~Q3. La liste des modules est-elle commune à toutes les banques, ou propre à chaque banque ?~~ **Tranché** : propre à chaque banque, en texte libre, avec proposition des noms existants (§3, UC-04).
+- ~~Q3b. Une question peut-elle avoir plusieurs modules ?~~ **Tranché** : non, une question a au plus un module.
+- ~~Q16. Regroupement des modules entre banques : sur le nom exact, ou sans tenir compte des majuscules, des accents et des espaces en trop ?~~ **Tranché** : sans tenir compte des majuscules (UC-08).
 - Q8. Formats d'illustration acceptés (JPEG, PNG, SVG, PDF ?) et taille maximale ?
-- Q9. Statut des questions importées : toujours *brouillon*, toujours *publiée*, ou selon une colonne du fichier ?
+- Q9. Statut des questions importées : toujours *brouillon*, toujours *publiée*, ou selon une colonne du fichier ? *Reporté avec le statut (v2).*
 
 **Accès et partage**
-- Q4. Une banque peut-elle être partagée entre formateurs ? Avec quels droits : lecture seule, modification, ou les deux au choix ?
+- ~~Q4. Une banque peut-elle être partagée entre formateurs ?~~ **Tranché pour l'instant** : tous les formateurs voient toutes les banques. L'appartenance d'une banque à un formateur et la visibilité qu'en ont les autres (lecture seule, modification) sont reportées (v2).
 - Q5. Inscription libre : options possibles — fermée (comptes créés par l'administrateur seulement), ouverte avec validation de l'administrateur, ouverte sans validation, ouverte sur invitation ou code d'accès. Lesquelles retenir ?
-- Q6. Faut-il gérer des groupes d'étudiants (promotions) pour donner l'accès en une fois ? Un formateur voit-il tous les étudiants ou seulement ceux de ses groupes ?
+- Q6. Faut-il gérer des groupes d'étudiants (promotions) pour donner l'accès en une fois ? Un formateur voit-il tous les étudiants ou seulement ceux de ses groupes ? *Reporté (v2).*
 
 **Passage**
 - Q7. Quand le formateur modifie une question déjà utilisée, la correction d'un passage passé montre-t-elle l'ancienne version (fidélité) ou la nouvelle (correction d'une erreur) ?
-- Q10. Une session d'étude interrompue peut-elle être reprise, ou chaque session repart-elle de zéro ?
+- Q10. Une session d'étude interrompue peut-elle être reprise, ou chaque session repart-elle de zéro ? *Reporté (v2) : en attendant, une session interrompue n'est pas reprise (UC-11).*
 - Q11. Examen libre : quelles valeurs par défaut pour le nombre de questions, la durée et les seuils ? Faut-il des modèles d'examen libre définis par le formateur (par exemple « examen théorique planeur ») ?
 - Q12. Lors d'une coupure pendant un examen, le chronomètre continue-t-il (règle la plus stricte) ou s'arrête-t-il ?
 - Q13. Le formateur peut-il neutraliser une question erronée après coup, et recalculer les résultats des passages concernés ?
