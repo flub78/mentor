@@ -2,6 +2,8 @@
 
 namespace App\Qcm\Filament\Resources\Banks\RelationManagers;
 
+use App\Qcm\Filament\Actions\ExportBankActions;
+use App\Qcm\Filament\Actions\ImportBankAction;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
 use Filament\Actions\CreateAction;
@@ -137,6 +139,11 @@ class QuestionsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()->modalWidth(Width::ThreeExtraLarge),
+                ImportBankAction::make('importQuestions', 'Importer des questions', fn (): Bank => $this->bank()),
+                ExportBankActions::group(fn (): Bank => $this->bank()),
+            ])
+            ->toolbarActions([
+                ExportBankActions::bulkGroup(fn (): Bank => $this->bank()),
             ])
             ->recordActions([
                 EditAction::make()->modalWidth(Width::ThreeExtraLarge),

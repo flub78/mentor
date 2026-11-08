@@ -24,8 +24,12 @@ class AnswerFactory extends Factory
         ];
     }
 
+    /**
+     * Bonne réponse : son explication est portée par la question (explication
+     * générale), pas par la réponse.
+     */
     public function correct(): static
     {
-        return $this->state(['is_correct' => true]);
+        return $this->state(['is_correct' => true, 'explanation' => null]);
     }
 }

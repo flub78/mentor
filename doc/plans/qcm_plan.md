@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM
 
-- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lots 2 à 4 planifiés
+- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lot 2 en cours (étape 4 livrée)
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots »
@@ -216,11 +216,11 @@ passage n'est encore possible.
 | Examen | Table `qcm_exams` qui référence le questionnaire (`restrictOnDelete` : un questionnaire utilisé ne peut pas être supprimé, PRD UC-08 3b) ; l'examen pose toutes les questions du questionnaire (Q21 tranchée). | Paramètres d'examen portés par le questionnaire : mélange liste de questions et conditions de passage, ce que le PRD distingue. |
 | Génération par tirage | Réutilise `ModuleCatalog::forBanks()` (modules disponibles) et `StudyDraw::draw()` (tirage par module) du MVP, en excluant les questions déjà présentes ; les questions tirées sont ajoutées au pivot comme questions de banque. Rien du tirage n'est conservé. | Règles de tirage enregistrées et rejouées à chaque passage : écarté par le PRD (Q21), les candidats doivent avoir le même questionnaire. |
 | Paramètres de l'examen | Colonnes simples (durée, taux minimal, mélange, correction détaillée, passages maximum) ; champs d'identification en colonne JSON castée en tableau typé. | Table dédiée aux champs d'identification : aucune requête ne porte dessus. |
-| Format CSV | En-tête obligatoire ; colonnes `enonce`, `bonne_reponse`, `explication`, `module`, `illustration`, puis paires `mauvaise_reponse_N` / `explication_N` (N = 1…6). Séparateur `;` ou `,` détecté sur l'en-tête ; UTF-8, BOM toléré ; colonne inconnue signalée et ignorée. Lecture et écriture avec `fgetcsv` / `fputcsv`. | `league/csv` : nouvelle dépendance, non nécessaire. JSON seul : peu pratique à produire depuis un tableur. |
+| Format CSV | En-tête obligatoire ; colonnes `enonce`, `bonne_reponse`, `explication`, `module`, `illustration`, puis paires `mauvaise_reponse_N` / `explication_N` (N = 1, 2…, sans limite, comme le formulaire). Séparateur `;` ou `,` détecté sur l'en-tête ; UTF-8, BOM toléré ; colonne inconnue signalée et ignorée. Lecture et écriture avec `fgetcsv` / `fputcsv`. | `league/csv` : nouvelle dépendance, non nécessaire. JSON seul : peu pratique à produire depuis un tableur. |
 | Format ZIP | `questions.csv`, `images/<fichier>`, et un fichier de paramètres `banque.json`, `questionnaire.json` ou `examen.json` (ce dernier contient aussi les paramètres du questionnaire), avec `format_version` ; `ZipArchive` (extension `zip` présente). Taille d'archive maximale dans `config/qcm.php`. | CSV + JSON séparés sans archive : les images ne voyagent pas. |
-| Import en deux temps | Analyse qui produit un rapport (`ImportReport`) sans rien écrire ; le fichier analysé est conservé sur le disque `local` (`qcm/imports/<uuid>`) jusqu'à la confirmation ou l'annulation, puis supprimé ; écriture dans une transaction à la confirmation. | Actions `ImportAction` / `ExportAction` de Filament : elles exigent un utilisateur connecté, une file d'attente et des tables d'import, et traitent une ligne = un modèle, sans réponses imbriquées ni archive d'images. |
+| Import en deux temps | Assistant Filament en deux étapes : téléversement, puis rapport (`ImportReport`) et confirmation. Le fichier reste dans le stockage temporaire de Livewire (`storeFiles(false)`), qui le purge ; il est analysé à la fin de la première étape et de nouveau à la confirmation, sans rien écrire avant ; écriture dans une transaction, illustrations copiées effacées en cas d'échec. | Copie du fichier sur le disque `local` entre l'analyse et la confirmation : fichiers orphelins à purger si l'utilisateur ferme la fenêtre. | Actions `ImportAction` / `ExportAction` de Filament : elles exigent un utilisateur connecté, une file d'attente et des tables d'import, et traitent une ligne = un modèle, sans réponses imbriquées ni archive d'images. |
 | Doublons | Énoncé normalisé (minuscules, espaces réduits, ponctuation finale retirée) comparé dans la cible et dans le fichier. | Distance d'édition : coûteuse sur 1 000 questions et source de faux positifs. |
-| Code | Espace de noms `App\Qcm\Exchange\` : `QuestionCsvReader`, `QuestionCsvWriter`, `ExchangeArchive`, `ImportReport`, `BankExporter`, `BankImporter`, `QuestionnaireExporter`, `QuestionnaireImporter` (questionnaire seul ou avec examen). Formulaire de question extrait de `QuestionsRelationManager` dans un schéma partagé `QuestionFormSchema`. | — |
+| Code | Espace de noms `App\Qcm\Exchange\` : `QuestionCsv` (lecture et écriture), `ExchangeFile` (lecture CSV ou ZIP), `ExchangeWriter`, `ImportReport`, `QuestionPersister`, `BankExporter`, `BankImporter`, `QuestionnaireExporter`, `QuestionnaireImporter` (questionnaire seul ou avec examen) ; actions Filament dans `App\Qcm\Filament\Actions\`. Formulaire de question extrait de `QuestionsRelationManager` dans un schéma partagé `QuestionFormSchema`. | — |
 
 ### 5.3 Modèle de données (ajouts)
 
@@ -240,35 +240,37 @@ nom et prénom toujours présents et obligatoires.
 
 **Logique**
 
-- [ ] `config/qcm.php` : `import_max_kb` (taille maximale d'une archive), `max_wrong_answers` (6).
-- [ ] `QuestionCsvWriter` : en-tête et une ligne par question (mauvaises réponses dans l'ordre de `position`), nom de fichier d'image unique dans l'archive.
-- [ ] `QuestionCsvReader` : détection du séparateur ; vérification de l'en-tête (colonnes obligatoires manquantes → erreur de fichier qui liste les colonnes attendues) ; validation de chaque ligne (énoncé, bonne réponse, au moins une mauvaise réponse, explication sans réponse) ; lignes valides et erreurs avec numéro de ligne.
-- [ ] `ExchangeArchive` : ouvre un ZIP ou un CSV seul ; lit le fichier de paramètres et `format_version` ; refuse les chemins qui sortent de l'archive (`../`), les fichiers d'image qui ne sont pas des images ou dépassent `image_max_kb` ; écrit l'archive dans un fichier temporaire.
-- [ ] `ImportReport` : questions valides, erreurs, doublons (dans le fichier et avec la cible), modules absents de la cible, images référencées absentes, paramètres ignorés.
-- [ ] `BankExporter` : banque entière ou sélection → CSV ou ZIP, nom de fichier `banque-<slug>-<date>.zip`.
-- [ ] `BankImporter` : `analyse(fichier, banque cible | nouvelle)` → rapport ; `import(rapport, traitementDoublons)` → questions, réponses et images dans une transaction ; images copiées sur le disque `public` ; fichier temporaire supprimé dans tous les cas.
+- [x] `config/qcm.php` : `import_max_kb` (taille maximale d'un fichier importé, 10 Mo par défaut, sous la limite de 12 Mo des téléversements temporaires de Livewire).
+- [x] `QuestionCsv::write()` : en-tête et une ligne par question (mauvaises réponses dans l'ordre de `position`), nom de fichier d'image unique dans l'archive.
+- [x] `QuestionCsv::parse()` : détection du séparateur ; vérification de l'en-tête (colonnes obligatoires manquantes → erreur de fichier qui liste les colonnes attendues) ; validation de chaque ligne (énoncé, bonne réponse, au moins une mauvaise réponse, explication sans réponse) ; lignes valides et erreurs avec numéro de ligne.
+- [x] `ExchangeFile` : ouvre un ZIP ou un CSV seul ; lit le fichier de paramètres et `format_version` ; lit chaque élément par son nom sans rien extraire sur le disque ; refuse les noms d'illustration avec chemin (`../`), les fichiers d'image qui ne sont pas des images ou dépassent `image_max_kb`. `ExchangeWriter` écrit l'archive dans un fichier temporaire.
+- [x] `ImportReport` : questions valides, erreurs, doublons (dans le fichier et avec la cible), modules absents de la cible, images référencées absentes, paramètres ignorés.
+- [x] `BankExporter` : banque entière ou sélection → CSV ou ZIP, nom de fichier `banque-<slug>-<date>.zip`.
+- [x] `BankImporter` : `analyse(fichier, banque cible | nouvelle)` → rapport ; `import(fichier, cible, nouvelle banque, traitementDoublons)` → questions, réponses et images (`QuestionPersister`) dans une transaction ; images copiées sur le disque `public`, effacées si l'import échoue.
 
 **Interface**
 
-- [ ] Liste des banques : action « Importer une banque » (téléversement → rapport dans une fenêtre → nom et description modifiables, traitement des doublons → confirmer / annuler).
-- [ ] Dans une banque : « Importer des questions » (banque cible imposée) ; « Exporter (CSV) » et « Exporter (ZIP) » sur la banque et en action groupée sur une sélection de questions.
-- [ ] Rapport lisible : compteurs, tableau des erreurs (ligne, motif), doublons, modules nouveaux, images manquantes ; notification finale avec le nombre de questions importées et ignorées.
-- [ ] Fichiers exemples `public/exemples/qcm/banque-exemple.csv` et `banque-exemple.zip`, liés depuis la fenêtre d'import et la documentation.
+- [x] Liste des banques : action « Importer une banque » (téléversement → rapport dans une fenêtre → nom et description modifiables, traitement des doublons → confirmer / annuler).
+- [x] Dans une banque : « Importer des questions » (banque cible imposée) ; « Exporter (CSV) » et « Exporter (ZIP) » sur la banque et en action groupée sur une sélection de questions.
+- [x] Rapport lisible : compteurs, tableau des erreurs (ligne, motif), doublons, modules nouveaux, images manquantes ; notification finale avec le nombre de questions importées et ignorées.
+- [x] Fichiers exemples `public/exemples/qcm/banque-exemple.csv` et `banque-exemple.zip`, liés depuis la fenêtre d'import et la documentation.
+- [x] Fabrique `AnswerFactory::correct()` : pas d'explication sur la bonne réponse (l'explication générale est portée par la question).
 
 **Tests**
 
-- [ ] Aller-retour : banque avec images, modules et explications → export ZIP → import dans une nouvelle banque → contenu identique (énoncés, réponses, explications, modules, contenu des images).
-- [ ] CSV : séparateur `;` et `,`, BOM, nombre variable de mauvaises réponses, colonne inconnue signalée.
-- [ ] Erreurs : fichier non CSV, en-tête incomplet, ligne sans bonne réponse, sans mauvaise réponse ; une ligne en erreur n'empêche pas les autres ; aucune écriture à l'analyse ; annulation → rien d'importé, fichier temporaire supprimé.
-- [ ] Doublons dans le fichier et avec la banque cible ; « ignorer » et « importer quand même ».
-- [ ] Sécurité de l'archive : chemin `../` refusé, image non image refusée, archive trop grosse refusée avec un message qui donne la taille maximale.
-- [ ] Nom de nouvelle banque déjà pris : message et demande d'un autre nom.
-- [ ] Interface : actions d'import et d'export avec Livewire (`Storage::fake`).
+- [x] Aller-retour : banque avec images, modules et explications → export ZIP → import dans une nouvelle banque → contenu identique (énoncés, réponses, explications, modules, contenu des images).
+- [x] CSV : séparateur `;` et `,`, BOM, nombre variable de mauvaises réponses, colonne inconnue signalée.
+- [x] Erreurs : fichier non UTF-8, en-tête incomplet, ligne sans énoncé, sans bonne réponse, sans mauvaise réponse, explication orpheline, ligne trop longue ; une ligne en erreur n'empêche pas les autres ; aucune écriture à l'analyse ; échec en cours d'import → ni banque ni image.
+- [x] Doublons dans le fichier et avec la banque cible ; « ignorer » et « importer quand même ».
+- [x] Archive : nom d'illustration avec chemin refusé, image non image refusée, absence de CSV, plusieurs fichiers de paramètres, JSON invalide, `format_version` absente ou future ; taille maximale contrôlée par le champ de téléversement (message avec la taille).
+- [x] Nom de nouvelle banque déjà pris : message et demande d'un autre nom.
+- [x] Interface : actions d'import et d'export avec Livewire (`Storage::fake`).
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur » ; référence du format (colonnes, fichiers de paramètres) avec liens vers les fichiers exemples.
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+- [x] `doc/users/qcm.md` : « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur » ; référence du format (colonnes, fichiers de paramètres) avec liens vers les fichiers exemples.
+- [x] `composer qa` vert ; commit.
+- [ ] Vérification manuelle dans le navigateur (avec l'étape 6).
 
 ### Étape 5 — Questionnaires et examens : modèle et édition (UC-08, UC-20)
 

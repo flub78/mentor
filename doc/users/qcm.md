@@ -48,3 +48,52 @@ La session n'est pas enregistrée : recharger la page ou la quitter la perd.
 - la liste des questions échouées, avec leur bonne réponse.
 
 **Nouvelle session** revient au choix des banques, en gardant vos réglages.
+
+## Exporter une banque
+
+Ouvrez la banque : au-dessus de la liste des questions, **Exporter** propose deux formats :
+
+- **CSV (questions seules)** : un fichier à ouvrir dans un tableur, sans les images ;
+- **ZIP (questions, illustrations et paramètres)** : le CSV, les images et le nom de la banque ; c'est le format à utiliser pour sauvegarder une banque ou la transmettre à une autre instance de Mentor.
+
+Pour n'exporter que certaines questions, cochez-les dans la liste, puis utilisez **Exporter la sélection (CSV)** ou **(ZIP)** dans les actions groupées.
+
+## Importer des questions
+
+- **Dans une nouvelle banque** : dans **Banques de questions**, cliquez sur **Importer une banque**.
+- **Dans une banque existante** : ouvrez la banque, puis cliquez sur **Importer des questions**.
+
+1. Choisissez le fichier (CSV, ou ZIP pour importer aussi les images), puis cliquez sur **Suivant**. Si le fichier est inutilisable (encodage, colonnes manquantes, archive endommagée), un message dit ce qui ne va pas et rien n'est importé.
+2. Lisez le **rapport** : nombre de questions valides, lignes en erreur et leur motif, doublons probables (même énoncé, aux majuscules et à la ponctuation finale près), images inutilisables, modules qui n'existent pas encore dans la banque (vérifiez les fautes de frappe).
+3. Pour une nouvelle banque, vérifiez son **nom** (repris du fichier) ; s'il y a des doublons, choisissez de les importer ou non.
+4. Cliquez sur **Importer**. Les lignes en erreur ne sont pas importées ; les autres le sont toutes. Pour annuler, fermez la fenêtre : rien n'est importé.
+
+## Préparer un fichier dans un tableur
+
+1. Téléchargez le fichier exemple [banque-exemple.csv](../../public/exemples/qcm/banque-exemple.csv) (aussi proposé dans la fenêtre d'import) et ouvrez-le dans votre tableur.
+2. Gardez la première ligne (les noms de colonnes), remplacez les lignes suivantes par vos questions, une par ligne.
+3. Enregistrez au format **CSV UTF-8** (séparateur point-virgule ou virgule).
+4. Pour joindre des images, créez une archive ZIP contenant le CSV nommé `questions.csv` et un répertoire `images/` avec les fichiers cités dans la colonne `illustration` (voir [banque-exemple.zip](../../public/exemples/qcm/banque-exemple.zip)).
+
+## Format des fichiers d'échange
+
+Banques, questionnaires et examens s'échangent dans le même format.
+
+**CSV** — une ligne d'en-tête, puis une ligne par question. Encodage UTF-8, séparateur `;` ou `,`. L'en-tête tolère majuscules, accents et espaces (« Bonne réponse » vaut `bonne_reponse`) ; une colonne inconnue est signalée et ignorée.
+
+| Colonne | Obligatoire | Contenu |
+|---|---|---|
+| `enonce` | oui | Énoncé de la question |
+| `bonne_reponse` | oui | Texte de la bonne réponse |
+| `mauvaise_reponse_1`, `mauvaise_reponse_2`… | au moins la 1re | Textes des mauvaises réponses, autant que nécessaire |
+| `explication_1`, `explication_2`… | non | Pourquoi la mauvaise réponse de même numéro est fausse |
+| `explication` | non | Explication générale de la bonne réponse |
+| `module` | non | Module (thème) de la question |
+| `illustration` | non | Nom du fichier image, rangé dans `images/` de l'archive ZIP |
+
+**ZIP** — à la racine : `questions.csv`, le répertoire `images/`, et au plus un fichier de paramètres :
+
+- `banque.json` : `{"format_version": 1, "nom": "…", "description": "…"}` ;
+- `questionnaire.json` et `examen.json` : voir « Importer un questionnaire ou un examen ».
+
+Une image doit être un fichier image lisible (JPEG, PNG, GIF, WebP…) d'au plus 2 Mo ; sinon la question est importée sans image et le rapport le signale. Un fichier exporté se réimporte sans modification.
