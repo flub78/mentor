@@ -25,3 +25,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Assets publiés par les packages (republiés par composer install / filament:upgrade)
+/public/css
+/public/js
+/public/fonts

@@ -5,6 +5,20 @@ Support d'apprentissage assisté par IA
 
 Mentor est une application dérivée de [Laraskel](../laraskel) : un projet Laravel qui consomme les briques du socle (`laraskel-core`, `laraskel-users`…) en packages Composer et les étend par composition. Pendant la phase de co-évolution, les deux dépôts sont côte à côte et les briques sont référencées en *path repository* (`../laraskel/packages/*`). Voir le [guide de l'application dérivée](../laraskel/doc/development/guide-application-derivee.md).
 
+## Installation locale
+
+`laraskel` doit être cloné à côté de `mentor` (`../laraskel`).
+
+```bash
+composer install            # publie aussi les assets Filament
+cp .env.example .env && php artisan key:generate
+php artisan migrate
+php artisan storage:link    # images des questions
+php artisan serve
+```
+
+L'application s'ouvre sur le module QCM (`/qcm`). Le MVP n'a pas de connexion : ne pas l'exposer sur Internet.
+
 ## Architecture modulaire
 
 Mentor s'architecture sur des modules indépendants qui s'utilisent les uns les autres. Chaque module peut être utilisé seul ou regroupé dans Mentor ; un module est utilisable dès qu'il est disponible (le module QCM en premier).

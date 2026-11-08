@@ -2,6 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// MVP : l'application s'ouvre sur le module QCM (PRD QCM §1.3).
+Route::redirect('/', '/qcm')->name('home');

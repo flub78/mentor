@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM, MVP
 
-- **Statut** : à démarrer
+- **Statut** : en cours — étape 0 livrée
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots », lot MVP
@@ -73,16 +73,20 @@ qcm_answers    id, question_id → qcm_questions (cascade), text, is_correct, ex
 
 ### Étape 0 — Panel sans connexion
 
-- [ ] Créer le panel : `php artisan make:filament-panel qcm` ; dans `QcmPanelProvider`, `->default()`, `->path('qcm')`, retirer `->login()` et `->authMiddleware(...)`, découverte des ressources et pages dans `app/Qcm/Filament`.
-- [ ] Ajouter `LARASKEL_USERS_ADMIN_PANEL_DEFAULT=false` à `.env` et `.env.example`.
-- [ ] Remplacer la route `/` de `routes/web.php` par une redirection vers `/qcm`.
-- [ ] Mettre le panel en français (`lang` de l'application `fr`, libellés du panel).
-- [ ] `php artisan storage:link` ; le noter dans le README (installation).
-- [ ] Tests (`tests/Feature/Qcm/PanelTest.php`) :
-  - [ ] `/` redirige vers `/qcm` ;
-  - [ ] `/qcm` répond 200 sans être connecté ;
-  - [ ] `/admin` demande toujours la connexion.
-- [ ] `composer qa` vert ; commit.
+- [x] Créer le panel : `php artisan make:filament-panel qcm` ; dans `QcmPanelProvider`, `->default()`, `->path('qcm')`, retirer `->login()`, `AuthenticateSession` et `->authMiddleware(...)`, ainsi que le widget de compte ; découverte des ressources, pages et widgets dans `app/Qcm/Filament`.
+- [x] Ajouter `LARASKEL_USERS_ADMIN_PANEL_DEFAULT=false` à `.env` et `.env.example`.
+- [x] Remplacer la route `/` de `routes/web.php` par une redirection vers `/qcm`.
+- [x] Mettre le panel en français : `APP_LOCALE=fr`, `APP_FAKER_LOCALE=fr_FR`, nom de marque « Mentor — QCM ».
+- [x] Publier les assets Filament à chaque `composer install` / `dump-autoload` (`@php artisan filament:upgrade` dans `post-autoload-dump`) ; `/public/css`, `/public/js` et `/public/fonts` ignorés par git.
+- [x] `php artisan storage:link` ; le noter dans le README (installation).
+- [x] Tests (`tests/Feature/Qcm/PanelTest.php`) :
+  - [x] `/` redirige vers `/qcm` ;
+  - [x] `/qcm` répond 200 sans être connecté ;
+  - [x] le panel `qcm` est le panel par défaut ;
+  - [x] `/admin` demande toujours la connexion ;
+  - [x] l'application est en français.
+- [x] Retirer le test d'exemple du squelette (`tests/Feature/ExampleTest.php`), qui attendait une page d'accueil en 200.
+- [x] `composer qa` vert ; commit.
 
 ### Étape 1 — Banques et questions
 
