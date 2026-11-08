@@ -2,6 +2,7 @@
 
 namespace App\Qcm\Filament\Resources\Questionnaires\Pages;
 
+use App\Qcm\Filament\Actions\ImportQuestionnaireAction;
 use App\Qcm\Filament\Resources\Questionnaires\QuestionnaireResource;
 use App\Qcm\Filament\Schemas\DrawQuestionsForm;
 use App\Qcm\Models\Questionnaire;
@@ -21,6 +22,7 @@ class ListQuestionnaires extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            ImportQuestionnaireAction::make(),
             $this->generateAction(),
             CreateAction::make(),
         ];

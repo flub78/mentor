@@ -2,6 +2,7 @@
 
 namespace App\Qcm\Filament\Resources\Exams\Pages;
 
+use App\Qcm\Filament\Actions\ExportQuestionnaireActions;
 use App\Qcm\Filament\Resources\Exams\ExamResource;
 use App\Qcm\Filament\Resources\Exams\Schemas\ExamForm;
 use Filament\Actions\DeleteAction;
@@ -14,6 +15,7 @@ class EditExam extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ExportQuestionnaireActions::exam(),
             ExamResource::duplicateAction(),
             DeleteAction::make(),
         ];

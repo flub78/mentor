@@ -1,5 +1,5 @@
 ﻿enonce;bonne_reponse;explication;module;illustration;mauvaise_reponse_1;explication_1;mauvaise_reponse_2;explication_2;mauvaise_reponse_3;explication_3
 "Quel nuage est associé aux orages ?";"Le cumulonimbus";"Le cumulonimbus est un nuage à fort développement vertical, siège des orages.";Météorologie;;"Le cirrus";"Nuage de haute altitude, formé de cristaux de glace, sans convection.";"Le stratus";"Nuage bas en couche, associé à la bruine.";L'altostratus;
-"Que représente la flèche sur le schéma ?";"La portance";"La portance est perpendiculaire au vent relatif.";Aérodynamique;portance.png;"La traînée";"La traînée est parallèle au vent relatif.";"Le poids";"Le poids est vertical, vers le bas.";"La traction";
+"Que représente la flèche sur le schéma ?";"La portance";"La portance est perpendiculaire au vent relatif.";Aérodynamique;;"La traînée";"La traînée est parallèle au vent relatif.";"Le poids";"Le poids est vertical, vers le bas.";"La traction";
 "La vitesse de décrochage augmente-t-elle en virage ?";"Oui, avec le facteur de charge";;Aérodynamique;;"Non, elle reste constante";"Elle augmente comme la racine carrée du facteur de charge.";"Seulement en virage à gauche";;;
 "Quel document doit être à bord d'un planeur ?";"Le certificat d'immatriculation";;Réglementation;;"Le carnet de vol du pilote";;"Le manuel de l'instructeur";;;

@@ -2,6 +2,7 @@
 
 namespace App\Qcm\Filament\Resources\Exams\Tables;
 
+use App\Qcm\Filament\Actions\ExportQuestionnaireActions;
 use App\Qcm\Filament\Resources\Exams\ExamResource;
 use App\Qcm\Models\Exam;
 use Filament\Actions\DeleteAction;
@@ -38,6 +39,7 @@ class ExamsTable
             ->recordActions([
                 EditAction::make(),
                 ExamResource::duplicateAction(),
+                ExportQuestionnaireActions::exam(),
                 DeleteAction::make(),
             ])
             ->emptyStateHeading('Aucun examen')

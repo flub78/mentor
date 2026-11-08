@@ -119,6 +119,24 @@ Pour n'exporter que certaines questions, cochez-les dans la liste, puis utilisez
 3. Pour une nouvelle banque, vérifiez son **nom** (repris du fichier) ; s'il y a des doublons, choisissez de les importer ou non.
 4. Cliquez sur **Importer**. Les lignes en erreur ne sont pas importées ; les autres le sont toutes. Pour annuler, fermez la fenêtre : rien n'est importé.
 
+## Exporter un questionnaire ou un examen
+
+- **Questionnaire** : ouvrez-le, puis **Exporter** → **CSV (questions seules)** ou **ZIP (questions, illustrations et paramètres)**. Le ZIP garde le titre, la description et la version.
+- **Examen** : **Exporter (ZIP)**, dans la liste des examens ou dans l'examen. L'archive contient le questionnaire de l'examen et tous les paramètres de l'examen (durée, taux de réussite, options, renseignements demandés).
+
+Le fichier est autonome : les questions prises dans des banques y sont écrites en entier.
+
+## Importer un questionnaire ou un examen
+
+1. Dans **Questionnaires**, cliquez sur **Importer** (ou, dans **Examens**, sur **Importer un examen**).
+2. Choisissez le fichier, puis cliquez sur **Suivant** :
+   - un ZIP d'examen crée un questionnaire **et** un examen qui l'utilise ;
+   - un ZIP de questionnaire, un ZIP de banque ou un CSV seul crée seulement un questionnaire (titré d'après le fichier s'il n'a pas de paramètres).
+3. Lisez le rapport : en plus des contrôles de l'import de banque, il signale les paramètres d'examen invalides (taux hors de 0 à 100, durée négative, renseignement inconnu…), remplacés par la valeur par défaut.
+4. Vérifiez les titres, choisissez le sort des doublons s'il y en a, puis cliquez sur **Importer**. Le questionnaire importé s'ouvre.
+
+L'import crée toujours un nouveau questionnaire (et un nouvel examen) : il ne modifie jamais un questionnaire existant. Toutes les questions importées sont des questions propres au questionnaire. Exemples : [questionnaire-exemple.zip](../../public/exemples/qcm/questionnaire-exemple.zip), [examen-exemple.zip](../../public/exemples/qcm/examen-exemple.zip).
+
 ## Préparer un fichier dans un tableur
 
 1. Téléchargez le fichier exemple [banque-exemple.csv](../../public/exemples/qcm/banque-exemple.csv) (aussi proposé dans la fenêtre d'import) et ouvrez-le dans votre tableur.
@@ -145,6 +163,21 @@ Banques, questionnaires et examens s'échangent dans le même format.
 **ZIP** — à la racine : `questions.csv`, le répertoire `images/`, et au plus un fichier de paramètres :
 
 - `banque.json` : `{"format_version": 1, "nom": "…", "description": "…"}` ;
-- `questionnaire.json` et `examen.json` : voir « Importer un questionnaire ou un examen ».
+- `questionnaire.json` : `{"format_version": 1, "titre": "…", "description": "…", "version": "…"}` ;
+- `examen.json` : `{"format_version": 1, "questionnaire": {…comme questionnaire.json, sans format_version…}, "examen": {…}}`.
+
+Paramètres de l'objet `examen` (tous facultatifs ; une valeur absente ou invalide prend la valeur par défaut, signalée au rapport) :
+
+| Clé | Valeurs | Par défaut |
+|---|---|---|
+| `titre` | texte | titre du questionnaire |
+| `consignes` | texte | aucune |
+| `duree_minutes` | entier ≥ 1, ou `null` | `null` (pas de chronomètre) |
+| `taux_reussite` | entier de 0 à 100 | 75 |
+| `melange_questions` | `true` / `false` | `true` |
+| `correction_detaillee` | `true` / `false` | `true` |
+| `passages_max` | entier ≥ 1, ou `null` | `null` (illimité) |
+| `identification` | objet : `email`, `date_naissance`, `organisation`, `identifiant` → `non_demande`, `facultatif` ou `obligatoire` | tout `non_demande` |
+| `libelle_identifiant` | texte, obligatoire si `identifiant` est demandé | « Identifiant » |
 
 Une image doit être un fichier image lisible (JPEG, PNG, GIF, WebP…) d'au plus 2 Mo ; sinon la question est importée sans image et le rapport le signale. Un fichier exporté se réimporte sans modification.

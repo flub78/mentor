@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM
 
-- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lot 2 en cours (étapes 4 et 5 livrées)
+- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lot 2 en cours (étapes 4 à 6 livrées, clôture à faire)
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots »
@@ -272,7 +272,7 @@ prénom toujours demandés et obligatoires.
 
 - [x] `doc/users/qcm.md` : « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur » ; référence du format (colonnes, fichiers de paramètres) avec liens vers les fichiers exemples.
 - [x] `composer qa` vert ; commit.
-- [ ] Vérification manuelle dans le navigateur (avec l'étape 6).
+- [x] Vérification manuelle dans le navigateur (avec l'étape 6).
 
 ### Étape 5 — Questionnaires et examens : modèle et édition (UC-08, UC-20)
 
@@ -309,35 +309,39 @@ prénom toujours demandés et obligatoires.
 
 - [x] `doc/users/qcm.md` : « Composer un questionnaire », « Ajouter des questions propres ou prises dans une banque », « Générer un questionnaire par tirage », « Définir un examen », « Choisir les renseignements demandés aux candidats ».
 - [x] `composer qa` vert ; commit.
-- [ ] Vérification manuelle dans le navigateur (avec l'étape 6).
+- [x] Vérification manuelle dans le navigateur (avec l'étape 6) : page d'un questionnaire et formulaire d'examen.
+- [ ] Essayer dans le navigateur « Ajouter depuis une banque », « Tirer au hasard » et « Générer par tirage » (couverts par les tests, pas encore essayés à la main).
 
 ### Étape 6 — Export et import des questionnaires et des examens (UC-16, UC-17)
 
 **Logique**
 
-- [ ] `QuestionnaireExporter` : questionnaire → CSV (questions dans l'ordre, questions de banque écrites en entier) ou ZIP (CSV, images, `questionnaire.json`) ; examen → ZIP (son questionnaire et `examen.json` avec tous les paramètres).
-- [ ] `QuestionnaireImporter` : analyse → rapport (paramètres lus, invalides remplacés par défaut) ; import → nouveau questionnaire, toutes les questions en questions propres dans l'ordre du fichier, et nouvel examen si `examen.json` est présent (Q24, choix provisoire).
-- [ ] Valeurs par défaut d'un examen dans `config/qcm.php` (`exam_defaults.pass_rate`, durée nulle, correction détaillée oui) en attendant Q11.
-- [ ] Croisements : fichier de questionnaire ou d'examen importé dans une banque (étape 4) → questions seules, paramètres signalés comme ignorés ; fichier de banque importé comme questionnaire → titre = nom de la banque.
+- [x] `QuestionnaireExporter` : questionnaire → CSV (questions dans l'ordre, questions de banque écrites en entier) ou ZIP (CSV, images, `questionnaire.json`) ; examen → ZIP (son questionnaire et `examen.json` avec tous les paramètres).
+- [x] `QuestionnaireImporter` : analyse → rapport (paramètres lus, invalides remplacés par défaut) ; import → nouveau questionnaire, toutes les questions en questions propres dans l'ordre du fichier, et nouvel examen si `examen.json` est présent (Q24, choix provisoire).
+- [x] Valeurs par défaut d'un examen dans `config/qcm.php` (`exam_defaults.pass_rate`, durée nulle, correction détaillée oui) en attendant Q11 ; lecture tolérante des paramètres dans `ExchangeParameters` (valeur invalide remplacée et signalée au rapport).
+- [x] Croisements : fichier de questionnaire ou d'examen importé dans une banque (étape 4) → questions seules, paramètres signalés comme ignorés ; fichier de banque importé comme questionnaire → titre = nom de la banque.
 
 **Interface**
 
-- [ ] Liste des questionnaires : « Importer un questionnaire ou un examen » (téléversement → rapport → titres modifiables → confirmer / annuler) ; ouverture de ce qui a été créé.
-- [ ] Questionnaire : « Exporter (CSV) », « Exporter (ZIP) » ; examen : « Exporter (ZIP) ».
-- [ ] Fichiers exemples `questionnaire-exemple.zip` et `examen-exemple.zip`.
+- [x] Liste des questionnaires : « Importer un questionnaire ou un examen » (téléversement → rapport → titres modifiables → confirmer / annuler) ; ouverture de ce qui a été créé.
+- [x] Questionnaire : « Exporter (CSV) », « Exporter (ZIP) » ; examen : « Exporter (ZIP) ».
+- [x] Fichiers exemples `questionnaire-exemple.zip` et `examen-exemple.zip` ; action d'import aussi proposée dans la liste des examens.
 
 **Tests**
 
-- [ ] Aller-retour questionnaire : questions propres et de banque, images, version → export ZIP → import → questionnaire équivalent (questions, ordre, titre, version).
-- [ ] Aller-retour examen : tous les paramètres, champs d'identification compris → examen équivalent sur le nouveau questionnaire.
-- [ ] CSV seul → questionnaire seul, titre = nom du fichier.
-- [ ] Paramètres invalides (taux 150, champ d'identification inconnu, `format_version` future) → valeur par défaut ou rejet, avec message.
-- [ ] Croisements banque ↔ questionnaire.
+- [x] Aller-retour questionnaire : questions propres et de banque, images, version → export ZIP → import → questionnaire équivalent (questions, ordre, titre, version).
+- [x] Aller-retour examen : tous les paramètres, champs d'identification compris → examen équivalent sur le nouveau questionnaire.
+- [x] CSV seul → questionnaire seul, titre = nom du fichier.
+- [x] Paramètres invalides (taux 150, champ d'identification inconnu, `format_version` future) → valeur par défaut ou rejet, avec message.
+- [x] Croisements banque ↔ questionnaire.
+- [x] Les quatre fichiers exemples s'importent sans erreur ni paramètre corrigé.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Exporter un questionnaire ou un examen », « Importer un questionnaire ou un examen » ; référence de `questionnaire.json` et `examen.json`.
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+- [x] `doc/users/qcm.md` : « Exporter un questionnaire ou un examen », « Importer un questionnaire ou un examen » ; référence de `questionnaire.json` et `examen.json`.
+- [x] Vérification manuelle dans le navigateur : import de `examen-exemple.zip` (rapport, titres, questionnaire et examen créés, paramètres repris).
+- [x] `composer qa` vert ; commit.
+- [ ] Téléversement bloqué sur « Traitement » lors des essais automatisés dans le navigateur, y compris sur le champ image existant du formulaire de question : à confirmer par un essai manuel (glisser-déposer).
 
 ### Étape 7 — Clôture du lot 2
 

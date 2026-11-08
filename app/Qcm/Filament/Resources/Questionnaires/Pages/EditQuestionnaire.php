@@ -2,6 +2,7 @@
 
 namespace App\Qcm\Filament\Resources\Questionnaires\Pages;
 
+use App\Qcm\Filament\Actions\ExportQuestionnaireActions;
 use App\Qcm\Filament\Resources\Exams\ExamResource;
 use App\Qcm\Filament\Resources\Questionnaires\QuestionnaireResource;
 use Filament\Actions\Action;
@@ -19,6 +20,7 @@ class EditQuestionnaire extends EditRecord
                 ->label('Créer un examen')
                 ->icon(Heroicon::OutlinedAcademicCap)
                 ->url(fn (): string => ExamResource::getUrl('create', ['questionnaire' => $this->getRecord()->getKey()])),
+            ExportQuestionnaireActions::questionnaire(),
             QuestionnaireResource::duplicateAction(),
             QuestionnaireResource::deleteAction(),
         ];
