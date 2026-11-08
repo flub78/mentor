@@ -4,18 +4,13 @@ namespace App\Qcm\Filament\Resources\Banks\RelationManagers;
 
 use App\Qcm\Filament\Actions\ExportBankActions;
 use App\Qcm\Filament\Actions\ImportBankAction;
+use App\Qcm\Filament\Schemas\QuestionFormSchema;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
@@ -40,73 +35,10 @@ class QuestionsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                Textarea::make('statement')
-                    ->label('Énoncé')
-                    ->required()
-                    ->rows(3),
-
-                FileUpload::make('image_path')
-                    ->label('Image (facultative)')
-                    ->helperText('Schéma, carte ou photo sur laquelle porte la question.')
-                    ->image()
-                    ->disk(Question::IMAGE_DISK)
-                    ->directory(Question::IMAGE_DIRECTORY)
-                    ->maxSize((int) config('qcm.image_max_kb'))
-                    ->validationMessages([
-                        'image' => 'Le fichier doit être une image (JPEG, PNG, GIF, WebP…).',
-                        'max' => 'L\'image dépasse la taille maximale de :max Ko.',
-                    ]),
-
-                Group::make()
-                    ->relationship('correctAnswer')
-                    ->statePath('correctAnswer')
-                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
-                        ...$data,
-                        'is_correct' => true,
-                        'position' => 0,
-                    ])
-                    ->schema([
-                        TextInput::make('text')
-                            ->label('Bonne réponse')
-                            ->required(),
-                    ]),
-
-                Repeater::make('wrongAnswers')
-                    ->label('Mauvaises réponses')
-                    ->relationship()
-                    ->orderColumn('position')
-                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
-                        ...$data,
-                        'is_correct' => false,
-                    ])
-                    ->schema([
-                        TextInput::make('text')
-                            ->label('Réponse')
-                            ->required(),
-                        Textarea::make('explanation')
-                            ->label('Pourquoi cette réponse est fausse (facultatif)')
-                            ->rows(2),
-                    ])
-                    ->defaultItems(3)
-                    ->minItems(1)
-                    ->addActionLabel('Ajouter une mauvaise réponse')
-                    ->validationMessages([
-                        'min' => 'Une question doit avoir au moins une mauvaise réponse.',
-                    ]),
-
-                Section::make('Compléments')
-                    ->schema([
-                        Textarea::make('explanation')
-                            ->label('Explication de la bonne réponse (facultative)')
-                            ->rows(2),
-                        TextInput::make('module')
-                            ->label('Module (facultatif)')
-                            ->helperText('Thème de la question. Reprenez un nom déjà utilisé dans la banque pour regrouper les questions.')
-                            ->maxLength(255)
-                            ->datalist(fn (): array => $this->bank()->moduleNames()),
-                    ]),
-            ])
+            ->components(QuestionFormSchema::components(
+                fn (): array => $this->bank()->moduleNames(),
+                'Thème de la question. Reprenez un nom déjà utilisé dans la banque pour regrouper les questions.',
+            ))
             ->columns(1);
     }
 
@@ -148,7 +80,12 @@ class QuestionsRelationManager extends RelationManager
             ->recordActions([
                 EditAction::make()->modalWidth(Width::ThreeExtraLarge),
                 DeleteAction::make()
-                    ->modalDescription('La question et ses réponses seront définitivement supprimées.'),
+                    ->modalDescription(function (Question $record): string {
+                        $questionnaires = $record->questionnaires()->pluck('title')->all();
+
+                        return 'La question et ses réponses seront définitivement supprimées.'
+                            .($questionnaires === [] ? '' : ' Elle sera aussi retirée des questionnaires : « '.implode(' », « ', $questionnaires).' ».');
+                    }),
             ])
             ->emptyStateHeading('Aucune question')
             ->emptyStateDescription('Ajoutez la première question de cette banque.');

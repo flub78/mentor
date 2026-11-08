@@ -3,9 +3,12 @@
 namespace App\Qcm\Study;
 
 use App\Qcm\Models\Question;
+use App\Qcm\Models\Questionnaire;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Modules disponibles dans un ensemble de banques (PRD QCM UC-11).
+ * Modules disponibles dans un ensemble de banques (PRD QCM UC-11) ou dans un
+ * questionnaire (UC-20).
  *
  * Les modules de même nom sont regroupés sans tenir compte des majuscules
  * (PRD QCM UC-08) ; le libellé affiché est la forme la plus fréquente. Les
@@ -36,11 +39,30 @@ final class ModuleCatalog
             return [];
         }
 
+        return $this->group(Question::query()->whereIn('bank_id', $bankIds));
+    }
+
+    /**
+     * Modules des questions d'un questionnaire, propres et de banque
+     * (PRD QCM UC-20, étape 2).
+     *
+     * @return list<array{key: string, label: string, count: int}>
+     */
+    public function forQuestionnaire(Questionnaire $questionnaire): array
+    {
+        return $this->group(Question::query()->whereHas('questionnaires', fn (Builder $query) => $query->whereKey($questionnaire->id)));
+    }
+
+    /**
+     * @param  Builder<Question>  $questions
+     * @return list<array{key: string, label: string, count: int}>
+     */
+    private function group(Builder $questions): array
+    {
         /** @var array<string, array{count: int, spellings: array<string, int>}> $groups */
         $groups = [];
 
-        $rows = Question::query()
-            ->whereIn('bank_id', $bankIds)
+        $rows = $questions
             ->selectRaw('module, count(*) as total')
             ->groupBy('module')
             ->get();

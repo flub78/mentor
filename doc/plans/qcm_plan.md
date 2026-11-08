@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM
 
-- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lot 2 en cours (étape 4 livrée)
+- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lot 2 en cours (étapes 4 et 5 livrées)
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots »
@@ -230,11 +230,13 @@ qcm_questionnaires          id, title, description?, version?, auditColumns
 qcm_questionnaire_questions id, questionnaire_id (cascade), question_id (cascade), position, auditColumns
 qcm_exams                   id, title, instructions?, questionnaire_id → qcm_questionnaires (restrict),
                             duration_minutes?, pass_rate, shuffle_questions,
-                            shows_correction, max_attempts?, identification_fields (json), auditColumns
+                            shows_correction, max_attempts?, identification_fields (json),
+                            identifier_label?, auditColumns
 ```
 
-`identification_fields` : liste de `{champ: nom|prenom|email|date_naissance|organisation|identifiant, libelle?, obligatoire}` ;
-nom et prénom toujours présents et obligatoires.
+`identification_fields` : exigence par renseignement, `{"email": …, "date_naissance": …, "organisation": …, "identifiant": …}`,
+chacune `non_demande`, `facultatif` ou `obligatoire` ; libellé de l'identifiant libre dans `identifier_label` ; nom et
+prénom toujours demandés et obligatoires.
 
 ### Étape 4 — Fichier d'échange ; export et import des banques (UC-06, UC-07)
 
@@ -276,36 +278,38 @@ nom et prénom toujours présents et obligatoires.
 
 **Base de données et modèles**
 
-- [ ] Migration : `bank_id` nullable et ajout de `questionnaire_id` sur `qcm_questions` (testée sur SQLite et sur le SGBD de production).
-- [ ] Migrations `qcm_questionnaires`, `qcm_questionnaire_questions`, `qcm_exams` (§5.3), `auditColumns()`.
-- [ ] Modèle `Questionnaire` : `questions()` (pivot ordonné), `ownQuestions()`, `exams()`, `moduleNames()` ; suppression → questions propres (et images) supprimées, refus si un examen l'utilise (message qui nomme les examens).
-- [ ] Modèle `Exam` : `questionnaire()` ; casts ; énumération `IdentificationField`.
-- [ ] `Question` : `questionnaire()`, contrôle « banque ou questionnaire, exactement un », `isOwn()` ; suppression d'une question de banque utilisée par un questionnaire : la confirmation cite les questionnaires, le lien est retiré.
-- [ ] Fabriques `QuestionnaireFactory` (`withOwnQuestions(n)`, `withBankQuestions(bank, n)`), `ExamFactory`.
+- [x] Migration : `bank_id` nullable et ajout de `questionnaire_id` sur `qcm_questions` (testée sur une copie de la base SQLite de développement, aller et retour ; le retour supprime les questions propres).
+- [x] Migrations `qcm_questionnaires`, `qcm_questionnaire_questions`, `qcm_exams` (§5.3), `auditColumns()`.
+- [x] Modèle `Questionnaire` : `questions()` (pivot ordonné), `ownQuestions()`, `exams()`, `moduleNames()` ; suppression → questions propres (et images) supprimées, refus si un examen l'utilise (message qui nomme les examens).
+- [x] Modèle `Exam` : `questionnaire()` ; casts ; énumérations `IdentificationField` et `FieldRequirement` (valeurs du fichier d'échange) ; valeurs par défaut dans `config/qcm.php` (`exam_defaults`).
+- [x] `Question` : `questionnaire()`, contrôle « banque ou questionnaire, exactement un », `isOwn()` ; suppression d'une question de banque utilisée par un questionnaire : la confirmation cite les questionnaires, le lien est retiré.
+- [x] Fabriques `QuestionnaireFactory` (`withOwnQuestions(n)`, `withBankQuestions(n, bank)`), `ExamFactory`.
+- [x] Service `App\Qcm\Questionnaires\QuestionnaireComposer` : ajout de questions de banque (sans doublon, ordre conservé), tirage (`StudyDraw` accepte désormais des questions à exclure), duplication (`Question::duplicate()`, image comprise).
 
 **Interface**
 
-- [ ] Extraire le formulaire de question dans `QuestionFormSchema` ; `QuestionsRelationManager` l'utilise (pas de changement visible, tests existants verts).
-- [ ] Ressource `QuestionnaireResource` : liste (titre, version, nombre de questions, nombre d'examens), création, modification, duplication (questions propres copiées, questions de banque partagées), suppression avec confirmation.
-- [ ] Gestionnaire de relation « Questions » du questionnaire : liste ordonnée réordonnable (énoncé, module, « propre » ou nom de la banque) ; « Nouvelle question » (question propre) ; « Ajouter depuis une banque » (choix de la banque, filtre par module, sélection multiple, questions déjà présentes exclues) ; « Retirer » (question de banque) ou « Supprimer » (question propre) avec confirmations distinctes.
-- [ ] Action « Tirer des questions au hasard » dans le questionnaire, et « Générer un questionnaire par tirage » dans la liste des questionnaires (titre, banques, puis tableau des modules issu de `ModuleCatalog::forBanks()` avec nombre disponible, nombre à tirer ou « toutes ») ; notification du nombre de questions ajoutées et des modules ramenés au disponible.
-- [ ] Ressource `ExamResource` : liste (titre, questionnaire, nombre de questions posées, durée, taux minimal), création, modification, duplication, suppression avec confirmation.
-- [ ] Formulaire d'examen, en sections : général (titre, consignes, questionnaire) ; nombre de questions posées, au total et par module (lecture seule) ; réussite et durée (taux minimal, durée facultative) ; passage (correction détaillée oui / non, mélange, passages maximum) ; identification (nom et prénom affichés comme imposés ; e-mail, date de naissance, organisation, identifiant libre avec libellé, chacun « non demandé / facultatif / obligatoire »).
-- [ ] Action « Créer un examen » depuis un questionnaire (questionnaire présélectionné).
-- [ ] Navigation : « Questionnaires » et « Examens » dans le panel, après « Banques de questions ».
+- [x] Extraire le formulaire de question dans `QuestionFormSchema` ; `QuestionsRelationManager` l'utilise (pas de changement visible, tests existants verts).
+- [x] Ressource `QuestionnaireResource` : liste (titre, version, nombre de questions, nombre d'examens), création, modification, duplication (questions propres copiées, questions de banque partagées), suppression avec confirmation.
+- [x] Gestionnaire de relation « Questions » du questionnaire : liste ordonnée réordonnable (énoncé, module, « propre » ou nom de la banque) ; « Nouvelle question » (question propre) ; « Ajouter depuis une banque » (choix de la banque, filtre par module, sélection multiple, questions déjà présentes exclues) ; « Retirer » (question de banque) ou « Supprimer » (question propre) avec confirmations distinctes.
+- [x] Action « Tirer des questions au hasard » dans le questionnaire, et « Générer un questionnaire par tirage » dans la liste des questionnaires (titre, banques, puis tableau des modules issu de `ModuleCatalog::forBanks()` avec nombre disponible, nombre à tirer ou « toutes ») ; notification du nombre de questions ajoutées et des modules ramenés au disponible.
+- [x] Ressource `ExamResource` : liste (titre, questionnaire, nombre de questions posées, durée, taux minimal), création, modification, duplication, suppression avec confirmation.
+- [x] Formulaire d'examen, en sections : général (titre, consignes, questionnaire) ; nombre de questions posées, au total et par module (lecture seule) ; réussite et durée (taux minimal, durée facultative) ; passage (correction détaillée oui / non, mélange, passages maximum) ; identification (nom et prénom affichés comme imposés ; e-mail, date de naissance, organisation, identifiant libre avec libellé, chacun « non demandé / facultatif / obligatoire »).
+- [x] Action « Créer un examen » depuis un questionnaire (questionnaire présélectionné).
+- [x] Navigation : « Questionnaires » et « Examens » dans le panel, après « Banques de questions ».
 
 **Tests**
 
-- [ ] Modèle : une question ne peut avoir ni banque et questionnaire à la fois, ni aucun des deux ; suppression d'un questionnaire → questions propres, réponses et images supprimées, questions de banque intactes ; suppression refusée si un examen l'utilise ; suppression d'une banque → liens retirés des questionnaires.
-- [ ] Étude libre : les questions propres n'apparaissent jamais dans `ModuleCatalog` ni `StudyDraw` (Q22, choix provisoire).
-- [ ] Questionnaire : ajout propre, ajout depuis une banque, réordonnancement, retrait, suppression, duplication.
-- [ ] Génération par tirage : nombre exact par module, « toutes », demande supérieure au disponible ramenée avec message, modules regroupés sans majuscules entre banques, questions déjà présentes jamais tirées une seconde fois ; le questionnaire enregistré ne change plus ensuite.
-- [ ] Examen : validation (titre et questionnaire obligatoires, taux entre 0 et 100, durée positive, libellé obligatoire pour l'identifiant libre).
+- [x] Modèle : une question ne peut avoir ni banque et questionnaire à la fois, ni aucun des deux ; suppression d'un questionnaire → questions propres, réponses et images supprimées, questions de banque intactes ; suppression refusée si un examen l'utilise ; suppression d'une banque → liens retirés des questionnaires.
+- [x] Étude libre : les questions propres n'apparaissent jamais dans `ModuleCatalog` ni `StudyDraw` (Q22, choix provisoire).
+- [x] Questionnaire : ajout propre, ajout depuis une banque, réordonnancement, retrait, suppression, duplication (compteurs de la liste non recopiés).
+- [x] Génération par tirage : nombre exact par module, « toutes », demande supérieure au disponible ramenée avec message, modules regroupés sans majuscules entre banques, questions déjà présentes jamais tirées une seconde fois ; le questionnaire enregistré ne change plus ensuite.
+- [x] Examen : validation (titre et questionnaire obligatoires, taux entre 0 et 100, durée positive, libellé obligatoire pour l'identifiant libre).
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Composer un questionnaire », « Ajouter des questions propres ou prises dans une banque », « Générer un questionnaire par tirage », « Définir un examen », « Choisir les renseignements demandés aux candidats ».
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+- [x] `doc/users/qcm.md` : « Composer un questionnaire », « Ajouter des questions propres ou prises dans une banque », « Générer un questionnaire par tirage », « Définir un examen », « Choisir les renseignements demandés aux candidats ».
+- [x] `composer qa` vert ; commit.
+- [ ] Vérification manuelle dans le navigateur (avec l'étape 6).
 
 ### Étape 6 — Export et import des questionnaires et des examens (UC-16, UC-17)
 

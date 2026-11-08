@@ -49,6 +49,57 @@ La session n'est pas enregistrée : recharger la page ou la quitter la perd.
 
 **Nouvelle session** revient au choix des banques, en gardant vos réglages.
 
+## Composer un questionnaire
+
+Un questionnaire est une liste ordonnée de questions. Certaines viennent d'une banque, d'autres, les **questions propres**, n'existent que dans le questionnaire.
+
+1. Dans le menu, ouvrez **Questionnaires**, puis cliquez sur **Créer**.
+2. Donnez un **titre** et, si vous le souhaitez, une **version** (elle figurera sur les certificats de résultat ; changez-la quand vous modifiez un questionnaire déjà utilisé) et une description.
+3. Cliquez sur **Créer** : le questionnaire s'ouvre, prêt à recevoir ses questions.
+
+Pour changer l'ordre des questions, cliquez sur l'icône de réordonnancement au-dessus de la liste, puis faites glisser les questions.
+
+**Dupliquer** crée une variante : les questions propres sont copiées, les questions de banque restent partagées. Un questionnaire utilisé par un examen ne peut pas être supprimé ; le message nomme les examens concernés.
+
+## Ajouter des questions propres ou prises dans une banque
+
+Dans le questionnaire, au-dessus de la liste des questions :
+
+- **Nouvelle question** : saisissez une question propre, avec le même formulaire que dans une banque. Elle n'apparaît dans aucune banque ni dans l'étude libre.
+- **Ajouter depuis une banque** : choisissez la banque, éventuellement un module, puis cochez les questions. Les questions déjà présentes ne sont pas proposées.
+- **Tirer au hasard** : voir ci-dessous.
+
+La colonne **Origine** indique si une question est propre ou d'où elle vient. Une question de banque se modifie dans sa banque (**Modifier dans la banque**) : la modification vaut pour tous les questionnaires qui l'utilisent. **Retirer** l'enlève du questionnaire sans la supprimer de sa banque ; **Supprimer** efface une question propre.
+
+## Générer un questionnaire par tirage
+
+Pour préparer un examen blanc, vous pouvez faire tirer les questions au hasard :
+
+- **Générer par tirage**, dans la liste des questionnaires, crée un nouveau questionnaire ;
+- **Tirer au hasard**, dans un questionnaire, ajoute des questions tirées à celles qui y sont déjà.
+
+1. Choisissez une ou plusieurs banques : leurs modules s'affichent, avec le nombre de questions disponibles (les modules de même nom sont regroupés, majuscules comprises).
+2. Pour chaque module, indiquez le nombre de questions à tirer, ou cochez **Toutes**.
+3. Validez. Si un module n'a pas assez de questions, elles sont toutes tirées et le message le signale. Une question déjà présente n'est jamais tirée une seconde fois.
+
+Le tirage n'a lieu qu'à ce moment : ensuite, le questionnaire est une liste fixe, la même pour tous les candidats, que vous pouvez retoucher.
+
+## Définir un examen
+
+Un examen fait passer **toutes** les questions d'un questionnaire.
+
+1. Dans le menu, ouvrez **Examens**, puis **Créer** — ou, depuis un questionnaire, **Créer un examen**.
+2. **Général** : titre, consignes affichées au candidat, questionnaire. Le nombre de questions posées, au total et par module, s'affiche.
+3. **Réussite et durée** : taux de réussite minimal (75 % par défaut) ; durée maximale en minutes, ou vide pour un passage sans chronomètre.
+4. **Passage** : correction détaillée à la fin du passage ou non, ordre des questions mélangé ou non, nombre maximal de passages par candidat (vide : illimité).
+5. **Identification du candidat** : voir ci-dessous.
+
+Le passage des examens par les candidats arrivera dans une prochaine version.
+
+## Choisir les renseignements demandés aux candidats
+
+Le nom et le prénom sont toujours demandés. Pour chacun des autres renseignements — adresse e-mail, date de naissance, organisation (club, entreprise), identifiant libre — choisissez **Non demandé**, **Facultatif** ou **Obligatoire**. Pour l'identifiant libre, donnez son libellé (par exemple « Numéro de licence »).
+
 ## Exporter une banque
 
 Ouvrez la banque : au-dessus de la liste des questions, **Exporter** propose deux formats :

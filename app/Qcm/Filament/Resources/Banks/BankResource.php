@@ -9,6 +9,7 @@ use App\Qcm\Filament\Resources\Banks\RelationManagers\QuestionsRelationManager;
 use App\Qcm\Filament\Resources\Banks\Schemas\BankForm;
 use App\Qcm\Filament\Resources\Banks\Tables\BanksTable;
 use App\Qcm\Models\Bank;
+use App\Qcm\Models\Questionnaire;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Resource;
@@ -71,11 +72,18 @@ class BankResource extends Resource
             ->modalHeading(fn (Bank $record): string => "Supprimer la banque « {$record->name} » ?")
             ->modalDescription(function (Bank $record): string {
                 $count = $record->questions()->count();
+                $questionnaires = Questionnaire::query()
+                    ->whereHas('questions', fn ($query) => $query->where('bank_id', $record->id))
+                    ->count();
 
                 return match ($count) {
                     0 => 'La banque ne contient aucune question.',
                     1 => 'Sa question et ses réponses seront définitivement supprimées.',
                     default => "Ses {$count} questions et leurs réponses seront définitivement supprimées.",
+                }.match ($questionnaires) {
+                    0 => '',
+                    1 => ' Elles seront retirées du questionnaire qui les utilise.',
+                    default => " Elles seront retirées des {$questionnaires} questionnaires qui les utilisent.",
                 };
             });
     }

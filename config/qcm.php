@@ -12,4 +12,14 @@ return [
      * temporaires de Livewire (12 Mo par défaut).
      */
     'import_max_kb' => (int) env('QCM_IMPORT_MAX_KB', 10240),
+
+    /*
+     * Valeurs proposées à la création d'un examen, et retenues pour un examen
+     * importé sans ces paramètres ou avec des paramètres invalides (PRD QCM Q11).
+     */
+    'exam_defaults' => [
+        'pass_rate' => (int) env('QCM_EXAM_PASS_RATE', 75),
+        'shuffle_questions' => true,
+        'shows_correction' => true,
+    ],
 ];

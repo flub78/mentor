@@ -18,14 +18,19 @@ final class StudyDraw
      *
      * @param  list<int>  $bankIds
      * @param  array<string, int|null>  $requested  nombre demandé par clé de module ; null = toutes
+     * @param  list<int>  $excludedQuestionIds  questions à ne pas tirer (déjà présentes dans un questionnaire)
      * @return array{questionIds: list<int>, reduced: array<string, int>} questions tirées, et modules
      *                                                                    dont la demande dépassait le disponible (clé => nombre retenu)
      */
-    public function draw(array $bankIds, array $requested): array
+    public function draw(array $bankIds, array $requested, array $excludedQuestionIds = []): array
     {
         $byModule = [];
+        $questions = Question::query()
+            ->whereIn('bank_id', $bankIds)
+            ->when($excludedQuestionIds !== [], fn ($query) => $query->whereKeyNot($excludedQuestionIds))
+            ->get(['id', 'module']);
 
-        foreach (Question::query()->whereIn('bank_id', $bankIds)->get(['id', 'module']) as $question) {
+        foreach ($questions as $question) {
             $byModule[ModuleCatalog::key($question->module)][] = $question->id;
         }
 
