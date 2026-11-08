@@ -1,11 +1,24 @@
-# Plan d'implémentation — Module QCM, MVP
+# Plan d'implémentation — Module QCM
 
-- **Statut** : en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire)
+- **Statut** : MVP en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire) ; lots 2 à 4 planifiés
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
-- **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots », lot MVP
+- **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots »
 - **Documents liés** : [PRD Mentor](../prds/mentor_prd.md) §1.4 (architecture modulaire),
   [guide de l'application dérivée](../../../laraskel/doc/development/guide-application-derivee.md)
+
+## Vue d'ensemble des lots
+
+| Lot | Contenu (PRD §8) | Étapes | Statut |
+|---|---|---|---|
+| MVP | Banques, questions, étude libre | 0 à 3 (§4) | En cours |
+| Lot 2 — Questionnaires, examens et échanges | Fichier d'échange, import / export des banques, des questionnaires et des examens, questionnaires (questions propres, de banque, génération par tirage), définition des examens | 4 à 7 (§5) | À faire |
+| Lot 3 — Passage, résultats et certificats | Identification, passage chronométré, certificat imprimable, correction détaillée, liste des résultats, réédition | 8 à 12 (§6) | À faire |
+| Lot 4 — Diffusion en ligne | Connexion du formateur, diffusion d'un examen par lien, envoi du certificat par e-mail | 13 à 16 (§7) | À faire |
+| Lot 5, v1, v2 | Compléments d'édition et d'étude, comptes et rôles, etc. | À détailler (§8) | — |
+
+Les lots 2 à 4 s'appuient sur des choix provisoires pour des questions ouvertes du PRD ; ils sont
+signalés « (Qn, choix provisoire) » et à revoir si la question est tranchée autrement.
 
 ---
 
@@ -34,15 +47,17 @@ module est juste.
 
 | Élément | PRD | Lot cible (PRD §8) |
 |---|---|---|
-| Dupliquer une banque ; décompte par module dans la liste des banques | UC-03 | Lot 2 |
-| Prévisualisation, recherche plein texte, actions groupées, détection des doublons, interdiction du mélange des réponses par question | UC-04 | Lot 2 |
-| Archivage et versions des questions déjà utilisées | UC-04 | Lot 2 (avec les examens) |
-| Copier / déplacer des questions | UC-05 | Lot 2 |
-| Export / import CSV et ZIP | UC-06, UC-07 | Lot 2 |
-| Examens, passage, correction, historique et progression | UC-08, UC-12 à UC-14 | Lot 2 |
-| Passer une question sans répondre ; relancer sur les questions échouées ; enregistrement des réponses d'étude | UC-11 (4a, 7a, règle) | Lot 2 |
-| Filtres de tirage (jamais vues, échouées) | UC-11 (2a) | v1 |
-| Comptes, rôles, accès, résultats, statistiques, signalements | UC-01, 02, 09, 10, 15 | v1 |
+| Dupliquer une banque ; décompte par module dans la liste des banques | UC-03 | Lot 5 |
+| Détection des doublons à l'import | UC-04, UC-07 | Lot 2 |
+| Prévisualisation, recherche plein texte, actions groupées, doublons à la saisie, interdiction du mélange des réponses par question | UC-04 | Lot 5 |
+| Copier / déplacer des questions | UC-05 | Lot 5 |
+| Export / import CSV et ZIP des banques | UC-06, UC-07 | Lot 2 |
+| Questionnaires, examens, export / import des questionnaires et des examens | UC-08, UC-20, UC-16, UC-17 | Lot 2 |
+| Passage d'examen, certificat, correction détaillée, liste des résultats, réédition | UC-09, UC-12, UC-13, UC-19 | Lot 3 |
+| Diffusion d'un examen par lien | UC-18 | Lot 4 |
+| Passer une question sans répondre ; relancer sur les questions échouées | UC-11 (4a, 7a) | Lot 5 |
+| Enregistrement des réponses d'étude, historique, filtres de tirage | UC-11, UC-14 | v1 |
+| Comptes, rôles, accès, statistiques, signalements | UC-01, 02, 10, 15 | v1 |
 | Statut brouillon / publié, appartenance des banques, groupes, reprise de session, autres médias | — | v2 |
 
 ## 3. Décisions techniques
@@ -54,7 +69,7 @@ module est juste.
 | Emplacement du code | Dans l'application, sous l'espace de noms `App\Qcm\` (modèles, ressources Filament, services) ; tables préfixées `qcm_`. L'extraction en package reste possible (PRD Mentor, Q28). | Package `packages/qcm` dès maintenant : prématuré tant que Q28 n'est pas tranchée. |
 | Réponses | Une table `qcm_answers` avec `is_correct` ; exactement une bonne réponse par question, contrôlée à l'enregistrement. | Bonne réponse en colonne de la question : complique le mélange et l'affichage uniforme des réponses. |
 | Image | Fichier sur le disque `public`, chemin dans la question ; ancien fichier supprimé au remplacement et à la suppression. | `spatie/laravel-medialibrary` : la brique médias de Laraskel n'est pas encore extraite ; à reprendre quand elle le sera. |
-| Session d'étude | État tenu dans le composant Livewire de la page (questions tirées, réponses, score) ; rien n'est écrit en base. Un rechargement de page perd la session (reprise reportée, Q10). | Table de sessions : utile seulement avec l'historique (lot 2 du PRD). |
+| Session d'étude | État tenu dans le composant Livewire de la page (questions tirées, réponses, score) ; rien n'est écrit en base. Un rechargement de page perd la session (reprise reportée, Q10). | Table de sessions : utile seulement avec l'historique (v1). |
 | Regroupement des modules | Clé de regroupement = nom en minuscules (`mb_strtolower`) ; libellé affiché = la forme la plus fréquente. Questions sans module dans « Sans module ». | — |
 
 ### Modèle de données
@@ -167,5 +182,349 @@ qcm_answers    id, question_id → qcm_questions (cascade), text, is_correct, ex
 
 - [ ] Dérouler le critère de sortie du §1 dans le navigateur, sur ordinateur et à largeur téléphone.
 - [ ] README : comment lancer l'application et accéder au module QCM.
-- [ ] Mettre à jour le statut de ce plan et du PRD QCM (§8).
+- [ ] Mettre à jour le statut de ce plan (vue d'ensemble) et du PRD QCM (§8).
 - [ ] `composer qa` vert ; `php artisan laraskel:outillage --check` conforme ; PR.
+
+---
+
+## 5. Lot 2 — Questionnaires, examens et échanges
+
+### 5.1 Objectif et périmètre
+
+Toujours sans connexion, l'utilisateur peut :
+
+1. exporter et importer une banque (UC-06, UC-07) ;
+2. composer des questionnaires, listes de questions propres et de questions de banque, à la main ou
+   par tirage au hasard dans des banques (UC-08) ;
+3. définir des examens qui utilisent un questionnaire, avec tous leurs paramètres, y compris ceux
+   qui ne servent qu'au lot 3 (UC-20) ;
+4. exporter et importer un questionnaire ou un examen (UC-16, UC-17).
+
+Critère de sortie (PRD §8) : l'utilisateur importe une banque et un examen existants, modifie le
+questionnaire, exporte l'examen, et le fichier réimporté redonne le même questionnaire et le même
+examen.
+
+Hors lot 2 : la prévisualisation de l'examen (lot 3, elle réutilise l'écran de passage) ; aucun
+passage n'est encore possible.
+
+### 5.2 Décisions techniques
+
+| Sujet | Décision | Alternatives écartées |
+|---|---|---|
+| Appartenance d'une question | `qcm_questions.bank_id` devient nullable et une colonne `questionnaire_id` nullable est ajoutée ; exactement l'une des deux est renseignée, contrôlé dans le modèle (événement `saving`, exception en français) et par les tests. Formulaire de question, réponses, image et étude restent inchangés. | Propriétaire polymorphe (`owner_type` / `owner_id`) : perd les clés étrangères et la suppression en cascade. Table séparée pour les questions propres : duplique réponses, image, formulaire et export. |
+| Liste d'un questionnaire | Table pivot ordonnée `qcm_questionnaire_questions` (questionnaire, question, position) pour **toutes** ses questions, propres et de banque : un seul ordre, une seule liste. | Deux listes (questions propres par `questionnaire_id`, questions de banque par pivot) : l'ordre mélangé des deux devient compliqué. |
+| Examen | Table `qcm_exams` qui référence le questionnaire (`restrictOnDelete` : un questionnaire utilisé ne peut pas être supprimé, PRD UC-08 3b) ; l'examen pose toutes les questions du questionnaire (Q21 tranchée). | Paramètres d'examen portés par le questionnaire : mélange liste de questions et conditions de passage, ce que le PRD distingue. |
+| Génération par tirage | Réutilise `ModuleCatalog::forBanks()` (modules disponibles) et `StudyDraw::draw()` (tirage par module) du MVP, en excluant les questions déjà présentes ; les questions tirées sont ajoutées au pivot comme questions de banque. Rien du tirage n'est conservé. | Règles de tirage enregistrées et rejouées à chaque passage : écarté par le PRD (Q21), les candidats doivent avoir le même questionnaire. |
+| Paramètres de l'examen | Colonnes simples (durée, taux minimal, mélange, correction détaillée, passages maximum) ; champs d'identification en colonne JSON castée en tableau typé. | Table dédiée aux champs d'identification : aucune requête ne porte dessus. |
+| Format CSV | En-tête obligatoire ; colonnes `enonce`, `bonne_reponse`, `explication`, `module`, `illustration`, puis paires `mauvaise_reponse_N` / `explication_N` (N = 1…6). Séparateur `;` ou `,` détecté sur l'en-tête ; UTF-8, BOM toléré ; colonne inconnue signalée et ignorée. Lecture et écriture avec `fgetcsv` / `fputcsv`. | `league/csv` : nouvelle dépendance, non nécessaire. JSON seul : peu pratique à produire depuis un tableur. |
+| Format ZIP | `questions.csv`, `images/<fichier>`, et un fichier de paramètres `banque.json`, `questionnaire.json` ou `examen.json` (ce dernier contient aussi les paramètres du questionnaire), avec `format_version` ; `ZipArchive` (extension `zip` présente). Taille d'archive maximale dans `config/qcm.php`. | CSV + JSON séparés sans archive : les images ne voyagent pas. |
+| Import en deux temps | Analyse qui produit un rapport (`ImportReport`) sans rien écrire ; le fichier analysé est conservé sur le disque `local` (`qcm/imports/<uuid>`) jusqu'à la confirmation ou l'annulation, puis supprimé ; écriture dans une transaction à la confirmation. | Actions `ImportAction` / `ExportAction` de Filament : elles exigent un utilisateur connecté, une file d'attente et des tables d'import, et traitent une ligne = un modèle, sans réponses imbriquées ni archive d'images. |
+| Doublons | Énoncé normalisé (minuscules, espaces réduits, ponctuation finale retirée) comparé dans la cible et dans le fichier. | Distance d'édition : coûteuse sur 1 000 questions et source de faux positifs. |
+| Code | Espace de noms `App\Qcm\Exchange\` : `QuestionCsvReader`, `QuestionCsvWriter`, `ExchangeArchive`, `ImportReport`, `BankExporter`, `BankImporter`, `QuestionnaireExporter`, `QuestionnaireImporter` (questionnaire seul ou avec examen). Formulaire de question extrait de `QuestionsRelationManager` dans un schéma partagé `QuestionFormSchema`. | — |
+
+### 5.3 Modèle de données (ajouts)
+
+```
+qcm_questions               bank_id → nullable ; + questionnaire_id? → qcm_questionnaires (cascade)
+qcm_questionnaires          id, title, description?, version?, auditColumns
+qcm_questionnaire_questions id, questionnaire_id (cascade), question_id (cascade), position, auditColumns
+qcm_exams                   id, title, instructions?, questionnaire_id → qcm_questionnaires (restrict),
+                            duration_minutes?, pass_rate, shuffle_questions,
+                            shows_correction, max_attempts?, identification_fields (json), auditColumns
+```
+
+`identification_fields` : liste de `{champ: nom|prenom|email|date_naissance|organisation|identifiant, libelle?, obligatoire}` ;
+nom et prénom toujours présents et obligatoires.
+
+### Étape 4 — Fichier d'échange ; export et import des banques (UC-06, UC-07)
+
+**Logique**
+
+- [ ] `config/qcm.php` : `import_max_kb` (taille maximale d'une archive), `max_wrong_answers` (6).
+- [ ] `QuestionCsvWriter` : en-tête et une ligne par question (mauvaises réponses dans l'ordre de `position`), nom de fichier d'image unique dans l'archive.
+- [ ] `QuestionCsvReader` : détection du séparateur ; vérification de l'en-tête (colonnes obligatoires manquantes → erreur de fichier qui liste les colonnes attendues) ; validation de chaque ligne (énoncé, bonne réponse, au moins une mauvaise réponse, explication sans réponse) ; lignes valides et erreurs avec numéro de ligne.
+- [ ] `ExchangeArchive` : ouvre un ZIP ou un CSV seul ; lit le fichier de paramètres et `format_version` ; refuse les chemins qui sortent de l'archive (`../`), les fichiers d'image qui ne sont pas des images ou dépassent `image_max_kb` ; écrit l'archive dans un fichier temporaire.
+- [ ] `ImportReport` : questions valides, erreurs, doublons (dans le fichier et avec la cible), modules absents de la cible, images référencées absentes, paramètres ignorés.
+- [ ] `BankExporter` : banque entière ou sélection → CSV ou ZIP, nom de fichier `banque-<slug>-<date>.zip`.
+- [ ] `BankImporter` : `analyse(fichier, banque cible | nouvelle)` → rapport ; `import(rapport, traitementDoublons)` → questions, réponses et images dans une transaction ; images copiées sur le disque `public` ; fichier temporaire supprimé dans tous les cas.
+
+**Interface**
+
+- [ ] Liste des banques : action « Importer une banque » (téléversement → rapport dans une fenêtre → nom et description modifiables, traitement des doublons → confirmer / annuler).
+- [ ] Dans une banque : « Importer des questions » (banque cible imposée) ; « Exporter (CSV) » et « Exporter (ZIP) » sur la banque et en action groupée sur une sélection de questions.
+- [ ] Rapport lisible : compteurs, tableau des erreurs (ligne, motif), doublons, modules nouveaux, images manquantes ; notification finale avec le nombre de questions importées et ignorées.
+- [ ] Fichiers exemples `public/exemples/qcm/banque-exemple.csv` et `banque-exemple.zip`, liés depuis la fenêtre d'import et la documentation.
+
+**Tests**
+
+- [ ] Aller-retour : banque avec images, modules et explications → export ZIP → import dans une nouvelle banque → contenu identique (énoncés, réponses, explications, modules, contenu des images).
+- [ ] CSV : séparateur `;` et `,`, BOM, nombre variable de mauvaises réponses, colonne inconnue signalée.
+- [ ] Erreurs : fichier non CSV, en-tête incomplet, ligne sans bonne réponse, sans mauvaise réponse ; une ligne en erreur n'empêche pas les autres ; aucune écriture à l'analyse ; annulation → rien d'importé, fichier temporaire supprimé.
+- [ ] Doublons dans le fichier et avec la banque cible ; « ignorer » et « importer quand même ».
+- [ ] Sécurité de l'archive : chemin `../` refusé, image non image refusée, archive trop grosse refusée avec un message qui donne la taille maximale.
+- [ ] Nom de nouvelle banque déjà pris : message et demande d'un autre nom.
+- [ ] Interface : actions d'import et d'export avec Livewire (`Storage::fake`).
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur » ; référence du format (colonnes, fichiers de paramètres) avec liens vers les fichiers exemples.
+- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+
+### Étape 5 — Questionnaires et examens : modèle et édition (UC-08, UC-20)
+
+**Base de données et modèles**
+
+- [ ] Migration : `bank_id` nullable et ajout de `questionnaire_id` sur `qcm_questions` (testée sur SQLite et sur le SGBD de production).
+- [ ] Migrations `qcm_questionnaires`, `qcm_questionnaire_questions`, `qcm_exams` (§5.3), `auditColumns()`.
+- [ ] Modèle `Questionnaire` : `questions()` (pivot ordonné), `ownQuestions()`, `exams()`, `moduleNames()` ; suppression → questions propres (et images) supprimées, refus si un examen l'utilise (message qui nomme les examens).
+- [ ] Modèle `Exam` : `questionnaire()` ; casts ; énumération `IdentificationField`.
+- [ ] `Question` : `questionnaire()`, contrôle « banque ou questionnaire, exactement un », `isOwn()` ; suppression d'une question de banque utilisée par un questionnaire : la confirmation cite les questionnaires, le lien est retiré.
+- [ ] Fabriques `QuestionnaireFactory` (`withOwnQuestions(n)`, `withBankQuestions(bank, n)`), `ExamFactory`.
+
+**Interface**
+
+- [ ] Extraire le formulaire de question dans `QuestionFormSchema` ; `QuestionsRelationManager` l'utilise (pas de changement visible, tests existants verts).
+- [ ] Ressource `QuestionnaireResource` : liste (titre, version, nombre de questions, nombre d'examens), création, modification, duplication (questions propres copiées, questions de banque partagées), suppression avec confirmation.
+- [ ] Gestionnaire de relation « Questions » du questionnaire : liste ordonnée réordonnable (énoncé, module, « propre » ou nom de la banque) ; « Nouvelle question » (question propre) ; « Ajouter depuis une banque » (choix de la banque, filtre par module, sélection multiple, questions déjà présentes exclues) ; « Retirer » (question de banque) ou « Supprimer » (question propre) avec confirmations distinctes.
+- [ ] Action « Tirer des questions au hasard » dans le questionnaire, et « Générer un questionnaire par tirage » dans la liste des questionnaires (titre, banques, puis tableau des modules issu de `ModuleCatalog::forBanks()` avec nombre disponible, nombre à tirer ou « toutes ») ; notification du nombre de questions ajoutées et des modules ramenés au disponible.
+- [ ] Ressource `ExamResource` : liste (titre, questionnaire, nombre de questions posées, durée, taux minimal), création, modification, duplication, suppression avec confirmation.
+- [ ] Formulaire d'examen, en sections : général (titre, consignes, questionnaire) ; nombre de questions posées, au total et par module (lecture seule) ; réussite et durée (taux minimal, durée facultative) ; passage (correction détaillée oui / non, mélange, passages maximum) ; identification (nom et prénom affichés comme imposés ; e-mail, date de naissance, organisation, identifiant libre avec libellé, chacun « non demandé / facultatif / obligatoire »).
+- [ ] Action « Créer un examen » depuis un questionnaire (questionnaire présélectionné).
+- [ ] Navigation : « Questionnaires » et « Examens » dans le panel, après « Banques de questions ».
+
+**Tests**
+
+- [ ] Modèle : une question ne peut avoir ni banque et questionnaire à la fois, ni aucun des deux ; suppression d'un questionnaire → questions propres, réponses et images supprimées, questions de banque intactes ; suppression refusée si un examen l'utilise ; suppression d'une banque → liens retirés des questionnaires.
+- [ ] Étude libre : les questions propres n'apparaissent jamais dans `ModuleCatalog` ni `StudyDraw` (Q22, choix provisoire).
+- [ ] Questionnaire : ajout propre, ajout depuis une banque, réordonnancement, retrait, suppression, duplication.
+- [ ] Génération par tirage : nombre exact par module, « toutes », demande supérieure au disponible ramenée avec message, modules regroupés sans majuscules entre banques, questions déjà présentes jamais tirées une seconde fois ; le questionnaire enregistré ne change plus ensuite.
+- [ ] Examen : validation (titre et questionnaire obligatoires, taux entre 0 et 100, durée positive, libellé obligatoire pour l'identifiant libre).
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Composer un questionnaire », « Ajouter des questions propres ou prises dans une banque », « Générer un questionnaire par tirage », « Définir un examen », « Choisir les renseignements demandés aux candidats ».
+- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+
+### Étape 6 — Export et import des questionnaires et des examens (UC-16, UC-17)
+
+**Logique**
+
+- [ ] `QuestionnaireExporter` : questionnaire → CSV (questions dans l'ordre, questions de banque écrites en entier) ou ZIP (CSV, images, `questionnaire.json`) ; examen → ZIP (son questionnaire et `examen.json` avec tous les paramètres).
+- [ ] `QuestionnaireImporter` : analyse → rapport (paramètres lus, invalides remplacés par défaut) ; import → nouveau questionnaire, toutes les questions en questions propres dans l'ordre du fichier, et nouvel examen si `examen.json` est présent (Q24, choix provisoire).
+- [ ] Valeurs par défaut d'un examen dans `config/qcm.php` (`exam_defaults.pass_rate`, durée nulle, correction détaillée oui) en attendant Q11.
+- [ ] Croisements : fichier de questionnaire ou d'examen importé dans une banque (étape 4) → questions seules, paramètres signalés comme ignorés ; fichier de banque importé comme questionnaire → titre = nom de la banque.
+
+**Interface**
+
+- [ ] Liste des questionnaires : « Importer un questionnaire ou un examen » (téléversement → rapport → titres modifiables → confirmer / annuler) ; ouverture de ce qui a été créé.
+- [ ] Questionnaire : « Exporter (CSV) », « Exporter (ZIP) » ; examen : « Exporter (ZIP) ».
+- [ ] Fichiers exemples `questionnaire-exemple.zip` et `examen-exemple.zip`.
+
+**Tests**
+
+- [ ] Aller-retour questionnaire : questions propres et de banque, images, version → export ZIP → import → questionnaire équivalent (questions, ordre, titre, version).
+- [ ] Aller-retour examen : tous les paramètres, champs d'identification compris → examen équivalent sur le nouveau questionnaire.
+- [ ] CSV seul → questionnaire seul, titre = nom du fichier.
+- [ ] Paramètres invalides (taux 150, champ d'identification inconnu, `format_version` future) → valeur par défaut ou rejet, avec message.
+- [ ] Croisements banque ↔ questionnaire.
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Exporter un questionnaire ou un examen », « Importer un questionnaire ou un examen » ; référence de `questionnaire.json` et `examen.json`.
+- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+
+### Étape 7 — Clôture du lot 2
+
+- [ ] Dérouler le critère de sortie du §5.1 dans le navigateur, avec un fichier réel de questions de préparation à l'examen théorique.
+- [ ] Mesurer l'import de 1 000 questions (exigence : moins d'une minute, PRD §7) ; noter le résultat ici.
+- [ ] Mettre à jour le statut de ce plan et du PRD QCM (§8) ; `composer qa` vert ; PR.
+
+---
+
+## 6. Lot 3 — Passage, résultats et certificats
+
+### 6.1 Objectif et périmètre
+
+Toujours sans connexion, sur le poste où l'application est ouverte :
+
+1. un candidat s'identifie, passe un examen (chronométré ou non), obtient son certificat de
+   résultat imprimable et, si l'examen le prévoit, la correction détaillée (UC-12, UC-13) ;
+2. l'utilisateur consulte et exporte les résultats (UC-09) et réédite un certificat (UC-19).
+
+Critère de sortie (PRD §8) : un candidat s'identifie, passe un examen blanc chronométré et imprime
+son certificat ; l'utilisateur modifie ensuite le questionnaire, retrouve le résultat et réédite le
+même certificat.
+
+### 6.2 Décisions techniques
+
+| Sujet | Décision | Alternatives écartées |
+|---|---|---|
+| Passage et résultat séparés | Le **passage** (`qcm_attempts` + `qcm_attempt_items`) tient l'état pendant l'examen : questions posées, ordre des réponses, réponse choisie, marque-pages, échéance. Le **résultat** (`qcm_results`) est une ligne autonome écrite à la fin : identité, date, titres de l'examen et du questionnaire, version, taux par module, taux global, taux minimal, réussite, numéro de certificat. Le certificat ne lit que `qcm_results`. | Instantané complet des questions pour chaque passage : inutile, le certificat ne présente pas les questions (PRD UC-19). Résultat recalculé à partir des réponses : dépendrait des questions, modifiables. |
+| Réponses après la fin | Les lignes `qcm_attempt_items` sont conservées (identifiants de question et de réponse) pour les statistiques de v1 (UC-10) et une éventuelle neutralisation (Q13) ; elles ne servent ni au certificat ni à la réédition. Leur conservation suivra Q20. | Suppression à la fin du passage : simple, mais rend UC-10 et Q13 impossibles pour les passages déjà faits. |
+| Correction détaillée | Affichée à la fin du passage, dans le même écran, à partir des lignes du passage et des questions actuelles ; une question supprimée entre-temps est signalée comme telle. Non conservée. | — |
+| Écran de passage | Composant Livewire pleine page **hors du panel Filament** (route `/examens/...`), mise en page Blade + Tailwind de l'application (Vite). Le panel lance le passage. Au lot 4, le même écran sert au lien de diffusion sans exposer le panel. | Page du panel : le candidat verrait la navigation du panel et, au lot 4, il faudrait refaire l'écran. |
+| Chronomètre | `deadline_at` calculé au démarrage ; temps restant donné par le serveur, compte à rebours affiché par le navigateur et resynchronisé à chaque requête ; tout accès à un passage échu le termine (clôture paresseuse) ; commande planifiée `qcm:terminer-passages-echus` pour les passages abandonnés. | Chronomètre seulement côté navigateur : contournable (PRD UC-12). |
+| Reprise après coupure | Identifiant du passage gardé dans la session Laravel ; rouvrir la page reprend le passage (Q12 : le chronomètre continue). | Lien de reprise à recopier : inutile sur un poste partagé. |
+| Certificat | Vue Blade avec feuille d'impression (A4, noir et blanc) et bouton « Imprimer » ; le PDF passe par l'impression du navigateur (Q17, option a, choix provisoire, aucune dépendance nouvelle). | PDF produit par le serveur (`dompdf`, `browsershot`) : nouvelle dépendance à faire approuver ; à reprendre si Q17 retient (b) ou (c). |
+| Numéro de certificat | `AAAAMMJJ-XXXXXX` (6 caractères aléatoires base 32 sans caractères ambigus), unique. | Séquentiel : devinable. ULID : trop long à dicter. |
+
+### 6.3 Modèle de données (ajouts)
+
+```
+qcm_attempts       id, exam_id? → qcm_exams (nullOnDelete), status [in_progress|finished|expired],
+                   identity (json), started_at, deadline_at?, finished_at?, auditColumns
+qcm_attempt_items  id, attempt_id (cascade), position, question_id? → qcm_questions (nullOnDelete),
+                   answer_order (json : identifiants des réponses dans l'ordre affiché),
+                   chosen_answer_id?, bookmarked, answered_at?, auditColumns
+qcm_results        id, attempt_id? → qcm_attempts (nullOnDelete), certificate_number (unique),
+                   identity (json), last_name, first_name, email? (index), taken_at,
+                   exam_title, questionnaire_title, questionnaire_version?,
+                   module_rates (json : libellé, taux), global_rate, pass_rate, passed, auditColumns
+```
+
+### Étape 8 — Passages et résultats : modèle et logique
+
+- [ ] Migrations `qcm_attempts`, `qcm_attempt_items`, `qcm_results` (§6.3), `auditColumns()`.
+- [ ] Modèles `Attempt`, `AttemptItem`, `Result` ; énumération `AttemptStatus` ; fabriques (`finished()`, `expired()`).
+- [ ] Service `App\Qcm\Exams\AttemptStarter` : valide l'identité selon `identification_fields` (règles par champ, messages en français qui nomment le champ) ; vérifie le nombre maximal de passages (par e-mail s'il est demandé, sinon par nom + prénom) ; prend toutes les questions du questionnaire, dans l'ordre ou mélangées ; mélange les réponses ; calcule `deadline_at`.
+- [ ] Service `AttemptRecorder` : enregistrer / changer une réponse, poser / retirer un marque-page ; refus si le passage est terminé ou échu (message).
+- [ ] Service `AttemptFinisher` : termine le passage, calcule les taux par module (`ModuleCatalog::key()`) et global, compare au taux minimal, écrit le `Result` avec les titres et la version du moment et un numéro de certificat unique ; une question non répondue est fausse.
+- [ ] Clôture paresseuse des passages échus et commande `qcm:terminer-passages-echus` planifiée toutes les minutes.
+
+**Tests**
+
+- [ ] Identité : champs obligatoires, e-mail et date mal formés, champ non demandé ignoré.
+- [ ] Composition : toutes les questions du questionnaire, ordre fixe et mélangé.
+- [ ] Réponses : dernière réponse retenue ; réponse après la fin refusée ; marque-pages.
+- [ ] Résultat : taux par module et global, réussite / échec au seuil exact ; non répondues comptées fausses ; titres et version enregistrés.
+- [ ] Indépendance : modifier puis supprimer questions, questionnaire et examen après le passage → `Result` inchangé.
+- [ ] Chronomètre : passage terminé automatiquement après l'échéance (horloge simulée), y compris par la commande.
+- [ ] Nombre maximal de passages atteint → démarrage refusé avec message.
+- [ ] `composer qa` vert ; commit.
+
+### Étape 9 — Écran de passage, certificat et correction (UC-12, UC-13)
+
+- [ ] Mise en page publique `resources/views/qcm/layouts/examen.blade.php` (Vite, Tailwind), sans navigation du panel.
+- [ ] Composant Livewire `App\Qcm\Livewire\TakeExam` : accueil (titre, consignes, nombre de questions, durée, taux minimal, information sur les données personnelles) → identification → questions.
+- [ ] Écran question : énoncé, image, réponses ; précédent / suivant ; marque-page ; liste des questions (répondue, non répondue, marquée), cliquable ; compte à rebours avec avertissements à 5 minutes et 1 minute.
+- [ ] Fin : récapitulatif des non répondues et marquées, confirmation ; fin automatique à l'échéance.
+- [ ] Certificat (`resources/views/qcm/certificat.blade.php`) : contenu du PRD UC-12, lu dans `qcm_results` ; feuille d'impression A4 ; bouton « Imprimer ».
+- [ ] Correction détaillée après le certificat si l'examen la prévoit ; filtres fausses / non répondues / marquées.
+- [ ] Depuis le panel : « Faire passer » sur un examen (nouvel onglet) ; « Prévisualiser » (UC-20, étape 5) : même écran, identité fictive, aucun passage ni résultat enregistré.
+- [ ] Reprise après rechargement ou fermeture de l'onglet (session).
+
+**Tests**
+
+- [ ] Livewire : parcours complet identification → réponses → fin → certificat ; refus de démarrer sans champ obligatoire ; navigation, marque-pages, liste des questions.
+- [ ] Aucune bonne réponse ni explication dans le HTML rendu avant la fin du passage.
+- [ ] Certificat : identité, titres, version, taux, réussite, numéro ; aucune question.
+- [ ] Correction détaillée présente ou absente selon l'examen.
+- [ ] Prévisualisation : rien d'enregistré.
+- [ ] Reprise : rechargement → même passage, mêmes réponses, même échéance.
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Faire passer un examen sur ce poste », « Imprimer ou enregistrer son certificat », « Prévisualiser un examen ».
+- [ ] `composer qa` vert ; vérification manuelle dans le navigateur (ordinateur, téléphone, aperçu d'impression) ; commit.
+
+### Étape 10 — Liste des résultats (UC-09)
+
+- [ ] Ressource `ResultResource` « Résultats » : colonnes identité, date, examen, questionnaire et version, taux global, réussite, numéro ; détail avec les taux par module ; recherche (nom, e-mail, organisation, identifiant libre, numéro) ; filtres (examen, période, réussite) ; résultats d'examens supprimés inclus.
+- [ ] Gestionnaire de relation « Résultats » dans l'examen.
+- [ ] Export CSV des résultats filtrés : identité, date, examen, questionnaire, version, taux par module, taux global, réussite.
+- [ ] Suppression d'un résultat avec confirmation (« le certificat ne pourra plus être réédité »).
+
+**Tests**
+
+- [ ] Liste, recherche et filtres ; résultat d'un examen supprimé visible.
+- [ ] Export CSV : une ligne par résultat, colonnes attendues (une colonne par module rencontré), caractères accentués.
+- [ ] Suppression d'un résultat.
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Consulter les résultats », « Exporter les résultats ».
+- [ ] `composer qa` vert ; commit.
+
+### Étape 11 — Réédition d'un certificat (UC-19)
+
+- [ ] Action « Rééditer le certificat » sur un résultat : vue du certificat avec la mention « Réédition du *date* ».
+- [ ] Recherche directe par numéro de certificat ; numéro inconnu ou résultat supprimé → message explicite.
+
+**Tests**
+
+- [ ] Certificat réédité identique à l'original, à la mention de réédition près, après modification puis suppression des questions, du questionnaire et de l'examen.
+- [ ] Numéro inconnu, résultat supprimé.
+
+**Documentation utilisateur**
+
+- [ ] `doc/users/qcm.md` : « Renvoyer un certificat à un candidat ».
+- [ ] `composer qa` vert ; commit.
+
+### Étape 12 — Clôture du lot 3
+
+- [ ] Dérouler le critère de sortie du §6.1 dans le navigateur, sur ordinateur et téléphone, avec aperçu d'impression.
+- [ ] RGPD : documenter dans `doc/users/qcm.md` comment supprimer les résultats d'une personne ; la durée de conservation attend Q20.
+- [ ] Mettre à jour le statut de ce plan et du PRD QCM (§8) ; `composer qa` vert ; PR.
+
+---
+
+## 7. Lot 4 — Diffusion en ligne
+
+### 7.1 Objectif et périmètre
+
+Le formateur se connecte ; il diffuse un examen par un lien ; des candidats sans compte, sur leur
+propre appareil, s'identifient et passent l'examen ; le formateur suit les résultats et renvoie les
+certificats, y compris par e-mail (UC-18, compléments de UC-09 et UC-19).
+
+### 7.2 Décisions techniques
+
+| Sujet | Décision | Alternatives écartées |
+|---|---|---|
+| Connexion du formateur | Le panel `qcm` retrouve `->login()` et `authMiddleware` ; comptes du socle (`laraskel-users`), créés par l'administrateur dans `/admin`. Tout compte connecté est formateur jusqu'aux rôles de v1. `created_by` / `updated_by` se remplissent. | Mot de passe unique dans `.env` : non traçable, à jeter en v1. |
+| Lien de diffusion | Colonne `share_token` (40 caractères aléatoires) sur l'examen ; route publique `/e/{token}` vers l'écran de passage du lot 3 ; régénérer le jeton invalide l'ancien lien. | Identifiant de l'examen dans l'URL : devinable (PRD UC-18). |
+| Options de diffusion | Colonnes `share_open`, `share_opens_at`, `share_closes_at`, `share_end_message`, `share_emails_certificate`. Passages maximum : option existante, comptée par e-mail. | — |
+| Abus | Limiteur de débit Laravel sur le démarrage d'un passage, par adresse IP (Q23, option b, choix provisoire). | Captcha : service tiers ou dépendance ; à décider (Q23). |
+| E-mail | `Mailable` avec lien signé vers le certificat (pas de pièce jointe PDF tant que Q17 n'a pas retenu un PDF serveur) ; envoi en file d'attente. | — |
+
+### Étape 13 — Connexion du formateur
+
+- [ ] Réactiver la connexion du panel `qcm` ; garder `/` → `/qcm` ; l'écran de passage reste hors du panel.
+- [ ] Tests : panel inaccessible sans connexion (ressources, exports, certificats) ; « Faire passer » du lot 3 accessible seulement depuis une session connectée ; colonnes d'audit remplies.
+- [ ] README et `doc/users/qcm.md` : création du premier compte, connexion.
+- [ ] `composer qa` vert ; commit.
+
+### Étape 14 — Diffusion par lien (UC-18)
+
+- [ ] Migration : colonnes de diffusion sur `qcm_exams`.
+- [ ] Examen : section « Diffusion » (ouvrir / fermer, dates, message de fin, envoi du certificat par e-mail) ; affichage et copie du lien ; « Régénérer le lien » avec confirmation.
+- [ ] Route publique `/e/{token}` : diffusion fermée, pas encore ouverte, terminée → page explicite avec les dates ; sinon écran de passage ; un passage commencé avant la fermeture peut se terminer.
+- [ ] Limiteur de débit sur le démarrage ; message clair en cas de dépassement.
+- [ ] Avertissement à la modification d'un examen ou de son questionnaire qui ont des passages en cours.
+
+**Tests**
+
+- [ ] Lien valide, inconnu, régénéré (ancien refusé) ; diffusion fermée, avant ouverture, après fermeture ; passage commencé avant la fermeture terminé.
+- [ ] Par le lien, aucune page du panel, aucun autre examen, aucun résultat accessible.
+- [ ] Passages maximum par e-mail ; limiteur de débit.
+
+### Étape 15 — Certificat par e-mail et suivi (UC-18, UC-19, UC-09)
+
+- [ ] `Mailable` du certificat (lien signé) envoyé à la fin du passage si l'option est active ; depuis la réédition, envoi à l'adresse du candidat ou à une adresse saisie.
+- [ ] Liste des résultats rafraîchie automatiquement pendant une diffusion ouverte.
+- [ ] Tests : `Mail::fake` (envoi, destinataire, lien) ; lien signé altéré refusé.
+- [ ] `doc/users/qcm.md` : « Diffuser un examen par un lien », « Fermer la diffusion », « Envoyer un certificat par e-mail ».
+- [ ] `composer qa` vert ; commit.
+
+### Étape 16 — Clôture du lot 4
+
+- [ ] Dérouler le critère de sortie du PRD §8 avec deux appareils (formateur, et candidat sur téléphone).
+- [ ] Vérifier la tenue de 100 passages simultanés (PRD §7) ; noter le résultat ici.
+- [ ] README : prérequis d'une exposition sur Internet (HTTPS, envoi d'e-mails, file d'attente, planificateur).
+- [ ] Mettre à jour le statut de ce plan et du PRD QCM (§8) ; `composer qa` vert ; PR.
+
+---
+
+## 8. Lots suivants
+
+Le lot 5 (compléments d'édition et d'étude), v1 et v2 seront détaillés ici avant leur démarrage ;
+leur contenu est décrit au PRD §8.

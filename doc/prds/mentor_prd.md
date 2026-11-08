@@ -44,7 +44,7 @@ Mentor est construit comme un ensemble de **modules indépendants qui s'utilisen
 
 | Module | Rôle | Utilise | PRD | Cas d'utilisation du présent PRD |
 |---|---|---|---|---|
-| **QCM** | Gérer des banques de questions ; créer, faire passer et corriger des examens à partir de ces banques. | — | [qcm_prd.md](qcm_prd.md) | UC-11, 12, 13, 19, 20, 21 (import QCM) |
+| **QCM** | Gérer des banques de questions et des questionnaires ; définir des examens (dont les examens blancs) ; importer et exporter banques, questionnaires et examens ; faire passer les examens à des candidats identifiés et leur délivrer un certificat de résultat. | — | [qcm_prd.md](qcm_prd.md) | UC-11, 12, 13, 19, 20, 21 (import QCM) |
 | **Leitner** | Étude par répétition espacée avec des questions / réponses. Utilise les questions QCM et des questions textuelles (réponse libre). | QCM | `doc/prds/leitner_prd.md` *(à rédiger)* | UC-10, 10b, 10c |
 | **Présentation** | Créer et afficher des présentations, équivalent PowerPoint. Pour commencer, les pages sont des pages Markdown ; l'usage d'une bibliothèque existante (reveal.js, Marp…) reste possible (Q7). | — | `doc/prds/presentation_prd.md` *(à rédiger)* | UC-18 (présentations) |
 | **Déroulement de support** | Dérouler des présentations, des PDF, des vidéos, en enregistrant les temps de lecture. | Présentation | `doc/prds/deroulement_prd.md` *(à rédiger)* | UC-04, 04b |

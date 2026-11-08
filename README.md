@@ -34,7 +34,7 @@ Mentor s'architecture sur des modules indépendants qui s'utilisent les uns les 
 ## Documentation
 
 - [PRD d'ensemble](doc/prds/mentor_prd.md) — parcours intégré et architecture (§1.4).
-- [Plan du MVP QCM](doc/plans/qcm_plan.md) — étapes avec cases à cocher.
+- [Plan du module QCM](doc/plans/qcm_plan.md) — lots et étapes avec cases à cocher.
 - Chaque module a son PRD indépendant dans `doc/prds/` :
   - [QCM](doc/prds/qcm_prd.md) ;
   - à rédiger : `leitner_prd.md`, `presentation_prd.md`, `deroulement_prd.md`, `coach_prd.md`.
