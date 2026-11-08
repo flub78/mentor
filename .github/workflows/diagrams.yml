@@ -1,0 +1,61 @@
+name: Diagrammes
+
+# Vérifie que toute source PlantUML modifiée est accompagnée de son image
+# régénérée dans le même diff. La vérification est purement basée sur l'historique
+# Git (aucun rendu en CI) : déterministe, indépendante de la version de PlantUML,
+# des polices ou de Graphviz. Le développeur régénère en local avec vendor/bin/laraskel-puml.
+
+on:
+  pull_request:
+    paths: ['doc/**']
+  push:
+    branches: [main]
+    paths: ['doc/**']
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sources .puml et images synchronisées
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Chaque .puml modifié a son image dans le même diff
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            base="origin/${GITHUB_BASE_REF}"
+            git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF}"
+            range="${base}...HEAD"
+          else
+            base="${{ github.event.before }}"
+            if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+              base="HEAD^"
+            fi
+            range="${base}..HEAD"
+          fi
+
+          echo "Comparaison : ${range}"
+          changed="$(git diff --name-only "${range}")"
+
+          fail=0
+          while IFS= read -r puml; do
+            [ -z "${puml}" ] && continue
+            png="${puml%.puml}.png"
+            if ! printf '%s\n' "${changed}" | grep -qxF "${png}"; then
+              echo "::error file=${puml}::${puml} a changé sans régénérer ${png} — lance vendor/bin/laraskel-puml puis committe l'image."
+              fail=1
+            else
+              echo "✓ ${puml} -> ${png}"
+            fi
+          done < <(printf '%s\n' "${changed}" | grep -E '\.puml$' || true)
+
+          if [ "${fail}" -eq 0 ]; then
+            echo "Diagrammes synchronisés."
+          fi
+          exit "${fail}"
