@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM, MVP
 
-- **Statut** : en cours — étape 0 livrée
+- **Statut** : en cours — étapes 0 et 1 livrées
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots », lot MVP
@@ -92,39 +92,42 @@ qcm_answers    id, question_id → qcm_questions (cascade), text, is_correct, ex
 
 **Base de données et modèles**
 
-- [ ] Migration `create_qcm_banks_table` : colonnes du §3, `name` unique, `auditColumns()`.
-- [ ] Migration `create_qcm_questions_table` : clé étrangère `bank_id` en cascade, index sur `(bank_id, module)`.
-- [ ] Migration `create_qcm_answers_table` : clé étrangère `question_id` en cascade, `position` entier.
-- [ ] Modèles `App\Qcm\Models\Bank`, `Question`, `Answer` avec relations (`Bank::questions`, `Question::answers`, `Question::correctAnswer`, `Question::wrongAnswers`) et trait `TracksAuthor`.
-- [ ] `Bank::moduleNames()` : noms de module distincts des questions de la banque, triés, pour l'autocomplétion.
-- [ ] Suppression du fichier image lors du remplacement de l'image et de la suppression d'une question (y compris en cascade depuis une banque).
-- [ ] Fabriques `BankFactory`, `QuestionFactory` (avec un état `withAnswers(wrong: 3)`), `AnswerFactory`.
+- [x] Migration `create_qcm_banks_table` : colonnes du §3, `name` unique, `auditColumns()`.
+- [x] Migration `create_qcm_questions_table` : clé étrangère `bank_id` en cascade, index sur `(bank_id, module)`.
+- [x] Migration `create_qcm_answers_table` : clé étrangère `question_id` en cascade, `position` entier.
+- [x] Modèles `App\Qcm\Models\Bank`, `Question`, `Answer` avec relations (`Bank::questions`, `Question::answers`, `Question::correctAnswer`, `Question::wrongAnswers`) et trait `TracksAuthor`.
+- [x] `Bank::moduleNames()` : noms de module distincts des questions de la banque, triés, pour l'autocomplétion.
+- [x] Suppression du fichier image lors du remplacement de l'image et de la suppression d'une question (y compris en cascade depuis une banque).
+- [x] Fabriques `BankFactory`, `QuestionFactory` (avec un état `withAnswers(wrong: 3)`), `AnswerFactory`.
 
 **Interface**
 
-- [ ] Ressource Filament `BankResource` : liste (nom, description, nombre de questions), création, modification, suppression avec confirmation indiquant le nombre de questions supprimées.
-- [ ] Gestionnaire de relation `QuestionsRelationManager` dans la banque : liste (énoncé tronqué, module, présence d'image), filtre par module, création, modification, suppression avec confirmation.
-- [ ] Formulaire de question :
-  - [ ] énoncé (texte multiligne, obligatoire) ;
-  - [ ] bonne réponse (obligatoire) ;
-  - [ ] mauvaises réponses : répéteur, 3 lignes par défaut, au moins 1, chaque ligne avec texte obligatoire et explication facultative ;
-  - [ ] explication générale facultative ;
-  - [ ] image facultative (`FileUpload`, images seulement, taille maximale à fixer dans la config, Q8) ;
-  - [ ] module : champ texte avec suggestions `Bank::moduleNames()` de la banque courante (`TextInput::datalist`).
-- [ ] Enregistrement de la question et de ses réponses dans une transaction ; positions des réponses conservées.
-- [ ] Messages de succès et d'erreur explicites pour chaque action (règle commune UX).
+- [x] Ressource Filament `BankResource` : liste (nom, description, nombre de questions), création, modification, suppression avec confirmation indiquant le nombre de questions supprimées.
+- [x] Gestionnaire de relation `QuestionsRelationManager` dans la banque : liste (énoncé tronqué, module, présence d'image), filtre par module, création, modification, suppression avec confirmation.
+- [x] Formulaire de question :
+  - [x] énoncé (texte multiligne, obligatoire) ;
+  - [x] bonne réponse (obligatoire) ;
+  - [x] mauvaises réponses : répéteur, 3 lignes par défaut, au moins 1, chaque ligne avec texte obligatoire et explication facultative ;
+  - [x] explication générale facultative ;
+  - [x] image facultative (`FileUpload`, images seulement, taille maximale `config/qcm.php`, `QCM_IMAGE_MAX_KB`, 2 Mo par défaut, Q8) ;
+  - [x] module : champ texte avec suggestions `Bank::moduleNames()` de la banque courante (`TextInput::datalist`).
+- [x] Enregistrement de la question et de ses réponses dans une transaction (`databaseTransactions()` sur le panel) ; bonne réponse en position 0, mauvaises réponses en 1…n.
+- [x] Après création d'une banque, ouverture directe de la banque pour y saisir les questions.
+- [x] Messages de succès et d'erreur explicites pour chaque action (règle commune UX) : notifications Filament, confirmations de suppression qui annoncent ce qui sera perdu, messages propres au module (nom de banque déjà pris, image refusée, mauvaise réponse manquante).
+- [ ] Messages de validation standard de Laravel en français (« Le champ … est obligatoire ») : ils sont aujourd'hui en anglais, faute de traductions françaises dans les briques Laraskel. À traiter dans Laraskel (brique de traductions), pas par copie dans Mentor.
 
 **Tests**
 
-- [ ] Modèles : relations ; `moduleNames()` ne renvoie que les modules de la banque, sans doublon ; suppression d'une banque → questions, réponses et images supprimées.
-- [ ] Ressource banque : créer, renommer, supprimer ; nom obligatoire et unique.
-- [ ] Questions : créer avec 3 mauvaises réponses ; refus sans énoncé, sans bonne réponse, sans mauvaise réponse ; modifier les réponses ; supprimer ; filtre par module.
-- [ ] Image : envoi stocké sur le disque `public` (`Storage::fake`) ; remplacement et suppression effacent l'ancien fichier ; refus d'un fichier qui n'est pas une image.
+- [x] Tests sur base SQLite en mémoire avec `RefreshDatabase` (base non partagée, propre à chaque exécution).
+- [x] Modèles : relations ; module vide ramené à « sans module » ; `moduleNames()` ne renvoie que les modules de la banque, sans doublon ; suppression d'une banque → questions, réponses et images supprimées.
+- [x] Ressource banque : créer, renommer, supprimer ; nom obligatoire et unique.
+- [x] Questions : créer avec 3 mauvaises réponses ; refus sans énoncé, sans bonne réponse, sans mauvaise réponse ; modifier les réponses ; supprimer ; filtre par module.
+- [x] Image : envoi stocké sur le disque `public` (`Storage::fake`) ; remplacement et suppression effacent l'ancien fichier ; refus d'un fichier qui n'est pas une image.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Créer une banque », « Saisir une question », « Réutiliser un nom de module ».
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur (ordinateur et largeur téléphone) ; commit.
+- [x] `doc/users/qcm.md` : « Créer une banque », « Saisir une question », « Réutiliser un nom de module ».
+- [x] `composer qa` vert ; vérification manuelle dans le navigateur (ordinateur et largeur téléphone) ; commit.
 
 ### Étape 2 — Étude libre
 

@@ -32,6 +32,7 @@ class QcmPanelProvider extends PanelProvider
             ->path('qcm')
             ->default()
             ->brandName('Mentor — QCM')
+            ->databaseTransactions()
             ->colors([
                 'primary' => Color::Amber,
             ])
