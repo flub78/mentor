@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module QCM, MVP
 
-- **Statut** : en cours — étapes 0 et 1 livrées
+- **Statut** : en cours — étapes 0 à 2 livrées (vérification manuelle de l'étape 2 à faire)
 - **Date** : 2026-11-08
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [qcm_prd.md](../prds/qcm_prd.md), §8 « Découpage en lots », lot MVP
@@ -133,31 +133,35 @@ qcm_answers    id, question_id → qcm_questions (cascade), text, is_correct, ex
 
 **Logique**
 
-- [ ] Service `App\Qcm\Study\ModuleCatalog` : pour une liste de banques, regroupe les questions par module sans tenir compte des majuscules, avec libellé (forme la plus fréquente) et nombre de questions ; groupe « Sans module ».
-- [ ] Service `App\Qcm\Study\StudyDraw` : à partir d'un nombre demandé par module (ou « toutes »), tire les questions au hasard, sans doublon ; un nombre supérieur au disponible est ramené au disponible, avec un message.
-- [ ] Objet `StudySession` (sérialisable dans Livewire) : liste des identifiants de questions, ordre mélangé des réponses par question, réponses données, score courant, score par module.
+- [x] Service `App\Qcm\Study\ModuleCatalog` : pour une liste de banques, regroupe les questions par module sans tenir compte des majuscules, avec libellé (forme la plus fréquente) et nombre de questions ; groupe « Sans module ».
+- [x] Service `App\Qcm\Study\StudyDraw` : à partir d'un nombre demandé par module (ou « toutes »), tire les questions au hasard, sans doublon ; un nombre supérieur au disponible est ramené au disponible, avec un message.
+- [x] Objet `StudySession` (sérialisable dans Livewire) : liste des identifiants de questions, ordre mélangé des réponses par question, réponses données, score courant, score par module.
 
 **Page d'étude (`App\Qcm\Filament\Pages\Study`)**
 
-- [ ] Écran 1, configuration : choix d'une ou plusieurs banques ; tableau des modules avec le nombre disponible, un champ nombre et une case « toutes » par module ; bouton « Commencer » désactivé tant que le total est nul.
-- [ ] Écran 2, question : énoncé, image éventuelle, réponses mélangées ; l'utilisateur choisit et valide.
-- [ ] Après validation : bonne ou mauvaise réponse signalée, bonne réponse mise en évidence, explication de la mauvaise réponse choisie et explication générale si elles existent ; bouton « Question suivante ».
-- [ ] En permanence : pourcentage de bonnes réponses depuis le début de la session et nombre de questions restantes.
-- [ ] Écran 3, bilan : taux global, taux par module, liste des questions échouées avec leur bonne réponse ; bouton « Nouvelle session ».
-- [ ] Lien « Étudier » dans la navigation du panel et depuis la liste des banques (banque présélectionnée).
-- [ ] Affichage utilisable à largeur téléphone.
+- [x] Écran 1, configuration : choix d'une ou plusieurs banques ; tableau des modules avec le nombre disponible, un champ nombre et une case « toutes » par module ; bouton « Commencer » désactivé tant que le total est nul.
+- [x] Écran 2, question : énoncé, image éventuelle, réponses mélangées ; l'utilisateur choisit et valide.
+- [x] Après validation : bonne ou mauvaise réponse signalée, bonne réponse mise en évidence, explication de la mauvaise réponse choisie et explication générale si elles existent ; bouton « Question suivante ».
+- [x] En permanence : pourcentage de bonnes réponses depuis le début de la session et nombre de questions restantes.
+- [x] Écran 3, bilan : taux global, taux par module, liste des questions échouées avec leur bonne réponse ; bouton « Nouvelle session ».
+- [x] Lien « Étudier » dans la navigation du panel et depuis la liste des banques (banque présélectionnée par `?bank=`, action visible si la banque a des questions).
+- [x] Bouton « Terminer la session » : arrête la session et affiche le bilan des questions déjà répondues.
+- [x] Question supprimée pendant la session : message et passage à la suivante.
+- [x] Mise en page avec les composants Blade de Filament (section, badge, callout, bouton, champs) et quelques styles en ligne, le panel utilisant la feuille précompilée de Filament ; lignes repliables pour la largeur téléphone.
 
 **Tests**
 
-- [ ] `ModuleCatalog` : « Météo » et « météo » forment un seul module ; libellé majoritaire ; groupe « Sans module » ; plusieurs banques.
-- [ ] `StudyDraw` : nombre exact par module ; « toutes » ; demande supérieure au disponible ; pas de doublon.
-- [ ] Page : session complète (configuration → réponses → bilan) avec Livewire ; bonne et mauvaise réponse mettent à jour le pourcentage ; le bilan par module est juste ; une question ne peut pas être validée sans réponse choisie.
-- [ ] Mélange : sur une question, l'ordre des réponses n'est pas toujours le même (tirage répété avec graine contrôlée).
+- [x] `ModuleCatalog` : « Météo » et « météo » forment un seul module ; libellé majoritaire ; groupe « Sans module » ; plusieurs banques.
+- [x] `StudyDraw` : nombre exact par module ; « toutes » ; demande supérieure au disponible ; pas de doublon.
+- [x] Page : session complète (configuration → réponses → bilan) avec Livewire ; bonne et mauvaise réponse mettent à jour le pourcentage ; le bilan par module est juste ; une question ne peut pas être validée sans réponse choisie.
+- [x] Mélange : sur une question, l'ordre des réponses n'est pas toujours le même (tirage répété avec graine contrôlée).
+- [x] Session : réponse d'une autre question ou double réponse refusées ; état conservé à travers la sérialisation Livewire ; démarrage refusé avec message (aucune banque, aucune question) ; fin anticipée.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Lancer une session d'étude », « Lire le bilan ».
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+- [x] `doc/users/qcm.md` : « Lancer une session d'étude », « Lire le bilan ».
+- [x] `composer qa` vert ; commit.
+- [ ] Vérification manuelle dans le navigateur (ordinateur et largeur téléphone).
 
 ### Étape 3 — Clôture du MVP
 

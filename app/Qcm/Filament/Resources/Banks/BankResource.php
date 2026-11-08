@@ -34,6 +34,8 @@ class BankResource extends Resource
 
     protected static ?string $navigationLabel = 'Banques de questions';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Schema $schema): Schema
     {
         return BankForm::configure($schema);

@@ -26,3 +26,25 @@ Pour modifier ou supprimer une question, utilisez **Modifier** ou **Supprimer** 
 ## Réutiliser un nom de module
 
 Le module est un texte libre qui regroupe les questions par thème (par exemple « Météorologie », « Réglementation »). En saisissant le module, le champ propose les noms déjà utilisés dans la banque : choisissez-en un plutôt que d'en taper une variante (« Météo » et « Météorologie » seraient deux modules différents).
+
+## Lancer une session d'étude
+
+1. Ouvrez **Étudier** dans le menu, ou cliquez sur **Étudier** sur la ligne d'une banque (elle est alors déjà cochée).
+2. Cochez une ou plusieurs banques. Les modules de ces banques s'affichent, avec le nombre de questions disponibles ; les modules de même nom sont regroupés, majuscules comprises (« Météo » et « météo » ne font qu'un).
+3. Pour chaque module, laissez **Toutes** coché, ou décochez-le et indiquez le nombre de questions voulu (0 pour ignorer le module). Le nombre total de questions tirées s'affiche sous la liste.
+4. Cliquez sur **Commencer**. Les questions sont tirées au hasard et les réponses sont mélangées.
+5. Pour chaque question, choisissez une réponse puis cliquez sur **Valider**. Vous voyez aussitôt si elle est bonne, la bonne réponse, l'explication de votre mauvaise réponse et l'explication générale quand elles existent. Cliquez ensuite sur **Question suivante**.
+
+En haut de la page, le pourcentage de bonnes réponses depuis le début de la session et le nombre de questions restantes sont mis à jour à chaque réponse. **Terminer la session** arrête la session et affiche le bilan des questions déjà répondues.
+
+La session n'est pas enregistrée : recharger la page ou la quitter la perd.
+
+## Lire le bilan
+
+À la fin de la session, le bilan affiche :
+
+- le pourcentage global de bonnes réponses ;
+- un tableau par module : bonnes réponses sur questions répondues, et taux ;
+- la liste des questions échouées, avec leur bonne réponse.
+
+**Nouvelle session** revient au choix des banques, en gardant vos réglages.
