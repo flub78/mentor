@@ -30,6 +30,19 @@ final class ModuleCatalog
     }
 
     /**
+     * Libellé d'un groupe de modules : la forme la plus fréquente ; à égalité,
+     * la première dans l'ordre alphabétique, pour rester stable.
+     *
+     * @param  array<string, int>  $spellings  nombre de questions par graphie
+     */
+    public static function preferredLabel(array $spellings): string
+    {
+        uksort($spellings, fn (string $a, string $b): int => [$spellings[$b], $a] <=> [$spellings[$a], $b]);
+
+        return (string) array_key_first($spellings);
+    }
+
+    /**
      * @param  list<int>  $bankIds
      * @return list<array{key: string, label: string, count: int}> modules triés par libellé, « Sans module » en dernier
      */
@@ -82,11 +95,7 @@ final class ModuleCatalog
         $modules = [];
 
         foreach ($groups as $key => $group) {
-            $spellings = $group['spellings'];
-            // Forme la plus fréquente ; à égalité, ordre alphabétique pour rester stable.
-            uksort($spellings, fn (string $a, string $b): int => [$spellings[$b], $a] <=> [$spellings[$a], $b]);
-
-            $modules[] = ['key' => (string) $key, 'label' => (string) array_key_first($spellings), 'count' => $group['count']];
+            $modules[] = ['key' => (string) $key, 'label' => self::preferredLabel($group['spellings']), 'count' => $group['count']];
         }
 
         usort($modules, fn (array $a, array $b): int => [$a['key'] === self::NO_MODULE_KEY, mb_strtolower($a['label'])]

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laraskel\Users\Models\Concerns\TracksAuthor;
 
 /**
@@ -71,6 +72,16 @@ class Exam extends Model
     public function questionnaire(): BelongsTo
     {
         return $this->belongsTo(Questionnaire::class);
+    }
+
+    /**
+     * Passages de l'examen, en cours et terminés.
+     *
+     * @return HasMany<Attempt, $this>
+     */
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(Attempt::class);
     }
 
     public function requirement(IdentificationField $field): FieldRequirement

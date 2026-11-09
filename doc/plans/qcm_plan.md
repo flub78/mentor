@@ -13,7 +13,7 @@
 |---|---|---|---|
 | MVP | Banques, questions, étude libre | 0 à 3 (§4) | En cours |
 | Lot 2 — Questionnaires, examens et échanges | Fichier d'échange, import / export des banques, des questionnaires et des examens, questionnaires (questions propres, de banque, génération par tirage), définition des examens | 4 à 7 (§5) | À faire |
-| Lot 3 — Passage, résultats et certificats | Identification, passage chronométré, certificat imprimable, correction détaillée, liste des résultats, réédition | 8 à 12 (§6) | À faire |
+| Lot 3 — Passage, résultats et certificats | Identification, passage chronométré, certificat imprimable, correction détaillée, liste des résultats, réédition | 8 à 12 (§6) | En cours |
 | Lot 4 — Diffusion en ligne | Connexion du formateur, diffusion d'un examen par lien, envoi du certificat par e-mail | 13 à 16 (§7) | À faire |
 | Lot 5, v1, v2 | Compléments d'édition et d'étude, comptes et rôles, etc. | À détailler (§8) | — |
 
@@ -376,7 +376,7 @@ même certificat.
 | Chronomètre | `deadline_at` calculé au démarrage ; temps restant donné par le serveur, compte à rebours affiché par le navigateur et resynchronisé à chaque requête ; tout accès à un passage échu le termine (clôture paresseuse) ; commande planifiée `qcm:terminer-passages-echus` pour les passages abandonnés. | Chronomètre seulement côté navigateur : contournable (PRD UC-12). |
 | Reprise après coupure | Identifiant du passage gardé dans la session Laravel ; rouvrir la page reprend le passage (Q12 : le chronomètre continue). | Lien de reprise à recopier : inutile sur un poste partagé. |
 | Certificat | Vue Blade avec feuille d'impression (A4, noir et blanc) et bouton « Imprimer » ; le PDF passe par l'impression du navigateur (Q17, option a, choix provisoire, aucune dépendance nouvelle). | PDF produit par le serveur (`dompdf`, `browsershot`) : nouvelle dépendance à faire approuver ; à reprendre si Q17 retient (b) ou (c). |
-| Numéro de certificat | `AAAAMMJJ-XXXXXX` (6 caractères aléatoires base 32 sans caractères ambigus), unique. | Séquentiel : devinable. ULID : trop long à dicter. |
+| Numéro de certificat | `AAAAMMJJ-XXXXXX` (6 caractères aléatoires en base 32 de Crockford, sans I, L, O ni U), unique. | Séquentiel : devinable. ULID : trop long à dicter. |
 
 ### 6.3 Modèle de données (ajouts)
 
@@ -389,28 +389,28 @@ qcm_attempt_items  id, attempt_id (cascade), position, question_id? → qcm_ques
 qcm_results        id, attempt_id? → qcm_attempts (nullOnDelete), certificate_number (unique),
                    identity (json), last_name, first_name, email? (index), taken_at,
                    exam_title, questionnaire_title, questionnaire_version?,
-                   module_rates (json : libellé, taux), global_rate, pass_rate, passed, auditColumns
+                   module_rates (json : libellé, bonnes réponses, total, taux), global_rate, pass_rate, passed, auditColumns
 ```
 
 ### Étape 8 — Passages et résultats : modèle et logique
 
-- [ ] Migrations `qcm_attempts`, `qcm_attempt_items`, `qcm_results` (§6.3), `auditColumns()`.
-- [ ] Modèles `Attempt`, `AttemptItem`, `Result` ; énumération `AttemptStatus` ; fabriques (`finished()`, `expired()`).
-- [ ] Service `App\Qcm\Exams\AttemptStarter` : valide l'identité selon `identification_fields` (règles par champ, messages en français qui nomment le champ) ; vérifie le nombre maximal de passages (par e-mail s'il est demandé, sinon par nom + prénom) ; prend toutes les questions du questionnaire, dans l'ordre ou mélangées ; mélange les réponses ; calcule `deadline_at`.
-- [ ] Service `AttemptRecorder` : enregistrer / changer une réponse, poser / retirer un marque-page ; refus si le passage est terminé ou échu (message).
-- [ ] Service `AttemptFinisher` : termine le passage, calcule les taux par module (`ModuleCatalog::key()`) et global, compare au taux minimal, écrit le `Result` avec les titres et la version du moment et un numéro de certificat unique ; une question non répondue est fausse.
-- [ ] Clôture paresseuse des passages échus et commande `qcm:terminer-passages-echus` planifiée toutes les minutes.
+- [x] Migrations `qcm_attempts`, `qcm_attempt_items`, `qcm_results` (§6.3), `auditColumns()`.
+- [x] Modèles `Attempt`, `AttemptItem`, `Result` ; énumération `AttemptStatus` ; fabriques (`finished()`, `expired()`).
+- [x] Service `App\Qcm\Exams\AttemptStarter` : valide l'identité selon `identification_fields` (règles par champ, messages en français qui nomment le champ) ; vérifie le nombre maximal de passages (par e-mail s'il est demandé, sinon par nom + prénom) ; prend toutes les questions du questionnaire, dans l'ordre ou mélangées ; mélange les réponses ; calcule `deadline_at`.
+- [x] Service `AttemptRecorder` : enregistrer / changer une réponse, poser / retirer un marque-page ; refus si le passage est terminé ou échu (message).
+- [x] Service `AttemptFinisher` : termine le passage, calcule les taux par module (`ModuleCatalog::key()`) et global, compare au taux minimal, écrit le `Result` avec les titres et la version du moment et un numéro de certificat unique ; une question non répondue est fausse ; une question supprimée pendant le passage aussi, rangée dans « Sans module ». Sans effet sur un passage déjà terminé.
+- [x] Clôture paresseuse des passages échus et commande `qcm:terminer-passages-echus` planifiée toutes les minutes.
 
 **Tests**
 
-- [ ] Identité : champs obligatoires, e-mail et date mal formés, champ non demandé ignoré.
-- [ ] Composition : toutes les questions du questionnaire, ordre fixe et mélangé.
-- [ ] Réponses : dernière réponse retenue ; réponse après la fin refusée ; marque-pages.
-- [ ] Résultat : taux par module et global, réussite / échec au seuil exact ; non répondues comptées fausses ; titres et version enregistrés.
-- [ ] Indépendance : modifier puis supprimer questions, questionnaire et examen après le passage → `Result` inchangé.
-- [ ] Chronomètre : passage terminé automatiquement après l'échéance (horloge simulée), y compris par la commande.
-- [ ] Nombre maximal de passages atteint → démarrage refusé avec message.
-- [ ] `composer qa` vert ; commit.
+- [x] Identité : champs obligatoires, e-mail et date mal formés, champ non demandé ignoré.
+- [x] Composition : toutes les questions du questionnaire, ordre fixe et mélangé.
+- [x] Réponses : dernière réponse retenue ; réponse après la fin refusée ; marque-pages.
+- [x] Résultat : taux par module et global, réussite / échec au seuil exact ; non répondues comptées fausses ; titres et version enregistrés.
+- [x] Indépendance : modifier puis supprimer questions, questionnaire et examen après le passage → `Result` inchangé.
+- [x] Chronomètre : passage terminé automatiquement après l'échéance (horloge simulée), y compris par la commande.
+- [x] Nombre maximal de passages atteint → démarrage refusé avec message.
+- [x] `composer qa` vert ; commit.
 
 ### Étape 9 — Écran de passage, certificat et correction (UC-12, UC-13)
 
