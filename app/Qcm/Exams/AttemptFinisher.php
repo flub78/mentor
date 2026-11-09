@@ -150,6 +150,8 @@ final class AttemptFinisher
             'last_name' => $identity[AttemptStarter::LAST_NAME] ?? '',
             'first_name' => $identity[AttemptStarter::FIRST_NAME] ?? '',
             'email' => $identity[IdentificationField::Email->value] ?? null,
+            'organisation' => $identity[IdentificationField::Organisation->value] ?? null,
+            'identifier' => $identity[IdentificationField::Identifier->value] ?? null,
             'taken_at' => $takenAt,
             'exam_title' => $exam === null ? '(examen supprimé)' : $exam->title,
             'questionnaire_title' => $exam === null ? '(questionnaire supprimé)' : $exam->questionnaire->title,

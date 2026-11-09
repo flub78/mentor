@@ -387,7 +387,8 @@ qcm_attempt_items  id, attempt_id (cascade), position, question_id? → qcm_ques
                    answer_order (json : identifiants des réponses dans l'ordre affiché),
                    chosen_answer_id?, bookmarked, answered_at?, auditColumns
 qcm_results        id, attempt_id? → qcm_attempts (nullOnDelete), certificate_number (unique),
-                   identity (json), last_name, first_name, email? (index), taken_at,
+                   identity (json : clé, libellé, valeur), last_name, first_name, email? (index),
+                   organisation? (index), identifier? (index), taken_at,
                    exam_title, questionnaire_title, questionnaire_version?,
                    module_rates (json : libellé, bonnes réponses, total, taux), global_rate, pass_rate, passed, auditColumns
 ```
@@ -440,21 +441,21 @@ qcm_results        id, attempt_id? → qcm_attempts (nullOnDelete), certificate_
 
 ### Étape 10 — Liste des résultats (UC-09)
 
-- [ ] Ressource `ResultResource` « Résultats » : colonnes identité, date, examen, questionnaire et version, taux global, réussite, numéro ; détail avec les taux par module ; recherche (nom, e-mail, organisation, identifiant libre, numéro) ; filtres (examen, période, réussite) ; résultats d'examens supprimés inclus.
-- [ ] Gestionnaire de relation « Résultats » dans l'examen.
-- [ ] Export CSV des résultats filtrés : identité, date, examen, questionnaire, version, taux par module, taux global, réussite.
-- [ ] Suppression d'un résultat avec confirmation (« le certificat ne pourra plus être réédité »).
+- [x] Ressource `ResultResource` « Résultats » : colonnes identité, date, examen, questionnaire et version, taux global, réussite, numéro ; détail avec les taux par module ; recherche (nom, e-mail, organisation, identifiant libre, numéro ; organisation et identifiant en colonnes de `qcm_results` pour la recherche) ; filtres (examen, période, réussite) ; résultats d'examens supprimés inclus.
+- [x] Gestionnaire de relation « Résultats » dans l'examen.
+- [x] Export CSV des résultats filtrés : identité, date, examen, questionnaire, version, taux par module, taux global, réussite.
+- [x] Suppression d'un résultat avec confirmation (« le certificat ne pourra plus être réédité »).
 
 **Tests**
 
-- [ ] Liste, recherche et filtres ; résultat d'un examen supprimé visible.
-- [ ] Export CSV : une ligne par résultat, colonnes attendues (une colonne par module rencontré), caractères accentués.
-- [ ] Suppression d'un résultat.
+- [x] Liste, recherche et filtres ; résultat d'un examen supprimé visible.
+- [x] Export CSV : une ligne par résultat, colonnes attendues (une colonne par module rencontré), caractères accentués.
+- [x] Suppression d'un résultat.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Consulter les résultats », « Exporter les résultats ».
-- [ ] `composer qa` vert ; commit.
+- [x] `doc/users/qcm.md` : « Consulter les résultats », « Exporter les résultats ».
+- [x] `composer qa` vert ; commit.
 
 ### Étape 11 — Réédition d'un certificat (UC-19)
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Laraskel\Users\Models\Concerns\TracksAuthor;
 
 /**
@@ -82,6 +83,16 @@ class Exam extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(Attempt::class);
+    }
+
+    /**
+     * Résultats des passages terminés de l'examen (PRD QCM UC-09).
+     *
+     * @return HasManyThrough<Result, Attempt, $this>
+     */
+    public function results(): HasManyThrough
+    {
+        return $this->hasManyThrough(Result::class, Attempt::class);
     }
 
     public function requirement(IdentificationField $field): FieldRequirement

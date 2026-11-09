@@ -122,6 +122,28 @@ Le certificat présente l'examen, le questionnaire et sa version, l'identité sa
 
 Cliquez sur **Imprimer ou enregistrer en PDF** : la boîte d'impression du navigateur s'ouvre, avec le certificat seul sur une page A4. Pour un PDF, choisissez « Enregistrer au format PDF » comme imprimante.
 
+## Consulter les résultats
+
+Chaque passage terminé enregistre un **résultat**. Ouvrez **Résultats** dans le menu pour tous les examens, ou ouvrez un examen : ses résultats sont listés sous le formulaire.
+
+- **Rechercher** : tapez un nom, un prénom (dans n'importe quel ordre), une adresse e-mail, une organisation, un identifiant libre ou un numéro de certificat.
+- **Filtrer** (icône entonnoir) : par examen, par période de passage, par mention (réussi / non réussi).
+- **Voir** un résultat : identité, date, examen, questionnaire et version, taux par module, taux global, taux minimal, mention et numéro de certificat.
+
+Les résultats restent consultables après une modification ou une suppression des questions, du questionnaire ou de l'examen : ils gardent les titres et la version du moment du passage.
+
+Pour supprimer un résultat, utilisez **Supprimer** dans la liste ou dans le résultat, puis confirmez. Son certificat ne pourra plus être réédité.
+
+## Exporter les résultats
+
+Dans **Résultats** (ou dans les résultats d'un examen), appliquez si besoin une recherche et des filtres, puis cliquez sur **Exporter (CSV)**. Le fichier contient les résultats affichés, dans le même ordre, à ouvrir dans un tableur :
+
+- une ligne par résultat ;
+- une colonne par renseignement d'identité et par module rencontrés (les modules de même nom sont regroupés, majuscules comprises) ; la case est vide si le module n'a pas été posé à ce candidat ;
+- la date du passage, l'examen, le questionnaire et sa version, le taux global, le taux minimal, la réussite (Oui / Non) et le numéro de certificat.
+
+Les taux sont des pourcentages écrits avec une virgule (par exemple `66,67`), sans le signe %.
+
 ## Exporter une banque
 
 Ouvrez la banque : au-dessus de la liste des questions, **Exporter** propose deux formats :

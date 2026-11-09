@@ -23,6 +23,8 @@ use Laraskel\Users\Models\Concerns\TracksAuthor;
  * @property string $last_name
  * @property string $first_name
  * @property string|null $email
+ * @property string|null $organisation
+ * @property string|null $identifier identifiant libre
  * @property CarbonInterface $taken_at
  * @property string $exam_title
  * @property string $questionnaire_title
@@ -42,7 +44,7 @@ class Result extends Model
     protected $table = 'qcm_results';
 
     protected $fillable = [
-        'attempt_id', 'certificate_number', 'identity', 'last_name', 'first_name', 'email', 'taken_at',
+        'attempt_id', 'certificate_number', 'identity', 'last_name', 'first_name', 'email', 'organisation', 'identifier', 'taken_at',
         'exam_title', 'questionnaire_title', 'questionnaire_version', 'module_rates', 'global_rate', 'pass_rate', 'passed',
     ];
 

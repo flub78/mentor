@@ -5,6 +5,7 @@ namespace App\Qcm\Filament\Resources\Exams;
 use App\Qcm\Filament\Resources\Exams\Pages\CreateExam;
 use App\Qcm\Filament\Resources\Exams\Pages\EditExam;
 use App\Qcm\Filament\Resources\Exams\Pages\ListExams;
+use App\Qcm\Filament\Resources\Exams\RelationManagers\ResultsRelationManager;
 use App\Qcm\Filament\Resources\Exams\Schemas\ExamForm;
 use App\Qcm\Filament\Resources\Exams\Tables\ExamsTable;
 use App\Qcm\Models\Exam;
@@ -44,6 +45,13 @@ class ExamResource extends Resource
     public static function table(Table $table): Table
     {
         return ExamsTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ResultsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
