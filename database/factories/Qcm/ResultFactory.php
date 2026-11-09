@@ -23,7 +23,10 @@ class ResultFactory extends Factory
         return [
             'attempt_id' => null,
             'certificate_number' => now()->format('Ymd').'-'.strtoupper(fake()->unique()->bothify('??####')),
-            'identity' => ['nom' => $lastName, 'prenom' => $firstName],
+            'identity' => [
+                ['key' => 'nom', 'label' => 'Nom', 'value' => $lastName],
+                ['key' => 'prenom', 'label' => 'Prénom', 'value' => $firstName],
+            ],
             'last_name' => $lastName,
             'first_name' => $firstName,
             'email' => null,

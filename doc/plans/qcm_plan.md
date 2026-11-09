@@ -414,28 +414,29 @@ qcm_results        id, attempt_id? → qcm_attempts (nullOnDelete), certificate_
 
 ### Étape 9 — Écran de passage, certificat et correction (UC-12, UC-13)
 
-- [ ] Mise en page publique `resources/views/qcm/layouts/examen.blade.php` (Vite, Tailwind), sans navigation du panel.
-- [ ] Composant Livewire `App\Qcm\Livewire\TakeExam` : accueil (titre, consignes, nombre de questions, durée, taux minimal, information sur les données personnelles) → identification → questions.
-- [ ] Écran question : énoncé, image, réponses ; précédent / suivant ; marque-page ; liste des questions (répondue, non répondue, marquée), cliquable ; compte à rebours avec avertissements à 5 minutes et 1 minute.
-- [ ] Fin : récapitulatif des non répondues et marquées, confirmation ; fin automatique à l'échéance.
-- [ ] Certificat (`resources/views/qcm/certificat.blade.php`) : contenu du PRD UC-12, lu dans `qcm_results` ; feuille d'impression A4 ; bouton « Imprimer ».
-- [ ] Correction détaillée après le certificat si l'examen la prévoit ; filtres fausses / non répondues / marquées.
-- [ ] Depuis le panel : « Faire passer » sur un examen (nouvel onglet) ; « Prévisualiser » (UC-20, étape 5) : même écran, identité fictive, aucun passage ni résultat enregistré.
-- [ ] Reprise après rechargement ou fermeture de l'onglet (session).
+- [x] Mise en page publique `resources/views/qcm/layouts/examen.blade.php` (Vite, Tailwind), sans navigation du panel.
+- [x] Composant Livewire `App\Qcm\Livewire\TakeExam` : accueil (titre, consignes, nombre de questions, durée, taux minimal, information sur les données personnelles) → identification → questions.
+- [x] Écran question : énoncé, image, réponses ; précédent / suivant ; marque-page ; liste des questions (répondue, non répondue, marquée), cliquable ; compte à rebours avec avertissements à 5 minutes et 1 minute.
+- [x] Fin : récapitulatif des non répondues et marquées, confirmation ; fin automatique à l'échéance.
+- [x] Certificat (`resources/views/qcm/certificat.blade.php`) : contenu du PRD UC-12, lu dans `qcm_results` ; feuille d'impression A4 ; bouton « Imprimer ».
+- [x] Correction détaillée après le certificat si l'examen la prévoit ; filtres fausses / non répondues / marquées.
+- [x] Depuis le panel : « Faire passer » sur un examen (nouvel onglet) ; « Prévisualiser » (UC-20, étape 5) : même écran, identité fictive, aucun passage ni résultat enregistré.
+- [x] Reprise après rechargement ou fermeture de l'onglet (session).
 
 **Tests**
 
-- [ ] Livewire : parcours complet identification → réponses → fin → certificat ; refus de démarrer sans champ obligatoire ; navigation, marque-pages, liste des questions.
-- [ ] Aucune bonne réponse ni explication dans le HTML rendu avant la fin du passage.
-- [ ] Certificat : identité, titres, version, taux, réussite, numéro ; aucune question.
-- [ ] Correction détaillée présente ou absente selon l'examen.
-- [ ] Prévisualisation : rien d'enregistré.
-- [ ] Reprise : rechargement → même passage, mêmes réponses, même échéance.
+- [x] Livewire : parcours complet identification → réponses → fin → certificat ; refus de démarrer sans champ obligatoire ; navigation, marque-pages, liste des questions.
+- [x] Aucune bonne réponse ni explication dans le HTML rendu avant la fin du passage.
+- [x] Certificat : identité, titres, version, taux, réussite, numéro ; aucune question.
+- [x] Correction détaillée présente ou absente selon l'examen.
+- [x] Prévisualisation : rien d'enregistré.
+- [x] Reprise : rechargement → même passage, mêmes réponses, même échéance.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/qcm.md` : « Faire passer un examen sur ce poste », « Imprimer ou enregistrer son certificat », « Prévisualiser un examen ».
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur (ordinateur, téléphone, aperçu d'impression) ; commit.
+- [x] `doc/users/qcm.md` : « Faire passer un examen sur ce poste », « Imprimer ou enregistrer son certificat », « Prévisualiser un examen ».
+- [x] `composer qa` vert ; vérification manuelle dans le navigateur (prévisualisation complète sur ordinateur) ; commit.
+- [ ] Vérification sur téléphone et aperçu d'impression : reportée à l'étape 12 (non réalisable depuis l'outil de navigation).
 
 ### Étape 10 — Liste des résultats (UC-09)
 

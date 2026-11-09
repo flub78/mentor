@@ -7,3 +7,9 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Certificat de résultat : une page A4, noir et blanc (PRD QCM UC-12). */
+@page {
+    size: A4;
+    margin: 15mm;
+}

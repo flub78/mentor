@@ -70,4 +70,30 @@ class ExamResource extends Resource
                 $action->redirect(self::getUrl('edit', ['record' => $copy]));
             });
     }
+
+    /**
+     * Ouvre le passage de l'examen sur ce poste, dans un nouvel onglet
+     * (PRD QCM UC-12).
+     */
+    public static function takeAction(): Action
+    {
+        return Action::make('take')
+            ->label('Faire passer')
+            ->icon(Heroicon::OutlinedPlayCircle)
+            ->tooltip('Ouvre l\'examen pour un candidat, dans un nouvel onglet')
+            ->url(fn (Exam $record): string => route('qcm.examens.passer', $record), shouldOpenInNewTab: true);
+    }
+
+    /**
+     * Ouvre l'écran du candidat avec une identité fictive, sans rien
+     * enregistrer (PRD QCM UC-20, étape 5).
+     */
+    public static function previewAction(): Action
+    {
+        return Action::make('preview')
+            ->label('Prévisualiser')
+            ->icon(Heroicon::OutlinedEye)
+            ->color('gray')
+            ->url(fn (Exam $record): string => route('qcm.examens.apercu', $record), shouldOpenInNewTab: true);
+    }
 }

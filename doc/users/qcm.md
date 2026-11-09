@@ -94,11 +94,33 @@ Un examen fait passer **toutes** les questions d'un questionnaire.
 4. **Passage** : correction détaillée à la fin du passage ou non, ordre des questions mélangé ou non, nombre maximal de passages par candidat (vide : illimité).
 5. **Identification du candidat** : voir ci-dessous.
 
-Le passage des examens par les candidats arrivera dans une prochaine version.
 
 ## Choisir les renseignements demandés aux candidats
 
 Le nom et le prénom sont toujours demandés. Pour chacun des autres renseignements — adresse e-mail, date de naissance, organisation (club, entreprise), identifiant libre — choisissez **Non demandé**, **Facultatif** ou **Obligatoire**. Pour l'identifiant libre, donnez son libellé (par exemple « Numéro de licence »).
+
+## Prévisualiser un examen
+
+Dans la liste des examens ou dans un examen, cliquez sur **Prévisualiser** : l'écran du candidat s'ouvre dans un nouvel onglet, avec une identité fictive déjà remplie. Vous pouvez répondre, marquer des questions, terminer et voir le certificat (numéro « APERÇU ») et la correction. **Rien n'est enregistré** : ni passage, ni résultat.
+
+## Faire passer un examen sur ce poste
+
+1. Dans la liste des examens ou dans un examen, cliquez sur **Faire passer** : l'examen s'ouvre dans un nouvel onglet, sans le menu de l'application. Laissez le candidat s'installer.
+2. Le candidat lit l'accueil (consignes, nombre de questions, durée, taux de réussite minimal), clique sur **Commencer**, puis remplit les renseignements demandés. Un champ obligatoire vide ou mal saisi (adresse e-mail, date) est signalé et l'examen ne démarre pas.
+3. Il répond aux questions dans l'ordre qu'il veut : **Précédente**, **Suivante**, ou un numéro dans la **liste des questions** (fond foncé : répondue ; ★ : marquée). **Marquer** pose un repère pour y revenir. Il peut changer d'avis : la dernière réponse compte.
+4. Si l'examen a une durée, le temps restant est affiché, avec un avertissement à 5 minutes et à 1 minute. À la fin du temps, l'examen se termine seul avec les réponses déjà données.
+5. **Terminer l'examen…** rappelle les questions non répondues (elles comptent comme fausses) et marquées ; **Confirmer et terminer** affiche le certificat, puis la correction détaillée si l'examen la prévoit (filtres : fausses, non répondues, marquées).
+6. Pour le candidat suivant, cliquez sur **Nouveau passage (candidat suivant)**.
+
+Si l'onglet est rechargé ou fermé par erreur, rouvrez l'examen depuis le même navigateur : le passage reprend avec les mêmes réponses, et le chronomètre a continué de tourner. Si le nombre maximal de passages est atteint pour ce candidat (reconnu à son e-mail s'il est demandé, sinon à ses nom et prénom), l'examen ne démarre pas et un message l'indique.
+
+Pour qu'un examen abandonné en cours soit terminé à l'heure même si personne ne rouvre la page, le planificateur de Laravel doit tourner (`php artisan schedule:work`, ou `schedule:run` dans le cron) ; sinon, il est terminé à la prochaine ouverture.
+
+## Imprimer ou enregistrer son certificat
+
+Le certificat présente l'examen, le questionnaire et sa version, l'identité saisie, la date du passage, le taux par module, le taux global, le taux minimal, la mention **Réussi** ou **Non réussi** et un **numéro de certificat** qui permet de le retrouver. Il ne contient pas les questions.
+
+Cliquez sur **Imprimer ou enregistrer en PDF** : la boîte d'impression du navigateur s'ouvre, avec le certificat seul sur une page A4. Pour un PDF, choisissez « Enregistrer au format PDF » comme imprimante.
 
 ## Exporter une banque
 

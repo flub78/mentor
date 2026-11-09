@@ -37,7 +37,9 @@ class ExamsTable
             ->modifyQueryUsing(fn ($query) => $query->with('questionnaire'))
             ->defaultSort('title')
             ->recordActions([
+                ExamResource::takeAction(),
                 EditAction::make(),
+                ExamResource::previewAction(),
                 ExamResource::duplicateAction(),
                 ExportQuestionnaireActions::exam(),
                 DeleteAction::make(),

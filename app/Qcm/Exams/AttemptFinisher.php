@@ -6,9 +6,11 @@ use App\Qcm\Models\Answer;
 use App\Qcm\Models\Attempt;
 use App\Qcm\Models\AttemptItem;
 use App\Qcm\Models\AttemptStatus;
+use App\Qcm\Models\Exam;
 use App\Qcm\Models\IdentificationField;
 use App\Qcm\Models\Result;
 use App\Qcm\Study\ModuleCatalog;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Random\Randomizer;
 
@@ -89,13 +91,30 @@ final class AttemptFinisher
     private function writeResult(Attempt $attempt): Result
     {
         $attempt->load(['items.question', 'items.chosenAnswer', 'exam.questionnaire']);
-        $exam = $attempt->exam;
 
+        return $attempt->result()->create([
+            ...$this->resultAttributes($attempt->items, $attempt->exam, $attempt->identity, $attempt->started_at),
+            'certificate_number' => $this->certificateNumber($attempt),
+        ]);
+    }
+
+    /**
+     * Contenu du résultat, sans numéro de certificat ni enregistrement (la
+     * prévisualisation s'en sert aussi). Les lignes du passage doivent porter
+     * leurs relations `question` et `chosenAnswer`.
+     *
+     * @param  iterable<AttemptItem>  $items
+     * @param  array<string, string>  $identity
+     * @return array<string, mixed>
+     */
+    public function resultAttributes(iterable $items, ?Exam $exam, array $identity, CarbonInterface $takenAt): array
+    {
         /** @var array<string, array{correct: int, total: int, spellings: array<string, int>}> $modules */
         $modules = [];
         $correct = 0;
+        $total = 0;
 
-        foreach ($attempt->items as $item) {
+        foreach ($items as $item) {
             $module = $item->question?->module;
             $key = ModuleCatalog::key($module);
             $isCorrect = $this->isCorrect($item);
@@ -106,9 +125,9 @@ final class AttemptFinisher
             $spelling = $module ?? ModuleCatalog::NO_MODULE_LABEL;
             $modules[$key]['spellings'][$spelling] = ($modules[$key]['spellings'][$spelling] ?? 0) + 1;
             $correct += (int) $isCorrect;
+            $total++;
         }
 
-        $total = $attempt->items->count();
         $moduleRates = [];
 
         foreach ($modules as $key => $module) {
@@ -124,25 +143,23 @@ final class AttemptFinisher
         usort($moduleRates, fn (array $a, array $b): int => [$a['key'] === ModuleCatalog::NO_MODULE_KEY, mb_strtolower($a['label'])]
             <=> [$b['key'] === ModuleCatalog::NO_MODULE_KEY, mb_strtolower($b['label'])]);
 
-        $passRate = (int) ($exam->pass_rate ?? 0);
-        $identity = $attempt->identity;
+        $passRate = $exam === null ? 0 : $exam->pass_rate;
 
-        return $attempt->result()->create([
-            'certificate_number' => $this->certificateNumber($attempt),
-            'identity' => $identity,
+        return [
+            'identity' => AttemptStarter::identityLines($exam, $identity),
             'last_name' => $identity[AttemptStarter::LAST_NAME] ?? '',
             'first_name' => $identity[AttemptStarter::FIRST_NAME] ?? '',
             'email' => $identity[IdentificationField::Email->value] ?? null,
-            'taken_at' => $attempt->started_at,
-            'exam_title' => $exam->title ?? '(examen supprimé)',
-            'questionnaire_title' => $exam->questionnaire->title ?? '(questionnaire supprimé)',
+            'taken_at' => $takenAt,
+            'exam_title' => $exam === null ? '(examen supprimé)' : $exam->title,
+            'questionnaire_title' => $exam === null ? '(questionnaire supprimé)' : $exam->questionnaire->title,
             'questionnaire_version' => $exam?->questionnaire->version,
             'module_rates' => array_map(fn (array $rate): array => array_diff_key($rate, ['key' => true]), $moduleRates),
             'global_rate' => self::rate($correct, $total),
             'pass_rate' => $passRate,
             // Comparaison exacte, sans arrondi : correct / total >= taux / 100.
             'passed' => $total > 0 && $correct * 100 >= $passRate * $total,
-        ]);
+        ];
     }
 
     private function isCorrect(AttemptItem $item): bool

@@ -48,19 +48,11 @@ final class AttemptStarter
     public function start(Exam $exam, array $identity): Attempt
     {
         $identity = $this->validateIdentity($exam, $identity);
-
-        $questions = $exam->questionnaire->questions()->with('answers')->get();
-
-        if ($questions->isEmpty()) {
-            throw AttemptException::emptyQuestionnaire($exam);
-        }
-
+        $items = $this->compose($exam);
         $this->ensureAttemptsLeft($exam, $identity);
-
-        $questions = $exam->shuffle_questions ? $this->randomizer->shuffleArray($questions->all()) : $questions->all();
         $startedAt = now();
 
-        return DB::transaction(function () use ($exam, $identity, $questions, $startedAt): Attempt {
+        return DB::transaction(function () use ($exam, $identity, $items, $startedAt): Attempt {
             $attempt = Attempt::create([
                 'exam_id' => $exam->id,
                 'status' => AttemptStatus::InProgress,
@@ -69,17 +61,39 @@ final class AttemptStarter
                 'deadline_at' => $exam->duration_minutes ? $startedAt->copy()->addMinutes($exam->duration_minutes) : null,
             ]);
 
-            foreach (array_values($questions) as $position => $question) {
-                /** @var Question $question */
-                $attempt->items()->create([
-                    'position' => $position,
-                    'question_id' => $question->id,
-                    'answer_order' => $this->randomizer->shuffleArray($question->answers->modelKeys()),
-                ]);
+            foreach ($items as $position => $item) {
+                $attempt->items()->create(['position' => $position, ...$item]);
             }
 
             return $attempt;
         });
+    }
+
+    /**
+     * Questions posées : toutes celles du questionnaire, dans l'ordre ou
+     * mélangées selon l'examen, avec leurs réponses toujours mélangées.
+     * Rien n'est enregistré (la prévisualisation s'en sert aussi).
+     *
+     * @return list<array{question_id: int, answer_order: list<int>}>
+     *
+     * @throws AttemptException questionnaire vide
+     */
+    public function compose(Exam $exam): array
+    {
+        $questions = $exam->questionnaire->questions()->with('answers')->get()->all();
+
+        if ($questions === []) {
+            throw AttemptException::emptyQuestionnaire($exam);
+        }
+
+        if ($exam->shuffle_questions) {
+            $questions = $this->randomizer->shuffleArray($questions);
+        }
+
+        return array_map(fn (Question $question): array => [
+            'question_id' => $question->id,
+            'answer_order' => array_map(intval(...), $this->randomizer->shuffleArray($question->answers->modelKeys())),
+        ], array_values($questions));
     }
 
     /**
@@ -104,12 +118,41 @@ final class AttemptStarter
     }
 
     /**
+     * Identité présentée avec ses libellés, dans l'ordre de saisie. Sans
+     * examen (supprimé depuis), les libellés par défaut sont utilisés.
+     *
+     * @param  array<string, string>  $identity
+     * @return list<array{key: string, label: string, value: string}>
+     */
+    public static function identityLines(?Exam $exam, array $identity): array
+    {
+        $labels = $exam !== null ? self::fieldLabels($exam) : [self::LAST_NAME => 'Nom', self::FIRST_NAME => 'Prénom'];
+        $keys = array_unique([...array_keys($labels), ...array_keys($identity)]);
+        $lines = [];
+
+        foreach ($keys as $key) {
+            if (isset($identity[$key]) && $identity[$key] !== '') {
+                $lines[] = [
+                    'key' => $key,
+                    'label' => $labels[$key] ?? IdentificationField::tryFrom($key)?->label() ?? $key,
+                    'value' => $identity[$key],
+                ];
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * Valide l'identité saisie selon les exigences de l'examen, sans rien
+     * enregistrer.
+     *
      * @param  array<string, mixed>  $identity
      * @return array<string, string> identité retenue : champs demandés et renseignés, espaces de bord retirés
      *
      * @throws ValidationException
      */
-    private function validateIdentity(Exam $exam, array $identity): array
+    public function validateIdentity(Exam $exam, array $identity): array
     {
         $labels = self::fieldLabels($exam);
         $values = [];

@@ -19,7 +19,7 @@ use Laraskel\Users\Models\Concerns\TracksAuthor;
  * @property int $id
  * @property int|null $attempt_id
  * @property string $certificate_number
- * @property array<string, string> $identity
+ * @property list<array{key: string, label: string, value: string}> $identity renseignements saisis, avec leur libellé du moment
  * @property string $last_name
  * @property string $first_name
  * @property string|null $email
@@ -56,6 +56,16 @@ class Result extends Model
             'pass_rate' => 'integer',
             'passed' => 'boolean',
         ];
+    }
+
+    /**
+     * Taux en pourcentage, à la française : « 66,67 % », « 75 % ».
+     */
+    public static function formatRate(float $rate): string
+    {
+        $formatted = number_format($rate, 2, ',', ' ');
+
+        return (str_ends_with($formatted, ',00') ? substr($formatted, 0, -3) : rtrim($formatted, '0')).' %';
     }
 
     /**

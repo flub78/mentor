@@ -15,6 +15,8 @@ class EditExam extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ExamResource::takeAction(),
+            ExamResource::previewAction(),
             ExportQuestionnaireActions::exam(),
             ExamResource::duplicateAction(),
             DeleteAction::make(),
