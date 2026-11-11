@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.1 (brouillon) |
+| **Version** | 0.2 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Modules utilisateurs** | [QCM](qcm_prd.md), [Leitner](leitner_prd.md) |
 | **Plan** | [banques_plan.md](../plans/banques_plan.md) |
+
+**Évolutions de la version 0.2** : affichage des propositions d'un QCM en liste déroulante avec recherche au-delà de 6 propositions (§6, règles communes).
 
 ---
 
@@ -178,6 +180,7 @@ Pour chaque type : ce que contient la question, comment l'étudiant répond, com
 - La correction par l'IA juge le **fond** (notion, valeurs, unités), pas la formulation ni l'orthographe. Elle ne voit que la question, la réponse de référence, les critères et la réponse de l'étudiant.
 - Une question d'auto-évaluation de type « Vous rappelez-vous comment démontrer le théorème de Pythagore ? » est la forme simple de la question ouverte : l'étudiant juge seul, sans IA.
 - Toute question peut porter une illustration, dans l'énoncé (« Quel est ce monument ? ») ou dans les propositions (QCM, correspondance) *(lot B2)*.
+- **Affichage des propositions d'un QCM** : jusqu'à **6 propositions** (bonne réponse comprise), elles sont affichées toutes ensemble, sous forme de boutons ou de cases à choisir ; à partir de **7**, elles sont présentées dans une **liste déroulante avec recherche**, pour qu'une longue liste (« Quelle est la capitale de… ? » parmi 30 capitales) reste utilisable. Le mélange des réponses s'applique de la même façon. Dans une correction, une question en liste déroulante n'affiche que la réponse choisie, la bonne réponse et l'explication de la mauvaise réponse choisie, pas la liste complète. Cette règle vaut pour tous les modules qui posent des QCM (étude et passage QCM, séance Leitner).
 
 ---
 

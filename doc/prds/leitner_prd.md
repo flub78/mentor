@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.9 (brouillon) |
+| **Version** | 0.10 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.10** : au-delà de 6 propositions, un QCM se répond dans une liste déroulante avec recherche ([PRD Banques](banques_prd.md), §6 ; lot 2).
 
 **Évolutions de la version 0.9** : chaque séance pose la boîte 1 et une seule boîte haute, en rotation (mêmes fréquences, charge régulière d'une séance à l'autre, §7.1).
 
@@ -206,7 +208,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
   3. Le système compose la séance : toutes les questions de la boîte 1 et celles des boîtes dues (§7.1), sauf les questions suspendues, dans l'ordre de présentation choisi.
   4. Pour chaque question :
      1. l'énoncé et l'éventuelle illustration s'affichent ; la boîte d'origine est indiquée discrètement ;
-     2. l'étudiant répond sous la forme propre au type (§6) ;
+     2. l'étudiant répond sous la forme propre au type (§6) ; au-delà de 6 propositions, un QCM se répond dans une liste déroulante avec recherche ;
      3. le système affiche le **verdict**, la réponse attendue, l'explication et, pour une correction IA, la justification ;
      4. la question change de boîte selon le verdict (§7.2).
   5. En permanence, le système affiche la position dans la séance (question 7 / 23) et le taux de bonnes réponses de la séance.
@@ -406,7 +408,7 @@ Les imports et exports se font au niveau des banques, dans le format décrit au 
 - **Utilisation autonome** : le module fonctionne sans le module QCM ; il s'appuie sur le module Banques de questions. Sans interface IA configurée, les questions ouvertes passent en auto-évaluation.
 - **Sans connexion** jusqu'au lot 3 : un utilisateur unique, sur un poste non exposé à Internet (même principe que le module QCM, §1.3 de son PRD).
 - **Plateforme** : application web responsive ; les séances sont confortables sur téléphone (gros boutons, saisie courte, image zoomable).
-- **Clavier** : une séance se fait entièrement au clavier (raccourcis pour vrai / faux, choix QCM, « voir la réponse », « je savais / je ne savais pas », question suivante).
+- **Clavier** : une séance se fait entièrement au clavier (raccourcis pour vrai / faux, choix QCM, « voir la réponse », « je savais / je ne savais pas », question suivante). Pour un QCM présenté en liste déroulante, la recherche se fait au clavier et Entrée valide le choix ; les raccourcis numériques ne s'appliquent qu'aux QCM de 6 propositions au plus.
 - **Fiabilité** : chaque réponse et chaque mouvement de boîte sont enregistrés immédiatement ; une coupure ne fait perdre aucune réponse.
 - **Performances** : passage d'une question à la suivante en moins d'une seconde ; verdict IA en moins de 10 secondes, avec indicateur d'attente ; suite de 5 000 questions sans ralentissement perceptible.
 - **IA** : seules la question, la réponse attendue, les critères et la réponse de l'étudiant sont envoyés à l'agent, sans donnée d'identité ; le fournisseur passe par l'interface LLM du socle Laraskel.
@@ -419,7 +421,7 @@ Les imports et exports se font au niveau des banques, dans le format décrit au 
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
 | **MVP** | Questions des types QCM, vrai / faux, auto-évaluation, valeur numérique ; UC-02, UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
-| **Lot 2 — Types et outils** | Séances avec les types du lot B2 du module Banques (énumération, correspondance, réponse courte) ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur s'entraîne sur une banque de capitales importée, en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
+| **Lot 2 — Types et outils** | Séances avec les types du lot B2 du module Banques (énumération, correspondance, réponse courte) ; QCM de plus de 6 propositions en liste déroulante avec recherche ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur s'entraîne sur une banque de capitales importée, en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
 | **Lot 3 — IA** | Séances avec les questions ouvertes corrigées par l'IA (lot B3 du module Banques), avec bascule en auto-évaluation ; UC-09 pour l'IA | Une suite mêle des questions QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
 | **v1** | Comptes et rôles du socle ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements (traités dans le module Banques) ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
 | **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image (module Banques) ; questions inversées (UC-02) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |

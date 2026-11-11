@@ -539,5 +539,5 @@ certificats, y compris par e-mail (UC-18, compléments de UC-09 et UC-19).
 
 ## 8. Lots suivants
 
-Le lot 5 (compléments d'étude), v1 et v2 seront détaillés ici avant leur démarrage. Les banques et les questions passent au module Banques de questions au lot B1 ([plan Banques](banques_plan.md)), qui reprend aussi les compléments d'édition.
+Le lot 5 (compléments d'étude, dont la liste déroulante avec recherche au-delà de 6 propositions en étude, en passage et en correction, [PRD Banques](../prds/banques_prd.md) §6), v1 et v2 seront détaillés ici avant leur démarrage. Les banques et les questions passent au module Banques de questions au lot B1 ([plan Banques](banques_plan.md)), qui reprend aussi les compléments d'édition.
 Le contenu des lots est décrit au PRD §8.

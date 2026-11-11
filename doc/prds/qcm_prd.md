@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.4 (brouillon) |
+| **Version** | 0.5 (brouillon) |
 | **Date** | 8 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §9 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [qcm_plan.md](../plans/qcm_plan.md) |
+
+**Évolutions de la version 0.5** : au-delà de 6 propositions, les réponses d'une question sont présentées dans une liste déroulante avec recherche, en étude, en passage et en correction ([PRD Banques](banques_prd.md), §6 ; lot 5).
 
 **Évolutions de la version 0.4** : les banques et les questions sont gérées par le module [Banques de questions](banques_prd.md), partagé avec le module Leitner ; toute question vit dans une banque (plus de question propre à un questionnaire : elle va dans une banque, par défaut la banque par défaut) ; le module QCM utilise les questions QCM et les vrai / faux, posés comme des QCM à deux réponses, et ignore les autres types avec un avertissement (§6) ; le fichier d'échange des questions est celui du module Banques.
 
@@ -308,7 +310,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
   1. L'étudiant choisit une ou plusieurs banques.
   2. Pour chaque module, le système affiche le nombre de questions disponibles ; l'étudiant indique combien il en veut, ou choisit « toutes ».
   3. Le système tire les questions au hasard et lance la session.
-  4. Pour chaque question, l'étudiant choisit une réponse et valide. Le système indique **immédiatement** si la réponse est bonne, affiche la bonne réponse, l'explication de la mauvaise réponse choisie et l'explication générale quand elles existent.
+  4. Pour chaque question, l'étudiant choisit une réponse et valide ; au-delà de 6 propositions, il la choisit dans une liste déroulante avec recherche ([PRD Banques](banques_prd.md), §6). Le système indique **immédiatement** si la réponse est bonne, affiche la bonne réponse, l'explication de la mauvaise réponse choisie et l'explication générale quand elles existent.
   5. Le système affiche en permanence le **pourcentage de bonnes réponses depuis le début de la session** et le nombre de questions restantes.
   6. L'étudiant passe à la question suivante.
   7. En fin de session, le système affiche un bilan : taux global, taux par module, liste des questions échouées.
@@ -329,7 +331,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
   1. Le candidat ouvre l'examen : au lot 3, l'utilisateur unique le lance sur le poste ; au lot 4, le candidat suit le lien de diffusion. Le système affiche le titre, les consignes, le nombre de questions, la durée maximale et le taux de réussite minimal.
   2. **Identification** : le candidat remplit les champs d'identification demandés (UC-20, étape 4). Il ne peut pas commencer tant qu'un champ obligatoire est vide ou mal formé (adresse e-mail, date) ; le message dit quel champ corriger.
   3. Le candidat démarre ; si l'examen a une durée, le compte à rebours commence et reste visible.
-  4. Pour chaque question, il choisit une réponse. Il **ne voit pas** si elle est bonne.
+  4. Pour chaque question, il choisit une réponse, dans une liste déroulante avec recherche au-delà de 6 propositions. Il **ne voit pas** si elle est bonne.
   5. Il navigue librement : question suivante, précédente, ou n'importe quelle question.
   6. Il peut poser ou retirer un **marque-page** sur la question en cours.
   7. Il ouvre à tout moment la **liste des questions**, qui indique pour chacune si elle est répondue, non répondue, marquée. Un clic sur une question la rouvre.
@@ -360,7 +362,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
 
 - **Acteur** : Candidat.
 - **Préconditions** : l'examen prévoit la correction détaillée (UC-20, étape 4).
-- **Scénario** : à la fin du passage, après le certificat, le candidat voit pour chaque question : la réponse donnée, la bonne réponse, l'explication de la mauvaise réponse choisie et l'explication générale quand elles existent. Les questions peuvent être filtrées : fausses, non répondues, marquées.
+- **Scénario** : à la fin du passage, après le certificat, le candidat voit pour chaque question : la réponse donnée, la bonne réponse, l'explication de la mauvaise réponse choisie et l'explication générale quand elles existent. Les questions peuvent être filtrées : fausses, non répondues, marquées. Pour une question de plus de 6 propositions, seules la réponse donnée et la bonne réponse sont affichées, pas la liste complète.
 - **Variante** : l'étudiant relance une session d'étude sur les questions échouées qui viennent d'une banque (UC-11).
 - **Règle** : la correction détaillée n'est présentée qu'à la fin du passage ; elle n'est pas conservée avec le résultat et ne peut pas être rééditée.
 
@@ -420,7 +422,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
 | **Lot 3 — Passage, résultats et certificats** | UC-12 passage avec identification, chronomètre et certificat de résultat imprimable ; UC-13 correction détaillée en fin de passage ; UC-09 liste des résultats et export CSV ; UC-19 réédition du certificat ; prévisualisation des examens (UC-20) ; sur le poste où l'application est ouverte, sans connexion | Un candidat s'identifie, passe un examen blanc chronométré et imprime son certificat ; l'utilisateur modifie ensuite le questionnaire, retrouve le résultat et réédite le même certificat |
 | **Lot 4 — Diffusion en ligne** | Connexion du formateur ; UC-18 diffusion par lien ; envoi du certificat par e-mail (UC-18, UC-19) ; suivi des résultats au fil de l'eau (UC-09) | Le formateur diffuse un lien ; des candidats sans compte, sur leur propre appareil, s'identifient et passent l'examen ; le formateur voit leurs résultats et leur renvoie un certificat |
 | **Lot B1 (module Banques)** | Banques et questions confiées au module Banques de questions, avec reprise des données existantes ; questionnaires sans questions propres ; vrai / faux posés comme QCM à deux réponses ; avertissement pour les autres types (§6) | Les études, questionnaires, examens et résultats existants fonctionnent comme avant ; une banque Leitner utilisée dans le module QCM produit l'avertissement attendu |
-| **Lot 5 — Compléments d'étude** | UC-11 passer une question, relancer sur les échecs (les compléments d'édition des banques et des questions sont au lot B2 du module Banques) | À définir |
+| **Lot 5 — Compléments d'étude** | UC-11 passer une question, relancer sur les échecs ; liste déroulante avec recherche au-delà de 6 propositions (UC-11, UC-12, UC-13) (les compléments d'édition des banques et des questions sont au lot B2 du module Banques) | À définir |
 | **v1** | UC-01 comptes et rôles ; UC-02 accès aux examens ; UC-09 vue par étudiant ; UC-10 statistiques des questions ; UC-14 historique et progression ; UC-15 signalements (traités dans le module Banques) ; filtres de tirage (questions jamais vues, échouées) | Un formateur suit les résultats de ses étudiants et corrige les questions problématiques à partir des données d'usage |
 | **v2** | Statut brouillon / publié ; groupes d'étudiants (Q6) ; reprise d'une session d'étude interrompue (Q10) ; appartenance des banques, questionnaires et examens, visibilité entre formateurs (Q4) ; autres médias (son, vidéo) ; tiers-temps (Q14) | À définir |
 
