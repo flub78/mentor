@@ -38,6 +38,7 @@ Premier cas d'application : la préparation à l'examen théorique des élèves 
 - Surveillance d'examen (webcam, verrouillage du navigateur).
 - Délivrance de résultats officiels : un certificat de résultat atteste d'un passage dans l'application, il n'a pas de valeur réglementaire.
 - Répétition espacée : relève du module Leitner, qui réutilise les questions QCM.
+- Temps de réponse limité en mode étude : l'entraînement chronométré se fait dans le module Leitner, qui peut prendre une banque QCM comme source ([PRD Leitner](leitner_prd.md), §7.7).
 
 ### 1.3 Périmètre du MVP et des lots sans connexion
 

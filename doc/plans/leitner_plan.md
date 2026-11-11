@@ -57,7 +57,8 @@ séance) correspond aux règles §7.
 | Duplication d'une banque ; décompte par type, difficulté et thème dans la liste | UC-01 | Lot 2 |
 | Prévisualisation d'une question ; recherche plein texte ; doublons probables | UC-02 | Lot 2 |
 | Types énumération, correspondance, réponse courte ; images dans les propositions | §6 | Lot 2 |
-| Restriction d'une source par thème ou difficulté | UC-05 (2) | Lot 2 |
+| Restriction d'une source par thème ou jusqu'à un niveau de difficulté ; état par banque | UC-05 (2), UC-11 | Lot 2 |
+| Temps de réponse limité | UC-08 (4e), §7.7 | Lot 2 |
 | Création d'une question pendant une séance | UC-03 (variante) | Lot 2 |
 | Import / export | UC-04 | Lot 2 |
 | Actions sur les questions d'une suite ; réinitialisation | UC-06, UC-07 | Lot 2 |
@@ -103,7 +104,7 @@ leitner_sessions         id, progression_id (cascade), kind (seance), number?, s
                          terminee, abandonnee), started_at, finished_at?, auditColumns
 leitner_session_entries  id, session_id (cascade), question_id? → leitner_questions (nullOnDelete),
                          position, is_retry, box_before?, response (json)?, verdict?, detail (json)?,
-                         box_after?, answered_at?, auditColumns
+                         box_after?, answered_at?, duration_ms?, auditColumns
 ```
 
 `created_by` / `updated_by` restent nuls tant qu'il n'y a pas de connexion. `kind` prendra les
@@ -213,7 +214,7 @@ valeurs `controle` et `placement` au lot 2.
 - [ ] Migrations `leitner_sessions`, `leitner_session_entries` ; modèles `Session` (énumération `SessionStatus`), `SessionEntry`.
 - [ ] `SessionStarter` : refuse si une séance est en cours (renvoie celle-ci) ; complète la boîte 1 jusqu'au minimum avec l'`Introducer` et annonce le nombre introduit ; signale « plus de questions à introduire » (2a) et « rien à poser » (3a) ; crée la séance et ses entrées avec `box_before`.
 - [ ] `AnswerRecorder` :
-  - [ ] enregistre la réponse, le verdict (handler) et le détail ;
+  - [ ] enregistre la réponse, le verdict (handler), le détail et le temps mis à répondre (`duration_ms`, mesuré par la page, PRD §7.7) ;
   - [ ] à la première réponse de la séance, attribue le numéro (`last_session_number + 1`) ;
   - [ ] pour une entrée qui n'est pas une reprise : applique le `BoxMover` à la ligne de progression et écrit `box_after` ;
   - [ ] si la réponse est fausse et que la reprise des erreurs est active : ajoute une entrée de reprise en fin de séance ; une reprise fausse en ajoute une autre ; une reprise juste n'en ajoute pas ;
@@ -279,7 +280,7 @@ valeurs `controle` et `placement` au lot 2.
 ### 5.1 Objectif et périmètre
 
 Toujours sans connexion, l'utilisateur dispose des types énumération, correspondance et réponse
-courte, importe et exporte ses banques, agit sur les questions d'une suite, conteste un verdict,
+courte, du temps de réponse limité, des sources restreintes jusqu'à un niveau de difficulté, importe et exporte ses banques, agit sur les questions d'une suite, conteste un verdict,
 consulte son historique, voit ses suites acquises et les vérifie par des contrôles d'entretien,
 et passe un test de placement.
 
@@ -299,21 +300,23 @@ Critère de sortie (PRD §9.2) : l'utilisateur importe une banque de capitales, 
 ### 5.3 Modèle de données (ajouts)
 
 ```
-leitner_suite_sources    + themes (json)?, difficulties (json)?
-leitner_suites           + placement_box (3)
+leitner_suite_sources    + themes (json)?, max_difficulty?
+leitner_suites           + placement_box (3), response_time_seconds?
 leitner_progressions     + acquired_at?, last_check_at?, last_check_passed?, next_check_at?
 leitner_sessions         kind : + controle, placement ; + check_rate?, check_passed?
-leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (bool)
+leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (bool), timed_out (bool)
 ```
 
-### Étape 6 — Types énumération, correspondance, réponse courte
+### Étape 6 — Nouveaux types, sources par niveau, temps de réponse
 
 - [ ] `ReponseCourteHandler` : réponse attendue et variantes ; comparaison via `AnswerNormalizer`.
 - [ ] `EnumerationHandler` : éléments acceptables (libellé et variantes), nombre demandé, ordre imposé ou non ; chaque élément saisi reconnu ou non, doublons ignorés ; verdict juste si tout est reconnu ; détail élément par élément ; réponse partielle comptée fausse (Q9, choix provisoire).
 - [ ] `CorrespondanceHandler` : paires, leurres, nombre de paires présentées (tirées au hasard si la liste est longue, tirage enregistré dans l'entrée pour la reprise) ; détail paire par paire.
 - [ ] Images dans les propositions (QCM, correspondance) : une image facultative par proposition, avec texte alternatif.
 - [ ] Vues de saisie : liste de champs pour l'énumération (ajout de ligne au clavier), sélection par élément pour la correspondance (utilisable au clavier et sur téléphone).
-- [ ] Restriction d'une source par thèmes et niveaux de difficulté (UC-05, 2).
+- [ ] Restriction d'une source par thèmes et jusqu'à un niveau de difficulté maximal (UC-05, 2) ; une question sans niveau compte comme moyenne pour cette restriction.
+- [ ] Temps de réponse (UC-08 4e, PRD §7.7) : paramètre `response_time_seconds` de la suite (nul = désactivé, 10 proposé) ; compte à rebours sur la page de séance (Alpine.js) ; à zéro, l'`AnswerRecorder` enregistre une réponse fausse `timed_out` sans réponse saisie ; durée réglable ou chronomètre désactivable en cours de séance, enregistré sur la suite, effectif à la question suivante ; question en cours remise à temps complet à la reprise ; le serveur refuse une réponse arrivée nettement après le délai (marge de 2 s pour la latence) et la compte comme temps écoulé.
+- [ ] Tests du temps de réponse : expiration → fausse et reprise en fin de séance ; changement de durée en cours de séance ; désactivation ; réponse tardive refusée par le serveur (horloge simulée) ; auto-évaluation chronométrée jusqu'à « Voir la réponse » ; restriction par niveau maximal.
 - [ ] Prévisualisation d'une question (UC-02, 3) ; recherche plein texte ; doublons probables à la saisie ; duplication d'une banque et décomptes par type, difficulté et thème (UC-01).
 - [ ] Tests : chaque handler (validations, verdicts, détail, normalisation, doublons, ordre imposé, leurres) ; séance avec Livewire sur chaque nouveau type ; reprise d'une séance avec une correspondance tirée.
 - [ ] Documentation utilisateur : « Saisir une énumération », « Saisir une correspondance », « Saisir une réponse courte ».
@@ -342,7 +345,8 @@ leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (
 
 - [ ] Contestation (UC-09) après un verdict automatique d'une réponse saisie (réponse courte, énumération, valeur numérique, correspondance) : commentaire facultatif ; verdict retourné (Q12, choix provisoire : dernier mot à l'étudiant) ; mouvement de boîte recalculé (même mécanisme que l'annulation) ; contestation journalisée. QCM et vrai / faux : pas de contestation (renvoi au signalement en v1).
 - [ ] Liste des contestations dans la banque, par question, pour améliorer la réponse attendue.
-- [ ] Historique (UC-12) : séances (date, durée, type, posées, taux, mouvements), évolution de la répartition dans les boîtes (graphique Filament), taux par thème et par type, questions difficiles (les plus souvent échouées) ; depuis celles-ci, remise en boîte 1 ou entraînement libre sans effet sur les boîtes.
+- [ ] État par banque (UC-11) : pour une suite à plusieurs sources, répartition boîtes / en banque / maîtrisées par banque.
+- [ ] Historique (UC-12) : temps moyen de réponse par thème ; séances (date, durée, type, posées, taux, mouvements), évolution de la répartition dans les boîtes (graphique Filament), taux par thème et par type, questions difficiles (les plus souvent échouées) ; depuis celles-ci, remise en boîte 1 ou entraînement libre sans effet sur les boîtes.
 - [ ] Tests : contestation et mouvement de boîte ; journal ; historique et taux calculés sur un jeu de séances connu ; entraînement libre sans effet sur la progression.
 - [ ] Documentation utilisateur : « Contester un verdict », « Suivre sa progression ».
 - [ ] `composer qa` vert ; commit.

@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.5 (brouillon) |
+| **Version** | 0.6 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [QCM](qcm_prd.md) |
 | **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.6** : temps de réponse limité, réglable même en cours de séance (§7.7) ; restriction d'une source jusqu'à un niveau de difficulté ; suites sur plusieurs banques, avec l'état détaillé par banque (UC-05, UC-11).
 
 **Évolutions de la version 0.5** : taille d'étude facultative, fixée à la création d'une suite, pour ne travailler qu'un échantillon d'une grosse banque (UC-05, v2).
 
@@ -84,6 +86,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 - **Suite acquise** : suite dont toutes les questions sont maîtrisées ou suspendues, sans question restant en banque (§7.6).
 - **Contrôle d'entretien** : vérification d'une suite acquise sur un échantillon de questions maîtrisées tirées au hasard (UC-14).
 - **Question suspendue** : question retirée temporairement des séances par l'étudiant, qui garde sa boîte.
+- **Temps de réponse** : durée laissée pour répondre à une question quand le mode chronométré est actif, y compris pour les questions issues des banques QCM ; une question sans réponse dans ce temps est comptée fausse (§7.7).
 - **Séance** : session d'entraînement sur une suite. Les séances d'une suite sont **numérotées** à partir de 1 ; le numéro décide des boîtes posées (§7.1).
 - **Question due** : question qui sera posée à la prochaine séance.
 - **Régularité** : nombre de séances faites sur une suite au cours des 7 derniers jours (§7.5).
@@ -180,13 +183,14 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 - **Acteurs** : Étudiant ; Formateur pour une suite proposée aux étudiants.
 - **Scénario nominal**
   1. L'acteur saisit le **nom** et la **description** de la suite.
-  2. Il choisit une ou plusieurs **banques sources** : banques prédéfinies, banques personnelles, banques QCM. Il peut restreindre chaque source à certains thèmes ou niveaux de difficulté.
+  2. Il choisit une ou plusieurs **banques sources** : banques prédéfinies, banques personnelles, banques QCM. Une suite réunit ainsi plusieurs banques, par exemple la théorie ULM avec les banques Météorologie, Réglementation et Mécanique du vol. Il peut restreindre chaque source à certains thèmes et à un **niveau de difficulté maximal** (« banque Météorologie jusqu'au niveau 2 »).
   3. Il fixe les paramètres, pré-remplis avec les valeurs par défaut :
      - **taille d'étude** *(v2)* : facultative ; par défaut, toutes les questions des sources. Si elle est fixée (ex. 300 questions sur une banque de 1 200), le système tire ce nombre de questions au hasard parmi les sources et la suite ne porte que sur elles ;
      - **nombre de boîtes** (défaut : 5 ; de 3 à 10) ; le système affiche, pour la valeur choisie, la durée estimée pour maîtriser une question (§7.2) ;
      - **nombre minimal de questions en boîte 1** (défaut : 10, Q4) ;
      - **ordre de présentation** des questions d'une séance : *mélangé* (défaut), *boîte 1 d'abord*, *boîtes hautes d'abord* ;
      - **reprise des erreurs en fin de séance** : oui (défaut) / non (§7.2) ;
+     - **temps de réponse** : désactivé (défaut) ou durée en secondes, 10 s proposées à l'activation (§7.7) ;
      - **boîte d'arrivée après un test de placement** réussi (défaut : 3, Q23).
   4. Le système crée la suite et sa progression : toutes les questions sont *en banque*, aucune séance n'a eu lieu. La première introduction aura lieu au début de la première séance.
 - **Variantes**
@@ -241,6 +245,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
   - 4b. **Erreur de manipulation** : juste après un verdict, l'étudiant peut annuler sa dernière réponse et répondre de nouveau.
   - 4c. **Reprise des erreurs** (active par défaut) : chaque question échouée dans la séance est reposée en fin de séance, jusqu'à être réussie une fois ; seule la première réponse de la séance compte pour la boîte (§7.2).
   - 4d. **Correction IA indisponible** : la question ouverte bascule en auto-évaluation, et le système le signale.
+  - 4e. **Temps de réponse** (si activé) : un compte à rebours est visible sur chaque question. À zéro, la question est comptée fausse avec la mention « temps écoulé », et la réponse attendue s'affiche. L'étudiant peut à tout moment de la séance **changer la durée** ou **désactiver** le chronomètre ; le changement vaut à partir de la question suivante (§7.7).
   - 6a. **Séance interrompue** (fermeture, coupure, abandon) : les réponses déjà données sont conservées et leurs mouvements de boîte appliqués. À la réouverture, le système propose de **reprendre** la séance là où elle s'est arrêtée ; la séance suivante ne commence qu'une fois celle-ci terminée ou abandonnée (Q7).
 - **Règles**
   - Une séance compte dans la numérotation dès qu'une question y a reçu une réponse.
@@ -270,6 +275,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 - **Scénario** : à tout moment, depuis la liste des suites et en tête de chaque suite, l'étudiant voit :
   - le **nombre de questions par boîte**, sous forme de barres ;
   - le nombre de questions **en banque** (jamais posées), par niveau de difficulté ;
+  - pour une suite à plusieurs sources, la même répartition **par banque**, pour voir où l'on en est dans chaque matière ;
   - le nombre de questions **maîtrisées** et **suspendues** ;
   - le **numéro de la prochaine séance**, les boîtes qu'elle posera et son nombre de questions ;
   - l'état **acquise** avec sa date, la date et le résultat du dernier contrôle d'entretien et la date du prochain ;
@@ -421,6 +427,16 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 - **Délais** : le premier contrôle est proposé 1 mois après l'acquisition, le suivant 3 mois après un contrôle réussi, puis tous les 6 mois (Q22). Un contrôle échoué n'en planifie pas d'autre : la suite reprend le circuit normal jusqu'à être de nouveau acquise.
 - Les contrôles proposés apparaissent dans l'état de la suite (UC-11) ; ils ne bloquent rien.
 
+### 7.7 Temps de réponse
+
+- Le mode chronométré est un paramètre de la suite : désactivé par défaut ; à l'activation, 10 secondes sont proposées. Il ne s'applique qu'aux séances, ni aux contrôles d'entretien ni aux tests de placement (Q25 tranchée).
+- Le temps court de l'affichage de la question jusqu'à la validation de la réponse. Pour une question d'auto-évaluation, il court jusqu'à « Voir la réponse ».
+- Une question sans réponse à la fin du temps est **fausse** et suit les mouvements du §7.2 ; avec la reprise des erreurs, elle est reposée en fin de séance, elle aussi chronométrée.
+- L'étudiant change la durée, ou désactive le chronomètre, en cours de séance ; la nouvelle valeur devient celle de la suite et vaut dès la question suivante.
+- Le même temps vaut pour toutes les questions de la suite (Q24 tranchée).
+- Le temps mis à répondre est enregistré pour chaque réponse, chronométrée ou non ; il alimente les statistiques (UC-12).
+- À la reprise d'une séance interrompue, la question en cours repart avec un temps complet.
+
 ---
 
 ## 8. Fichier d'échange
@@ -453,7 +469,7 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
 | **MVP** | UC-01, UC-02 (types QCM, vrai / faux, auto-évaluation, valeur numérique), UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
-| **Lot 2 — Types et outils** | Types énumération, correspondance, réponse courte ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; illustrations dans les propositions ; UC-04 import / export ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur importe une banque de capitales, s'entraîne en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
+| **Lot 2 — Types et outils** | Types énumération, correspondance, réponse courte ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; illustrations dans les propositions ; UC-04 import / export ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur importe une banque de capitales, s'entraîne en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
 | **Lot 3 — IA et banques QCM** | Question ouverte corrigée par l'IA, avec bascule en auto-évaluation ; UC-09 pour l'IA ; banques QCM comme sources (UC-05) via l'interface publique du module QCM | Une suite mêle une banque QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
 | **v1** | Comptes et rôles du socle ; banques prédéfinies et personnelles distinctes ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
 | **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image ; questions inversées (UC-02, 2a) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |
@@ -493,6 +509,10 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 - Q22. Paramètres du contrôle d'entretien : taille de l'échantillon (20 provisoire, ou un pourcentage de la suite ?), seuil (90 % provisoire), délais (1, 3 puis 6 mois provisoires) ; sont-ils réglables par suite ?
 
 - Q23. Test de placement : boîte d'arrivée par défaut (3 provisoire) ; placer une boîte plus bas les questions devinables (QCM, vrai / faux) ? Faut-il plutôt un bouton « j'ai deviné » ?
+
+- ~~Q24. Temps de réponse : le même pour toutes les questions, modulé par type, ou propre à chaque question ?~~ **Tranché** : le même pour toutes les questions de la suite (§7.7).
+- ~~Q25. Le temps de réponse s'applique-t-il aussi aux contrôles d'entretien et aux tests de placement ?~~ **Tranché** : non, seulement aux séances (§7.7).
+- Q26. Le chronomètre s'arrête-t-il quand l'étudiant change d'onglet ou d'application, ou continue-t-il ?
 
 **Usage**
 
