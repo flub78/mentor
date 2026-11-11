@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 livré ; lot B1.1 en cours
+- **Statut** : lots B1 et B1.1 livrés
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -11,7 +11,7 @@
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
 | B1 — Banques communes | Module Banques, banque par défaut, reprise des banques QCM et Leitner, import / export, modules QCM et Leitner branchés dessus, déplacement | B1 à B8 (§4) | Livré |
-| B1.1 — Référence et ordre | Référence stable des questions, import qui met à jour les questions déjà présentes ; ordre fixe des propositions d'un QCM | R1 à R4 (§5) | En cours |
+| B1.1 — Référence et ordre | Référence stable des questions, import qui met à jour les questions déjà présentes ; ordre fixe des propositions d'un QCM | R1 à R4 (§5) | Livré |
 | B2 — Types complémentaires | Réponse courte, énumération, correspondance ; compléments d'édition | À détailler (§5) | — |
 | B3 — Questions ouvertes | Question ouverte corrigée par l'IA | À détailler (§5) | — |
 | v1, v2 | Banques prédéfinies et personnelles, signalements, accès ; autres types | À détailler | — |
@@ -198,8 +198,9 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 ### Étape R4 — Documentation et clôture
 
 - [x] `doc/users/banques.md` : référence, place de la bonne réponse, « Corriger une banque dans un tableur » (export, correction, réimport) ; format (`reference`, `ordre`) ; fichiers exemples.
-- [ ] Vérification dans le navigateur : saisie, export, correction, réimport avec mise à jour, ordre affiché en étude QCM et en séance Leitner.
-- [ ] Statuts de ce plan ; `composer qa` vert ; PR (après accord pour pousser).
+- [x] Vérification dans le navigateur : saisie d'un QCM à ordre fixe avec référence, ordre affiché en étude QCM et en séance Leitner, export (`reference`, `ordre`). Le réimport avec mise à jour est couvert par les tests (le téléversement n'aboutit pas dans le navigateur piloté par l'agent).
+- [x] Statuts de ce plan ; `composer qa` vert.
+- [ ] PR (après accord pour pousser).
 
 ---
 
