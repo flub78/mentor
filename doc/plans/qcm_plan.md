@@ -15,7 +15,7 @@
 | Lot 2 — Questionnaires, examens et échanges | Fichier d'échange, import / export des banques, des questionnaires et des examens, questionnaires (questions propres, de banque, génération par tirage), définition des examens | 4 à 7 (§5) | À faire |
 | Lot 3 — Passage, résultats et certificats | Identification, passage chronométré, certificat imprimable, correction détaillée, liste des résultats, réédition | 8 à 12 (§6) | En cours |
 | Lot 4 — Diffusion en ligne | Connexion du formateur, diffusion d'un examen par lien, envoi du certificat par e-mail | 13 à 16 (§7) | À faire |
-| Lot B1 (module Banques) | Banques et questions confiées au module Banques de questions, partagé avec Leitner ; reprise des données ; vrai / faux comme QCM à deux réponses : voir le [plan Banques](banques_plan.md) | — | À faire, après la clôture du lot 3 |
+| Lot B1 (module Banques) | Banques et questions confiées au module Banques de questions, partagé avec Leitner ; reprise des données ; vrai / faux comme QCM à deux réponses : voir le [plan Banques](banques_plan.md) | — | Livré |
 | Lot 5, v1, v2 | Compléments d'étude, comptes et rôles, etc. (compléments d'édition des banques : lot B2 du module Banques) | À détailler (§8) | — |
 
 Les lots 2 à 4 s'appuient sur des choix provisoires pour des questions ouvertes du PRD ; ils sont

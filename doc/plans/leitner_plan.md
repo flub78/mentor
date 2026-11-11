@@ -12,7 +12,7 @@
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
 | MVP | Banques, questions de quatre types, suites, séances selon les règles §7, état d'une suite | 0 à 5 (§4) | En cours |
-| Lot B1 (module Banques) | Banques communes aux modules QCM et Leitner : voir le [plan Banques](banques_plan.md) | — | À faire |
+| Lot B1 (module Banques) | Banques communes aux modules QCM et Leitner : voir le [plan Banques](banques_plan.md) | — | Livré |
 | Lot 2 — Séances enrichies et suivi | Nouveaux types en séance (lot B2 du module Banques) ; temps de réponse ; sources par niveau ; actions sur les questions ; contestation ; historique ; suite acquise, contrôle d'entretien, test de placement | 6 à 10 (§5) | À faire |
 | Lot 3 — Questions ouvertes | Questions ouvertes corrigées par l'IA en séance (lot B3 du module Banques) | 11 et 12 (§6) | À faire |
 | v1, v2 | Comptes et rôles, suites proposées, signalements ; taille d'étude, autres types, etc. | À détailler (§7) | — |

@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 à B7 livrées
+- **Statut** : lot B1 livré — étapes B1 à B8 (PR à ouvrir)
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -10,7 +10,7 @@
 
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
-| B1 — Banques communes | Module Banques, banque par défaut, reprise des banques QCM et Leitner, import / export, modules QCM et Leitner branchés dessus, déplacement | B1 à B8 (§4) | En cours |
+| B1 — Banques communes | Module Banques, banque par défaut, reprise des banques QCM et Leitner, import / export, modules QCM et Leitner branchés dessus, déplacement | B1 à B8 (§4) | Livré |
 | B2 — Types complémentaires | Réponse courte, énumération, correspondance ; compléments d'édition | À détailler (§5) | — |
 | B3 — Questions ouvertes | Question ouverte corrigée par l'IA | À détailler (§5) | — |
 | v1, v2 | Banques prédéfinies et personnelles, signalements, accès ; autres types | À détailler | — |
@@ -152,9 +152,10 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ### Étape B8 — Clôture du lot B1
 
-- [ ] Sauvegarde de la base de développement, migration, puis critère de sortie du §1 déroulé dans le navigateur (QCM et Leitner).
-- [ ] Mettre à jour le statut de ce plan, des plans QCM et Leitner et des PRD concernés.
-- [ ] `composer qa` vert ; `php artisan laraskel:outillage --check` conforme ; PR.
+- [x] Sauvegarde de la base de développement, migration, puis critère de sortie du §1 déroulé dans le navigateur (QCM et Leitner) : banques partagées visibles dans les deux modules, ancien fichier QCM réimporté dans une banque, étude QCM et suite Leitner sur cette banque. Le parcours a révélé que les pages d'examen, d'étude QCM et de séance Leitner écrivaient les clés des réponses dans le HTML ; elles n'envoient plus que le rang affiché (tests de non-régression).
+- [x] Mettre à jour le statut de ce plan, des plans QCM et Leitner et des PRD concernés (les PRD ne portent pas de statut de lot).
+- [x] `composer qa` vert ; `php artisan laraskel:outillage --check` conforme.
+- [ ] PR.
 
 ---
 
