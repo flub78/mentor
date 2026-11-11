@@ -25,6 +25,12 @@ use RuntimeException;
  *
  * Lit les tables `qcm_*` sans les modifier ; renvoie la correspondance des
  * identifiants de questions, qui sert à réécrire les liens des questionnaires.
+ *
+ * Utilisé uniquement par la migration de bascule ; les tables lues sont
+ * supprimées par la migration suivante (`drop_old_qcm_question_tables`).
+ * Sur une base neuve, il s'exécute sur des tables vides. Ses tests ont été
+ * retirés avec les tables (plan Banques, étape B5) ; la reprise a été
+ * vérifiée sur la base de développement à l'étape B4.
  */
 final class QcmToBanquesTransfer
 {

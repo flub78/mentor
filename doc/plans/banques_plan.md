@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 à B4 livrées
+- **Statut** : lot B1 en cours — étapes B1 à B5 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -131,8 +131,9 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ### Étape B5 — Suppression des anciennes tables QCM
 
-- [ ] Migration qui supprime `qcm_answers`, `qcm_questions` et `qcm_banks` (`qcm_attempt_items.chosen_answer_id` l'est déjà à l'étape B4), après vérification que plus aucun code ne les lit (recherche dans `app/` et `tests/`) (le code d'échange QCM des banques est déjà supprimé à l'étape B4) ; suppression du test `QcmToBanquesTransferTest`, qui écrit dans ces tables ; le service `QcmToBanquesTransfer` reste, appelé par la migration de bascule sur une base neuve.
-- [ ] `composer qa` vert ; commit.
+- [x] Migration qui supprime `qcm_answers`, `qcm_questions` et `qcm_banks` (`qcm_attempt_items.chosen_answer_id` l'est déjà à l'étape B4), après vérification que plus aucun code ne les lit (recherche dans `app/` et `tests/`) (le code d'échange QCM des banques est déjà supprimé à l'étape B4) ; suppression du test `QcmToBanquesTransferTest`, qui écrit dans ces tables ; le service `QcmToBanquesTransfer` reste, appelé par la migration de bascule sur une base neuve.
+- [x] Migration appliquée à la base de développement : il ne reste que les tables `banques_*` et les tables QCM des questionnaires, examens, passages et résultats ; 36 liens de questionnaires et 37 questions conservés.
+- [x] `composer qa` vert ; commit.
 
 ### Étape B6 — Déplacer et copier des questions (UC-03)
 
