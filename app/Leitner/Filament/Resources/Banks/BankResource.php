@@ -9,6 +9,7 @@ use App\Leitner\Filament\Resources\Banks\RelationManagers\QuestionsRelationManag
 use App\Leitner\Filament\Resources\Banks\Schemas\BankForm;
 use App\Leitner\Filament\Resources\Banks\Tables\BanksTable;
 use App\Leitner\Models\Bank;
+use App\Leitner\Suites\QuestionUsage;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Resource;
@@ -34,7 +35,7 @@ class BankResource extends Resource
 
     protected static ?string $navigationLabel = 'Banques de questions';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -64,8 +65,7 @@ class BankResource extends Resource
 
     /**
      * Suppression d'une banque, avec confirmation qui annonce ce qui sera
-     * perdu. Le nombre de suites concernées s'ajoutera avec les suites
-     * (plan Leitner, étape 2).
+     * perdu : ses questions, et leur progression dans les suites.
      */
     public static function deleteAction(): DeleteAction
     {
@@ -75,6 +75,10 @@ class BankResource extends Resource
                 0 => 'La banque ne contient aucune question.',
                 1 => 'Sa question sera définitivement supprimée.',
                 default => "Ses {$count} questions seront définitivement supprimées.",
+            }.match ($suites = QuestionUsage::suitesUsingBank($record)) {
+                0 => '',
+                1 => ' Elle sera retirée de la suite qui l\'utilise, avec la progression de ses questions.',
+                default => " Elle sera retirée des {$suites} suites qui l'utilisent, avec la progression de ses questions.",
             })
             ->successNotificationTitle('Banque supprimée');
     }

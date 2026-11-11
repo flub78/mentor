@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Leitner
 
-- **Statut** : MVP en cours — étapes 0 et 1 livrées
+- **Statut** : MVP en cours — étapes 0 à 2 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [leitner_prd.md](../prds/leitner_prd.md), §9.2 « Découpage en lots »
@@ -163,41 +163,41 @@ valeurs `controle` et `placement` au lot 2.
 
 **Base de données et modèles**
 
-- [ ] Migrations `leitner_suites`, `leitner_suite_sources`, `leitner_progressions`, `leitner_progress_items` (§3).
-- [ ] Énumération `PresentationOrder` (`Melange`, `BoiteUnDAbord`, `BoitesHautesDAbord`).
-- [ ] Modèles `Suite`, `SuiteSource`, `Progression`, `ProgressItem` ; une progression créée avec la suite (MVP : une seule, `user_id` nul).
-- [ ] Requêtes de la progression : `suiteQuestions()` (questions des sources, sans doublon si deux sources partagent une banque), `inBank()` (questions des sources sans ligne de progression), `inBox(k)`, `mastered()`, `suspended()`, compteurs groupés en une requête par catégorie.
-- [ ] Contrainte : `box` entre 1 et `box_count` quand la question n'est ni maîtrisée ni suspendue ; contrôlée dans le modèle (exception en français) et par les tests.
+- [x] Migrations `leitner_suites`, `leitner_suite_sources`, `leitner_progressions`, `leitner_progress_items` (§3).
+- [x] Énumération `PresentationOrder` (`Melange`, `BoiteUnDAbord`, `BoitesHautesDAbord`).
+- [x] Modèles `Suite`, `SuiteSource`, `Progression`, `ProgressItem` ; une progression créée avec la suite (MVP : une seule, `user_id` nul).
+- [x] Requêtes de la progression : `suiteQuestions()` (questions des sources ; une banque ne figure qu'une fois dans les sources d'une suite, contrainte d'unicité), `inBank()` (questions des sources sans ligne de progression), `inBox(k)`, `mastered()`, `suspended()`, compteurs groupés en une requête par catégorie.
+- [x] Contrainte : `box` entre 1 et `box_count` quand la question n'est ni maîtrisée ni suspendue ; contrôlée dans le modèle (exception en français) et par les tests.
 
 **Logique**
 
-- [ ] `SuiteSettingsUpdater` (UC-05, 3a) :
-  - [ ] réduire le nombre de boîtes : questions des boîtes supprimées → nouvelle dernière boîte ;
-  - [ ] augmenter : rien ne bouge ;
-  - [ ] ajouter une source : ses questions sont *en banque* (rien à écrire) ;
-  - [ ] retirer une source : lignes de progression de ses questions supprimées (sauf si la question vient aussi d'une autre source) ; nombre annoncé dans la confirmation.
-- [ ] `PersonalQuestionCreator` (UC-03) : crée au besoin la banque personnelle de la suite (« <nom de la suite> — mes questions »), l'ajoute aux sources, enregistre la question et, si demandé, l'introduit en boîte 1.
+- [x] `SuiteSettingsUpdater` (UC-05, 3a) :
+  - [x] réduire le nombre de boîtes : questions des boîtes supprimées → nouvelle dernière boîte ;
+  - [x] augmenter : rien ne bouge ;
+  - [x] ajouter une source : ses questions sont *en banque* (rien à écrire) ;
+  - [x] retirer une source : lignes de progression de ses questions supprimées ; nombre annoncé dans la confirmation (`SettingsChange`, demandée seulement si la modification fait perdre ou déplacer des questions).
+- [x] `PersonalQuestionCreator` (UC-03) : crée au besoin la banque personnelle de la suite (« <nom de la suite> — mes questions »), l'ajoute aux sources, enregistre la question et, si demandé, l'introduit en boîte 1.
 
 **Interface**
 
-- [ ] `SuiteResource` : liste (nom, nombre de questions, répartition résumée, dernière séance) ; formulaire (nom, description, sources, paramètres pré-remplis depuis `config/leitner.php`, nombre de boîtes de 3 à 10 avec la **durée estimée** affichée à côté, PRD §7.2) ; suppression avec confirmation.
-- [ ] Action « Nouvelle question » sur la suite (UC-03), avec le choix « en boîte 1 » ou « en banque ».
-- [ ] Modification d'une question déjà introduite dans une progression (UC-02, 1a, reporté de l'étape 1) : choix « mineure » (garde sa boîte) ou « de fond » (retour en boîte 1 dans toutes les progressions, échecs consécutifs remis à zéro), avec notification qui donne le nombre de progressions touchées.
-- [ ] Confirmations de suppression d'une banque et d'une question : nombre de suites concernées (reporté de l'étape 1).
+- [x] `SuiteResource` : liste (nom, banques, répartition résumée ; la dernière séance s'ajoute à l'étape 4) ; formulaire (nom, description, sources, paramètres pré-remplis depuis `config/leitner.php`, nombre de boîtes de 3 à 10 avec la **durée estimée** affichée à côté, PRD §7.2) ; suppression avec confirmation.
+- [x] Action « Nouvelle question » sur la suite (UC-03), avec le choix « en boîte 1 » ou « en banque ».
+- [x] Modification d'une question déjà introduite dans une progression (UC-02, 1a, reporté de l'étape 1) : choix « mineure » (garde sa boîte) ou « de fond » (retour en boîte 1 dans toutes les progressions, échecs consécutifs remis à zéro), avec notification qui donne le nombre de progressions touchées.
+- [x] Confirmations de suppression d'une banque et d'une question : nombre de suites concernées (reporté de l'étape 1).
 
 **Tests**
 
-- [ ] Création d'une suite : toutes les questions *en banque*, aucune séance, valeurs par défaut.
-- [ ] Une même banque dans deux suites : progressions indépendantes, la banque n'est pas modifiée.
-- [ ] Paramètres : réduction et augmentation du nombre de boîtes, ajout et retrait de source (y compris banque commune à deux sources).
-- [ ] Question personnelle : banque créée une seule fois, question en boîte 1 ou en banque.
-- [ ] Ajout d'une question dans une banque source : elle apparaît *en banque* sans autre action.
-- [ ] Modification mineure ou de fond d'une question introduite ; confirmations de suppression avec le nombre de suites.
+- [x] Création d'une suite : toutes les questions *en banque*, aucune séance, valeurs par défaut.
+- [x] Une même banque dans deux suites : progressions indépendantes, la banque n'est pas modifiée.
+- [x] Paramètres : réduction et augmentation du nombre de boîtes, ajout et retrait de source, confirmation des seules modifications destructives.
+- [x] Question personnelle : banque créée une seule fois, question en boîte 1 ou en banque.
+- [x] Ajout d'une question dans une banque source : elle apparaît *en banque* sans autre action.
+- [x] Modification mineure ou de fond d'une question introduite ; confirmations de suppression avec le nombre de suites.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/leitner.md` : « Créer une suite », « Choisir le nombre de boîtes », « Ajouter mes propres questions ».
-- [ ] `composer qa` vert ; commit.
+- [x] `doc/users/leitner.md` : « Créer une suite », « Choisir le nombre de boîtes », « Ajouter mes propres questions ».
+- [x] `composer qa` vert ; commit.
 
 ### Étape 3 — Moteur des séances (PRD §7)
 
