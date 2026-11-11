@@ -1,0 +1,133 @@
+name: CI
+
+# Gabarit fourni par flub78/laraskel-dev (php artisan laraskel:outillage).
+# L'application consomme les briques Laraskel en path repository
+# (../laraskel/packages/*) : le workflow récupère donc l'application dans app/ et
+# le socle à côté, dans laraskel/. Le dépôt flub78/laraskel étant privé, le
+# secret LARASKEL_TOKEN (jeton à accès en lecture seule sur ce dépôt) est requis.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Tests Unit + Feature sur les versions de PHP prises en charge par le socle.
+  tests:
+    name: Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+
+      - name: Checkout Laraskel (briques en path repository)
+        uses: actions/checkout@v4
+        with:
+          repository: flub78/laraskel
+          token: ${{ secrets.LARASKEL_TOKEN }}
+          path: laraskel
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Build front assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Unit + Feature tests
+        run: composer test:ci
+
+  # Contrôles qualité (Pint + PHPStan + tests) avec rapports dans build/reports/.
+  quality:
+    name: Qualité (Pint + PHPStan + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+
+      - name: Checkout Laraskel (briques en path repository)
+        uses: actions/checkout@v4
+        with:
+          repository: flub78/laraskel
+          token: ${{ secrets.LARASKEL_TOKEN }}
+          path: laraskel
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Build front assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run quality checks
+        run: composer qa:report
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: app/build/reports/
+          if-no-files-found: warn

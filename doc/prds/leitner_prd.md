@@ -1,0 +1,479 @@
+# PRD — Module Leitner
+
+| | |
+|---|---|
+| **Version** | 0.10 (brouillon) |
+| **Date** | 11 novembre 2026 |
+| **Auteur** | Frédéric |
+| **Statut** | À valider — voir §10 « Questions ouvertes » |
+| **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
+| **Module utilisé** | [Banques de questions](banques_prd.md) |
+| **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.10** : au-delà de 6 propositions, un QCM se répond dans une liste déroulante avec recherche ([PRD Banques](banques_prd.md), §6 ; lot 2).
+
+**Évolutions de la version 0.9** : chaque séance pose la boîte 1 et une seule boîte haute, en rotation (mêmes fréquences, charge régulière d'une séance à l'autre, §7.1).
+
+**Évolutions de la version 0.8** : les banques et leurs questions passent au module [Banques de questions](banques_prd.md), partagé avec le module QCM (Q11 tranchée) : gestion des banques et des questions, types de questions et fichier d'échange y sont décrits ; Leitner ne dépend plus du module QCM ; imports et exports au niveau des banques (Q27, Q28 tranchées).
+
+**Évolutions de la version 0.7** : format d'échange complet (§8) : colonnes communes et propres à chaque type, listes et caractères réservés, valeurs, archive ZIP, rapport d'import et règles d'export.
+
+**Évolutions de la version 0.6** : temps de réponse limité, réglable même en cours de séance (§7.7) ; restriction d'une source jusqu'à un niveau de difficulté ; suites sur plusieurs banques, avec l'état détaillé par banque (UC-05, UC-11).
+
+**Évolutions de la version 0.5** : taille d'étude facultative, fixée à la création d'une suite, pour ne travailler qu'un échantillon d'une grosse banque (UC-05, v2).
+
+**Évolutions de la version 0.4** : les banques sont partagées et jamais vidées par l'entraînement (§3) ; reprise des erreurs en fin de séance jusqu'à la première réussite (Q6 tranchée) ; recul d'une boîte sur erreur, retour en boîte 1 au second échec consécutif (§7.2) ; test de placement (UC-15).
+
+**Évolutions de la version 0.3** : 5 boîtes par défaut, paramètre de la suite et non de la banque (Q4 tranchée) ; suite **acquise** et **contrôle d'entretien** par échantillon aléatoire des questions maîtrisées (UC-14, §7.6, Q3 tranchée).
+
+**Évolutions de la version 0.2** : le rythme des révisions est compté en séances, librement choisies par l'étudiant (Q1 tranchée) ; avertissement en dessous de trois séances par semaine (§7.5).
+
+---
+
+## 1. Vision
+
+Le module Leitner fait **mémoriser durablement** des connaissances par répétition espacée, selon la méthode des boîtes de Leitner. L'étudiant s'entraîne sur des **suites de questions** : chaque question est rangée dans une boîte ; une question bien répondue monte d'une boîte et sera reposée moins souvent, une question mal répondue revient dans la première boîte et sera reposée à chaque séance.
+
+Les questions sont de **plusieurs types** (QCM, vrai / faux, énumération, correspondance, valeur numérique, question ouverte en auto-évaluation ou corrigée par l'IA…) et peuvent porter sur une **image** (« Quel est ce monument ? », « Quel pays est marqué sur la carte ? »). L'étudiant travaille sur des **banques prédéfinies** et les complète avec **ses propres questions**.
+
+Le rythme est compté en **séances**, pas en jours : l'idéal est une séance par jour, ou par jour ouvré, mais l'étudiant choisit librement quand il travaille. S'il travaille moins de trois fois par semaine, le système l'en avertit.
+
+L'objectif est de **terminer** une suite : quand toutes ses questions sont maîtrisées, la suite est **acquise**. Un **contrôle d'entretien**, sur un échantillon de questions tirées au hasard, vérifie ensuite rapidement que le sujet est toujours su.
+
+À tout moment, l'étudiant sait **où il en est** : combien de questions sont dans chaque boîte, combien n'ont pas encore été posées, ce que contiendra sa prochaine séance.
+
+Le module est utilisable sans le module QCM. Ses questions viennent des banques du module [Banques de questions](banques_prd.md), partagé avec le module QCM : une même banque sert à un examen blanc QCM et à une suite Leitner. Intégré à Mentor, il fournit les révisions Leitner du parcours (cartes rattachées aux notions, voir [PRD Mentor](mentor_prd.md), UC-10, UC-10b, UC-10c).
+
+### 1.1 Objectifs
+
+- O1 — Faire retenir à long terme un grand nombre de connaissances factuelles et de raisonnements, avec un effort de révision limité et régulier.
+- O2 — Concentrer l'effort sur ce que l'étudiant ne sait pas encore, sans reposer inutilement ce qu'il sait.
+- O3 — Couvrir des formes de connaissance variées : choix, listes, associations, valeurs, explications, reconnaissance visuelle.
+- O4 — Donner à l'étudiant une vision claire et permanente de sa progression.
+- O5 — Permettre au formateur de fournir des banques prêtes à l'emploi, et à l'étudiant de les enrichir.
+
+### 1.2 Hors périmètre
+
+- Examens notés, certificats, conditions d'examen : relèvent du module QCM.
+- Algorithmes de répétition espacée autres que les boîtes de Leitner (SM-2, FSRS…).
+- Questions orales (réponse prononcée et reconnue par la voix) : envisagées plus tard (§9, v2).
+- Jeux compétitifs entre étudiants, classements.
+
+---
+
+## 2. Acteurs
+
+| Acteur | Description |
+|---|---|
+| **Administrateur** | Gère les comptes et les rôles (socle Laraskel). |
+| **Formateur** | Crée et maintient les banques prédéfinies ; définit des suites proposées aux étudiants ; traite les signalements. |
+| **Étudiant** | Crée ses suites ou adopte celles du formateur ; crée ses propres questions ; fait ses séances ; suit sa progression. |
+| **Agent IA** | Corrige les questions ouvertes en donnant un verdict et une justification ; peut aider à rédiger des questions (§10, Q17). |
+
+Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un utilisateur unique tient les rôles de formateur et d'étudiant (§9). Les cas d'utilisation sont rédigés avec les rôles cibles.
+
+---
+
+## 3. Glossaire
+
+- **Banque de questions**, **question**, **type de question**, **difficulté**, **thème**, **banque par défaut** : voir le [PRD Banques de questions](banques_prd.md), §3. Une question appartient à exactement une banque.
+- **Partage des banques** : une banque est utilisée **simultanément** par plusieurs étudiants, par plusieurs suites et par le module QCM. L'entraînement ne la modifie jamais : les boîtes, l'état *en banque* et l'historique appartiennent à la progression de chaque étudiant dans chaque suite.
+- **Suite** : ensemble de questions sur lequel l'étudiant s'entraîne. Elle a un **nom**, une **description**, une ou plusieurs **banques sources** et des **paramètres** : taille d'étude facultative, nombre de boîtes, nombre minimal de questions en boîte 1, ordre de présentation (§5, UC-05).
+- **Boîte** : niveau de mémorisation d'une question dans une suite, de 1 à N. Plus le numéro est élevé, moins la question est posée souvent.
+- **Question en banque** : pour un étudiant et une suite, question d'une banque source qui n'a encore jamais été introduite dans **sa** progression. Elle n'est dans aucune de ses boîtes ; la même question peut être en boîte 4 chez un autre étudiant.
+- **Introduction** : passage d'une question en banque dans la boîte 1, lorsque la boîte 1 compte moins de questions que le minimum fixé (§7.3).
+- **Question maîtrisée** : question bien répondue alors qu'elle était dans la dernière boîte (§7.2, Q3).
+- **Suite acquise** : suite dont toutes les questions sont maîtrisées ou suspendues, sans question restant en banque (§7.6).
+- **Contrôle d'entretien** : vérification d'une suite acquise sur un échantillon de questions maîtrisées tirées au hasard (UC-14).
+- **Question suspendue** : question retirée temporairement des séances par l'étudiant, qui garde sa boîte.
+- **Temps de réponse** : durée laissée pour répondre à une question quand le mode chronométré est actif, quel que soit son type ; une question sans réponse dans ce temps est comptée fausse (§7.7).
+- **Séance** : session d'entraînement sur une suite. Les séances d'une suite sont **numérotées** à partir de 1 ; le numéro décide des boîtes posées (§7.1).
+- **Question due** : question qui sera posée à la prochaine séance.
+- **Régularité** : nombre de séances faites sur une suite au cours des 7 derniers jours (§7.5).
+- **Verdict** : résultat de la correction d'une réponse : *juste* ou *fausse* (et éventuellement *partiellement juste*, Q9), accompagné d'une **justification** pour une correction par l'IA.
+- **Auto-évaluation** : l'étudiant compare lui-même sa réponse à la réponse attendue et donne le verdict.
+- **Échecs consécutifs** : nombre de réponses fausses d'affilée données à une question, en ne comptant que les réponses qui décident de sa boîte (§7.2).
+- **Test de placement** : passage unique sur des questions en banque, qui place directement en boîte haute celles que l'étudiant sait déjà (UC-15).
+- **Progression** : état d'une suite pour un étudiant : contenu des boîtes, questions en banque, numéro de la prochaine séance, historique.
+
+---
+
+## 4. Cas d'utilisation — vue d'ensemble
+
+| ID | Cas d'utilisation | Acteur principal | Lot |
+|---|---|---|---|
+| **A. Banques et questions** |||
+| UC-01 | Gérer les banques de questions → [PRD Banques](banques_prd.md), UC-01 | Formateur | — |
+| UC-02 | Effets d'une modification de question sur les suites (gestion des questions → [PRD Banques](banques_prd.md), UC-02, UC-03) | Formateur | MVP |
+| UC-03 | Ajouter ses propres questions à une suite | Étudiant | MVP |
+| UC-04 | Importer et exporter une banque → [PRD Banques](banques_prd.md), UC-04, UC-05 | Formateur | — |
+| **B. Suites** |||
+| UC-05 | Créer et paramétrer une suite | Étudiant / Formateur | MVP |
+| UC-06 | Agir sur les questions d'une suite | Étudiant | Lot 2 |
+| UC-07 | Réinitialiser une suite | Étudiant | Lot 2 |
+| **C. Entraînement** |||
+| UC-08 | Faire une séance | Étudiant | MVP |
+| UC-09 | Contester ou corriger un verdict | Étudiant | Lot 2 (IA lot 3) |
+| UC-10 | Signaler une question → [PRD Banques](banques_prd.md), UC-06 | Étudiant | v1 |
+| **D. Suivi** |||
+| UC-11 | Consulter l'état d'une suite | Étudiant | MVP |
+| UC-12 | Consulter l'historique et les statistiques | Étudiant / Formateur | Lot 2 (vue formateur v1) |
+| UC-14 | Faire un contrôle d'entretien | Étudiant | Lot 2 |
+| UC-15 | Passer un test de placement | Étudiant | Lot 2 |
+| **E. Comptes et accès** |||
+| UC-13 | Donner accès aux suites (accès aux banques → [PRD Banques](banques_prd.md), UC-07) | Formateur | v1 |
+
+---
+
+## 5. Cas d'utilisation détaillés
+
+### A. Banques et questions
+
+Les banques et leurs questions sont gérées par le module [Banques de questions](banques_prd.md) (UC-01 à UC-05 de son PRD). Ce PRD ne décrit que leurs effets sur les suites.
+
+#### UC-02 — Effets d'une modification de question sur les suites
+
+- **Acteur** : Formateur.
+- **Scénario** : quand le formateur modifie une question déjà introduite dans une progression, il indique si la modification est **mineure** (correction de forme : la question garde sa boîte) ou **de fond** (la question revient en boîte 1 dans toutes les suites qui l'utilisent, échecs consécutifs remis à zéro) ; la notification donne le nombre de suites touchées.
+- **Règles**
+  - Supprimer une question la retire de toutes les progressions ; la confirmation annonce le nombre de suites concernées.
+  - Déplacer une question vers une banque qui n'est pas source d'une suite la retire de cette suite, avec sa progression ([PRD Banques](banques_prd.md), UC-03).
+  - Supprimer une banque retire ses questions des suites qui l'ont pour source.
+  - *(v2)* L'étudiant transforme une question en question **inversée** (« capitale → pays » devient « pays → capitale ») lorsque le type s'y prête.
+
+#### UC-03 — Ajouter ses propres questions à une suite
+
+- **Acteur** : Étudiant.
+- **Scénario nominal**
+  1. Depuis une suite, l'étudiant choisit « Nouvelle question ».
+  2. Il saisit la question comme dans une banque ([PRD Banques](banques_prd.md), UC-02) ; elle est rangée dans la **banque personnelle** de la suite, créée au besoin et ajoutée à ses sources.
+  3. Il choisit de la placer **directement en boîte 1** ou de la laisser **en banque**, à introduire comme les autres (§7.3).
+- **Variante** : pendant une séance, après une question, l'étudiant crée une question complémentaire (« je veux aussi retenir ceci ») sans quitter la séance.
+- **Règle** : les questions de l'étudiant sont privées (Q14).
+
+### B. Suites
+
+#### UC-05 — Créer et paramétrer une suite
+
+- **Acteurs** : Étudiant ; Formateur pour une suite proposée aux étudiants.
+- **Scénario nominal**
+  1. L'acteur saisit le **nom** et la **description** de la suite.
+  2. Il choisit une ou plusieurs **banques sources** parmi les banques du module Banques de questions, y compris celles que le module QCM utilise. Une suite réunit ainsi plusieurs banques, par exemple la théorie ULM avec les banques Météorologie, Réglementation et Mécanique du vol. Il peut restreindre chaque source à certains thèmes et à un **niveau de difficulté maximal** (« banque Météorologie jusqu'au niveau 2 »).
+  3. Il fixe les paramètres, pré-remplis avec les valeurs par défaut :
+     - **taille d'étude** *(v2)* : facultative ; par défaut, toutes les questions des sources. Si elle est fixée (ex. 300 questions sur une banque de 1 200), le système tire ce nombre de questions au hasard parmi les sources et la suite ne porte que sur elles ;
+     - **nombre de boîtes** (défaut : 5 ; de 3 à 10) ; le système affiche, pour la valeur choisie, la durée estimée pour maîtriser une question (§7.2) ;
+     - **nombre minimal de questions en boîte 1** (défaut : 10, Q4) ;
+     - **ordre de présentation** des questions d'une séance : *mélangé* (défaut), *boîte 1 d'abord*, *boîtes hautes d'abord* ;
+     - **reprise des erreurs en fin de séance** : oui (défaut) / non (§7.2) ;
+     - **temps de réponse** : désactivé (défaut) ou durée en secondes, 10 s proposées à l'activation (§7.7) ;
+     - **boîte d'arrivée après un test de placement** réussi (défaut : 3, Q23).
+  4. Le système crée la suite et sa progression : toutes les questions sont *en banque*, aucune séance n'a eu lieu. La première introduction aura lieu au début de la première séance.
+- **Variantes**
+  - 1a. L'étudiant **adopte** une suite proposée par le formateur : il reçoit sa propre progression ; il peut changer l'ordre de présentation, mais pas les sources.
+  - 3a. Modifier les paramètres d'une suite en cours :
+    - réduire le nombre de boîtes : les questions des boîtes supprimées vont dans la nouvelle dernière boîte ;
+    - augmenter le nombre de boîtes : les questions restent dans leur boîte ;
+    - ajouter une source : ses questions arrivent *en banque* ;
+    - retirer une source : après confirmation, ses questions quittent les boîtes ; la progression des autres questions est conservée.
+- **Règles**
+  - Une même question peut figurer dans plusieurs suites ; sa boîte est propre à chaque suite (Q15).
+  - L'échantillon tiré pour la taille d'étude est fixé à la création de la suite : les questions non tirées ne font pas partie de la suite, ne comptent pas *en banque* et ne sont pas posées aux contrôles d'entretien. La suite est acquise quand l'échantillon est maîtrisé (§7.6). Pour travailler d'autres questions, l'étudiant crée une nouvelle suite.
+  - Le nombre de boîtes est un paramètre de la **suite**, jamais de la banque : une même banque peut servir à deux suites qui ont des nombres de boîtes différents (ex. révision rapide avant un examen, mémorisation durable).
+
+#### UC-06 — Agir sur les questions d'une suite
+
+- **Acteur** : Étudiant.
+- **Scénario** : depuis la liste des questions d'une suite (filtrable par boîte, thème, difficulté, état), l'étudiant peut, sur une question ou une sélection :
+  - **introduire** maintenant des questions en banque, au-delà du minimum ;
+  - **suspendre** ou **réactiver** une question (elle garde sa boîte) ;
+  - **déclarer connue** une question en banque : elle est placée directement dans une boîte choisie, ou marquée maîtrisée ;
+  - **remettre en boîte 1** ;
+  - **réintroduire** une question maîtrisée.
+- **Règle** : chaque action affiche son résultat (« 5 questions remises en boîte 1 »).
+
+#### UC-07 — Réinitialiser une suite
+
+- **Acteur** : Étudiant.
+- **Scénario** : après confirmation indiquant ce qui sera perdu, toutes les questions repassent *en banque* et la numérotation des séances repart à 1. L'historique des séances passées est conservé, marqué comme antérieur à la réinitialisation.
+
+### C. Entraînement
+
+#### UC-08 — Faire une séance
+
+- **Acteur** : Étudiant.
+- **Préconditions** : la suite a au moins une question dans ses boîtes ou en banque.
+- **Scénario nominal**
+  1. L'étudiant ouvre une suite. Le système affiche l'état de la suite (UC-11) et la composition de la prochaine séance : numéro de séance, boîtes posées, nombre de questions par boîte.
+  2. Il lance la séance. Si la boîte 1 compte moins de questions que le minimum, le système **introduit** des questions en banque (§7.3) et l'indique (« 4 nouvelles questions »).
+  3. Le système compose la séance : toutes les questions de la boîte 1 et celles des boîtes dues (§7.1), sauf les questions suspendues, dans l'ordre de présentation choisi.
+  4. Pour chaque question :
+     1. l'énoncé et l'éventuelle illustration s'affichent ; la boîte d'origine est indiquée discrètement ;
+     2. l'étudiant répond sous la forme propre au type (§6) ; au-delà de 6 propositions, un QCM se répond dans une liste déroulante avec recherche ;
+     3. le système affiche le **verdict**, la réponse attendue, l'explication et, pour une correction IA, la justification ;
+     4. la question change de boîte selon le verdict (§7.2).
+  5. En permanence, le système affiche la position dans la séance (question 7 / 23) et le taux de bonnes réponses de la séance.
+  6. En fin de séance, le système affiche un **bilan** : nombre de questions posées, réussies, échouées ; mouvements entre boîtes ; nouvelles questions introduites ; questions maîtrisées ; liste des questions échouées avec leur explication ; composition prévue de la prochaine séance.
+- **Variantes**
+  - 2a. **Plus de questions à introduire** : il ne reste plus assez de questions *en banque* dans la progression de l'étudiant pour atteindre le minimum (les banques elles-mêmes ne changent pas). Le système introduit celles qui restent et l'indique ; il suggère d'ajouter des questions ou une source.
+  - 3a. **Rien à poser** (toutes les questions sont maîtrisées ou suspendues) : la suite est acquise ; le système l'indique et propose un contrôle d'entretien (UC-14), de réintroduire des questions, d'ajouter une source ou de réinitialiser la suite.
+  - 4a. **Passer** une question : elle reste dans sa boîte et sera reposée à la prochaine séance.
+  - 4b. **Erreur de manipulation** : juste après un verdict, l'étudiant peut annuler sa dernière réponse et répondre de nouveau.
+  - 4c. **Reprise des erreurs** (active par défaut) : chaque question échouée dans la séance est reposée en fin de séance, jusqu'à être réussie une fois ; seule la première réponse de la séance compte pour la boîte (§7.2).
+  - 4d. **Correction IA indisponible** : la question ouverte bascule en auto-évaluation, et le système le signale.
+  - 4e. **Temps de réponse** (si activé) : un compte à rebours est visible sur chaque question. À zéro, la question est comptée fausse avec la mention « temps écoulé », et la réponse attendue s'affiche. L'étudiant peut à tout moment de la séance **changer la durée** ou **désactiver** le chronomètre ; le changement vaut à partir de la question suivante (§7.7).
+  - 6a. **Séance interrompue** (fermeture, coupure, abandon) : les réponses déjà données sont conservées et leurs mouvements de boîte appliqués. À la réouverture, le système propose de **reprendre** la séance là où elle s'est arrêtée ; la séance suivante ne commence qu'une fois celle-ci terminée ou abandonnée (Q7).
+- **Règles**
+  - Une séance compte dans la numérotation dès qu'une question y a reçu une réponse.
+  - Chaque réponse est enregistrée dès qu'elle est donnée.
+  - Les réponses aux propositions (QCM, correspondance) sont mélangées à chaque affichage, sauf interdiction sur la question.
+
+#### UC-09 — Contester ou corriger un verdict
+
+- **Acteur** : Étudiant.
+- **Scénario** : après un verdict automatique ou IA, l'étudiant indique qu'il le conteste, avec un commentaire facultatif (« synonyme accepté », « orthographe différente »).
+- **Règles**
+  - Pour une correction IA ou une réponse saisie (énumération, réponse courte), l'étudiant peut retourner le verdict ; la question change alors de boîte en conséquence *(dernier mot à l'étudiant, Q12)*.
+  - Toute contestation est journalisée et visible du propriétaire de la question, pour améliorer la réponse attendue (variantes acceptées, critères).
+  - Une question QCM ou vrai / faux ne se conteste pas : on la signale (UC-10).
+
+#### UC-10 — Signaler une question
+
+- **Acteur** : Étudiant.
+- **Scénario** : pendant une séance ou depuis la liste des questions d'une suite, l'étudiant signale une question ; le signalement est traité dans le module Banques de questions ([PRD Banques](banques_prd.md), UC-06).
+
+### D. Suivi
+
+#### UC-11 — Consulter l'état d'une suite
+
+- **Acteur** : Étudiant.
+- **Scénario** : à tout moment, depuis la liste des suites et en tête de chaque suite, l'étudiant voit :
+  - le **nombre de questions par boîte**, sous forme de barres ;
+  - le nombre de questions **en banque** (jamais posées), par niveau de difficulté ;
+  - pour une suite à plusieurs sources, la même répartition **par banque**, pour voir où l'on en est dans chaque matière ;
+  - le nombre de questions **maîtrisées** et **suspendues** ;
+  - le **numéro de la prochaine séance**, les boîtes qu'elle posera et son nombre de questions ;
+  - l'état **acquise** avec sa date, la date et le résultat du dernier contrôle d'entretien et la date du prochain ;
+  - la date de la dernière séance et la **régularité** (séances des 7 derniers jours), avec l'avertissement prévu au §7.5.
+- **Variante** : un clic sur une boîte ouvre la liste de ses questions (UC-06).
+- **Règle** : la somme *en banque + boîtes + maîtrisées + suspendues* est égale au nombre de questions de la suite, et cette égalité est visible.
+
+#### UC-12 — Consulter l'historique et les statistiques
+
+- **Acteurs** : Étudiant ; Formateur à partir de v1, pour les suites qu'il a proposées.
+- **Scénario** : l'étudiant voit l'historique de ses séances (date, durée, questions posées, taux de réussite, mouvements), l'évolution de la répartition dans les boîtes au fil des séances, ses taux par thème et par type, et ses **questions difficiles** (les plus souvent échouées).
+- **Variante** : depuis la liste des questions difficiles, l'étudiant les remet en boîte 1, ou lance une séance d'entraînement libre sur elles, sans effet sur les boîtes.
+- **Côté formateur** : taux de réussite et de contestation par question, pour repérer les questions mal rédigées.
+
+#### UC-14 — Faire un contrôle d'entretien
+
+- **Acteur** : Étudiant.
+- **Préconditions** : la suite est acquise.
+- **Déclencheurs** : l'étudiant le demande, ou le système le propose quand le délai depuis l'acquisition ou depuis le dernier contrôle est atteint (§7.6).
+- **Scénario nominal**
+  1. Le système tire au hasard un **échantillon** de questions maîtrisées (taille par défaut au §7.6) et l'annonce (« contrôle de 20 questions »).
+  2. Les questions sont posées comme dans une séance (UC-08, étape 4), sans effet sur la numérotation des séances.
+  3. En fin de contrôle, le système affiche le taux de réussite, le compare au seuil et conclut :
+     - **acquis confirmé** : la date du contrôle est enregistrée et le prochain contrôle est planifié ;
+     - **à consolider** : la suite n'est plus acquise.
+  4. Dans les deux cas, chaque question échouée quitte l'état maîtrisé, revient dans la **dernière boîte** et reprend le circuit normal ; si elle est de nouveau échouée à sa présentation suivante, elle revient en boîte 1 (§7.2).
+- **Variantes**
+  - 1a. L'étudiant restreint l'échantillon à certains thèmes.
+  - 3a. L'étudiant interrompt le contrôle : les réponses données valent pour les questions concernées (les échecs reviennent dans la dernière boîte), mais aucune conclusion n'est tirée.
+- **Règle** : l'historique (UC-12) conserve chaque contrôle : date, taille de l'échantillon, taux, conclusion.
+
+#### UC-15 — Passer un test de placement
+
+- **Acteur** : Étudiant.
+- **Objectif** : ne pas faire refaire tout le circuit des boîtes à un étudiant qui connaît déjà une partie du sujet.
+- **Déclencheurs** : à la création ou à l'adoption d'une suite, le système le propose ; l'étudiant peut aussi le lancer à tout moment sur les questions encore en banque.
+- **Scénario nominal**
+  1. L'étudiant choisit le périmètre : toutes les questions en banque, certains thèmes, ou un nombre maximal de questions.
+  2. Le système pose chaque question une fois, comme dans une séance, sans reprise des erreurs et sans effet sur la numérotation des séances.
+  3. Une question **réussie** est placée directement dans la boîte d'arrivée de la suite (défaut : boîte 3, UC-05). Une question **échouée** reste *en banque* et sera introduite normalement (§7.3).
+  4. En fin de test, le système affiche le nombre de questions placées, par thème, et la nouvelle répartition dans les boîtes.
+- **Variantes**
+  - 2a. L'étudiant interrompt le test : les questions déjà répondues sont placées ; il peut reprendre plus tard sur les questions restantes.
+  - 2b. L'étudiant passe une question : elle reste en banque.
+- **Règles**
+  - Pour limiter l'effet du hasard, une question QCM ou vrai / faux réussie au test est placée une boîte plus bas que les autres types *(choix provisoire, Q23)*.
+  - Le test de placement est enregistré dans l'historique (UC-12).
+
+### E. Comptes et accès
+
+#### UC-13 — Donner accès aux suites
+
+- **Acteur** : Formateur.
+- **Scénario** : le formateur ouvre une suite proposée à des étudiants ; ceux-ci la voient dans leur liste et l'adoptent (UC-05, 1a). L'accès aux banques elles-mêmes relève du module Banques de questions ([PRD Banques](banques_prd.md), UC-07) ; quand il est retiré, la banque quitte les sources des suites de l'étudiant, après l'en avoir informé, et son historique reste consultable.
+
+---
+
+## 6. Types de questions
+
+Les types de questions, leur contenu, leur saisie et leur correction sont décrits dans le [PRD Banques de questions](banques_prd.md), §6. Le module Leitner pose **tous les types** ; chacun devient utilisable en séance avec le lot du module Banques qui le crée (B1, B2, B3). La correction par l'IA des questions ouvertes s'accompagne, dans Leitner, de la contestation du verdict (UC-09).
+
+---
+
+## 7. Règles de la méthode Leitner
+
+### 7.1 Boîtes posées à une séance
+
+Chaque séance pose la **boîte 1** et **une seule boîte haute**, en rotation :
+
+- la boîte 1 est posée à **toutes** les séances ;
+- la boîte 2, **une séance sur deux** ;
+- la boîte 3, **une sur quatre** ; la boîte 4, une sur huit ; la boîte *k*, une séance sur 2<sup>k−1</sup>.
+
+| Séance | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | … | 16 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Boîtes posées (5 boîtes) | 1, 2 | 1, 3 | 1, 2 | 1, 4 | 1, 2 | 1, 3 | 1, 2 | 1, 5 | … | 1 |
+
+À la séance *n*, la boîte haute est la boîte 2 + *v*, où *v* est le nombre de fois que *n* est divisible par 2. Quand ce numéro dépasse le nombre de boîtes (séances 16, 48… avec 5 boîtes), seule la boîte 1 est posée : les fréquences restent exactes.
+
+Les boîtes hautes sont réparties sur les séances plutôt que cumulées : la charge reste régulière d'une séance à l'autre, ce qui convient au rythme d'une séance par jour.
+
+Le rythme est compté en **séances**, pas en jours : l'étudiant choisit quand il travaille, et le numéro de séance n'avance que lorsqu'il fait une séance (Q1, tranchée). Plusieurs séances le même jour comptent chacune. Le mode de calcul (numéro de séance commun à la suite ou compteur propre à chaque question) est à confirmer (Q2).
+
+### 7.2 Mouvements entre boîtes
+
+- **Réponse juste** : la question monte d'une boîte (de la boîte 1 à la boîte 2, etc.).
+- **Réponse fausse** : la question **recule d'une boîte** ; une question de la boîte 1 y reste.
+- **Second échec consécutif** : si la réponse précédente qui a décidé de sa boîte était déjà fausse, la question **revient en boîte 1**, quelle que soit sa boîte.
+- **Seule la première réponse d'une séance compte** pour la boîte et pour les échecs consécutifs. Avec la reprise des erreurs (défaut), une question échouée est reposée en fin de séance jusqu'à être réussie une fois ; ces réponses de reprise ne changent pas sa boîte.
+- **Réponse juste dans la dernière boîte** : la question est **maîtrisée** et ne sera plus posée (Q3).
+- **Question passée** ou non posée : elle reste dans sa boîte.
+
+**Durée pour maîtriser une question** (sans erreur, à 5 séances par semaine) : environ 2<sup>N−1</sup> séances pour N boîtes. C'est la durée estimée affichée lors du choix du nombre de boîtes (UC-05).
+
+| Boîtes | Séances | Durée | Dernier écart avant la maîtrise |
+|---|---|---|---|
+| 4 | 8 | ≈ 2 semaines | 4 séances |
+| **5 (défaut)** | 16 | ≈ 3 semaines | 8 séances (≈ 1,5 semaine) |
+| 6 | 32 | ≈ 6 semaines | 16 séances (≈ 3 semaines) |
+| 7 | 64 | ≈ 13 semaines | 32 séances (≈ 6 semaines) |
+
+Chaque erreur fait reculer la question et allonge la durée : avec les introductions successives, une banque se termine en **2 à 3 mois** environ avec 5 boîtes. La durée de rétention au-delà de la maîtrise est assurée par les contrôles d'entretien (§7.6), plutôt que par des boîtes supplémentaires.
+
+### 7.3 Introduction des nouvelles questions
+
+- Au début d'une séance, si la boîte 1 compte moins de questions que le minimum de la suite, le système complète avec des questions **en banque**.
+- Les questions sont introduites **par niveau de difficulté croissant** : toutes les questions faciles avant les moyennes, toutes les moyennes avant les difficiles. Au sein d'un même niveau, le tirage est au hasard (Q8).
+- Les questions sans niveau de difficulté sont traitées comme de niveau moyen.
+- Une question ajoutée par l'étudiant directement en boîte 1 (UC-03) compte dans le minimum.
+
+### 7.4 Ordre de présentation
+
+- **Mélangé** (défaut) : les questions de toutes les boîtes posées sont mélangées.
+- **Boîte 1 d'abord** : on commence par ce qui est le moins su.
+- **Boîtes hautes d'abord** : on commence par vérifier ce qui est censé être su.
+- L'étudiant change l'ordre au lancement de la séance, ou dans les paramètres de la suite.
+
+### 7.5 Régularité
+
+- Le rythme conseillé est d'**une séance par jour**, ou par jour ouvré.
+- Si une suite compte **moins de trois séances sur les 7 derniers jours**, un **avertissement** s'affiche dans l'état de la suite (UC-11) et à l'ouverture de la suite (UC-08). Il indique le nombre de séances faites et le rythme conseillé.
+- L'avertissement n'apparaît qu'à partir de 7 jours après la première séance de la suite, et ne s'affiche pas pour une suite acquise.
+- L'avertissement ne bloque rien : l'étudiant reste libre de son rythme.
+
+### 7.6 Suite acquise et contrôles d'entretien
+
+- Une suite est **acquise** dès que toutes ses questions sont maîtrisées ou suspendues et qu'aucune ne reste en banque. La date d'acquisition est enregistrée et affichée (UC-11).
+- Ajouter des questions à une suite acquise (nouvelle source, nouvelles questions) lui fait perdre cet état jusqu'à ce qu'elles soient maîtrisées.
+- **Taille de l'échantillon** : 20 questions par défaut, ou toutes les questions maîtrisées s'il y en a moins (Q22). Repère : si *n* questions tirées au hasard sont toutes réussies, le taux d'oubli réel est inférieur à 3/*n* avec 95 % de confiance (20 questions : moins de 15 % ; 30 questions : moins de 10 %).
+- **Seuil** : 90 % de bonnes réponses par défaut (Q22).
+- **Délais** : le premier contrôle est proposé 1 mois après l'acquisition, le suivant 3 mois après un contrôle réussi, puis tous les 6 mois (Q22). Un contrôle échoué n'en planifie pas d'autre : la suite reprend le circuit normal jusqu'à être de nouveau acquise.
+- Les contrôles proposés apparaissent dans l'état de la suite (UC-11) ; ils ne bloquent rien.
+
+### 7.7 Temps de réponse
+
+- Le mode chronométré est un paramètre de la suite : désactivé par défaut ; à l'activation, 10 secondes sont proposées. Il ne s'applique qu'aux séances, ni aux contrôles d'entretien ni aux tests de placement (Q25 tranchée).
+- Le temps court de l'affichage de la question jusqu'à la validation de la réponse. Pour une question d'auto-évaluation, il court jusqu'à « Voir la réponse ».
+- Une question sans réponse à la fin du temps est **fausse** et suit les mouvements du §7.2 ; avec la reprise des erreurs, elle est reposée en fin de séance, elle aussi chronométrée.
+- L'étudiant change la durée, ou désactive le chronomètre, en cours de séance ; la nouvelle valeur devient celle de la suite et vaut dès la question suivante.
+- Le même temps vaut pour toutes les questions de la suite (Q24 tranchée).
+- Le temps mis à répondre est enregistré pour chaque réponse, chronométrée ou non ; il alimente les statistiques (UC-12).
+- À la reprise d'une séance interrompue, la question en cours repart avec un temps complet.
+
+---
+
+## 8. Fichier d'échange
+
+Les imports et exports se font au niveau des banques, dans le format décrit au [PRD Banques de questions](banques_prd.md), §8. Ni les suites ni la progression des étudiants ne sont exportées.
+
+---
+
+## 9. Exigences non fonctionnelles et découpage
+
+### 9.1 Exigences non fonctionnelles
+
+- **Utilisation autonome** : le module fonctionne sans le module QCM ; il s'appuie sur le module Banques de questions. Sans interface IA configurée, les questions ouvertes passent en auto-évaluation.
+- **Sans connexion** jusqu'au lot 3 : un utilisateur unique, sur un poste non exposé à Internet (même principe que le module QCM, §1.3 de son PRD).
+- **Plateforme** : application web responsive ; les séances sont confortables sur téléphone (gros boutons, saisie courte, image zoomable).
+- **Clavier** : une séance se fait entièrement au clavier (raccourcis pour vrai / faux, choix QCM, « voir la réponse », « je savais / je ne savais pas », question suivante). Pour un QCM présenté en liste déroulante, la recherche se fait au clavier et Entrée valide le choix ; les raccourcis numériques ne s'appliquent qu'aux QCM de 6 propositions au plus.
+- **Fiabilité** : chaque réponse et chaque mouvement de boîte sont enregistrés immédiatement ; une coupure ne fait perdre aucune réponse.
+- **Performances** : passage d'une question à la suivante en moins d'une seconde ; verdict IA en moins de 10 secondes, avec indicateur d'attente ; suite de 5 000 questions sans ralentissement perceptible.
+- **IA** : seules la question, la réponse attendue, les critères et la réponse de l'étudiant sont envoyés à l'agent, sans donnée d'identité ; le fournisseur passe par l'interface LLM du socle Laraskel.
+- **Accessibilité** : texte alternatif obligatoire des illustrations, contrastes suffisants, taille de police ajustable, verdict signalé autrement que par la couleur.
+- **RGPD** (à partir de v1, avec les comptes) : export et suppression de la progression et des questions personnelles d'un étudiant sur demande ; hébergement en UE.
+- **Langue** : français, interface traduisible.
+
+### 9.2 Découpage en lots
+
+| Lot | Contenu | Critère de sortie |
+|---|---|---|
+| **MVP** | Questions des types QCM, vrai / faux, auto-évaluation, valeur numérique ; UC-02, UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
+| **Lot 2 — Types et outils** | Séances avec les types du lot B2 du module Banques (énumération, correspondance, réponse courte) ; QCM de plus de 6 propositions en liste déroulante avec recherche ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur s'entraîne sur une banque de capitales importée, en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
+| **Lot 3 — IA** | Séances avec les questions ouvertes corrigées par l'IA (lot B3 du module Banques), avec bascule en auto-évaluation ; UC-09 pour l'IA | Une suite mêle des questions QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
+| **v1** | Comptes et rôles du socle ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements (traités dans le module Banques) ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
+| **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image (module Banques) ; questions inversées (UC-02) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |
+
+---
+
+## 10. Questions ouvertes
+
+**Rythme et boîtes**
+
+- ~~Q1. Rythme des révisions : en séances, en jours, ou en séances avec au plus une séance comptée par jour ?~~ **Tranché** : en séances, librement choisies par l'étudiant, sans limite par jour ; avertissement en dessous de trois séances par semaine (§7.1, §7.5). Repris dans le [PRD Mentor](mentor_prd.md) (UC-10).
+- Q2. Calcul de l'échéance — options : (a) **numéro de séance commun** (choix provisoire, §7.1) : simple et prévisible, mais une question qui arrive dans une boîte juste avant une séance où cette boîte est posée est reposée dès la séance suivante ; (b) **compteur propre à chaque question** : la question est reposée exactement 2<sup>k−1</sup> séances après son arrivée dans la boîte *k*, la charge par séance est plus irrégulière.
+- ~~Q3. Dernière boîte : la question maîtrisée sort-elle du circuit, reste-t-elle dans la dernière boîte, ou revient-elle de temps en temps ?~~ **Tranché** : elle est maîtrisée et sort du circuit ; la suite acquise est vérifiée par des contrôles d'entretien sur échantillon (UC-14, §7.6).
+- ~~Q4. Nombre de boîtes par défaut ?~~ **Tranché** : 5 boîtes (environ 2 à 3 mois pour terminer une banque), modifiable ; paramètre de la suite, pas de la banque (UC-05, §7.2).
+- Q4b. Nombre minimal de questions en boîte 1 par défaut : 10 (provisoire) ?
+- Q5. Taille d'une séance — options : (a) **aucune limite** : toutes les questions dues sont posées (choix provisoire) ; (b) **plafond** configurable (nombre de questions ou durée) ; les questions non posées restent dues et passent en priorité à la séance suivante.
+- ~~Q6. Reprise des erreurs dans la séance ?~~ **Tranché** : oui par défaut, désactivable par suite ; la question échouée est reposée en fin de séance jusqu'à la première réussite, sans effet sur sa boîte (§7.2).
+- Q7. Séance interrompue — options : (a) **reprise** proposée, la séance suivante n'est pas ouverte avant (choix provisoire) ; (b) la séance interrompue est close, les questions non posées restent dues à la suivante.
+- Q8. Ordre d'introduction au sein d'un même niveau de difficulté — options : (a) au hasard (choix provisoire) ; (b) dans l'ordre de la banque (utile pour une progression construite par le formateur) ; (c) au choix, par suite.
+
+**Types et correction**
+
+- Q9. Réponse **partiellement juste** (énumération, correspondance, IA) — options : (a) comptée fausse, avec recul d'une boîte (choix provisoire, §7.2) ; (b) la question reste dans sa boîte ; (c) juste au-delà d'un seuil configurable (ex. 80 % des éléments). Rejoint la Q18 du PRD Mentor.
+- Q10. Tolérance des réponses saisies — options : (a) exacte, aux majuscules, accents et espaces près (choix provisoire) ; (b) tolérance de quelques fautes de frappe selon la longueur du mot ; (c) jugement par l'IA ; (d) au choix sur chaque question.
+- ~~Q11. Où vivent les nouveaux types de questions : dans Leitner, dans QCM ou dans un module commun ?~~ **Tranché** : dans un module commun, [Banques de questions](banques_prd.md), dont QCM et Leitner dépendent ; toute question vit dans une banque, une banque par défaut recueille les autres.
+- Q12. Contestation d'un verdict IA ou automatique : l'étudiant a-t-il le dernier mot (choix provisoire, UC-09), ou la contestation est-elle seulement journalisée ? Rejoint la Q17 du PRD Mentor.
+- Q13. Niveaux de difficulté — options : (a) trois niveaux, facile / moyen / difficile (choix provisoire) ; (b) cinq niveaux ; (c) valeur numérique libre. Le niveau doit-il pouvoir être ajusté automatiquement d'après les taux de réussite observés ?
+
+**Banques et partage**
+
+- Q14. Les questions créées par un étudiant restent-elles privées, ou peut-il les proposer au formateur pour la banque prédéfinie ? Rejoint la Q19 du PRD Mentor.
+- Q15. Une question présente dans plusieurs suites — options : (a) boîte propre à chaque suite (choix provisoire, UC-05) ; (b) boîte commune : une réponse dans une suite fait bouger la question dans les autres.
+- Q16. Import depuis d'autres outils (Anki, Quizlet, simple tableur à deux colonnes question / réponse) ?
+- Q17. L'agent IA peut-il proposer des questions à partir d'un texte ou d'un document fourni par l'étudiant, et avec quelle validation ? En intégration Mentor, cette fonction relève du Coach IA (UC-10c du PRD Mentor).
+- Q18. Formats d'image et taille maximale : alignés sur la Q8 du PRD QCM ?
+
+- Q22. Paramètres du contrôle d'entretien : taille de l'échantillon (20 provisoire, ou un pourcentage de la suite ?), seuil (90 % provisoire), délais (1, 3 puis 6 mois provisoires) ; sont-ils réglables par suite ?
+
+- Q23. Test de placement : boîte d'arrivée par défaut (3 provisoire) ; placer une boîte plus bas les questions devinables (QCM, vrai / faux) ? Faut-il plutôt un bouton « j'ai deviné » ?
+
+- ~~Q24. Temps de réponse : le même pour toutes les questions, modulé par type, ou propre à chaque question ?~~ **Tranché** : le même pour toutes les questions de la suite (§7.7).
+- ~~Q25. Le temps de réponse s'applique-t-il aussi aux contrôles d'entretien et aux tests de placement ?~~ **Tranché** : non, seulement aux séances (§7.7).
+- Q26. Le chronomètre s'arrête-t-il quand l'étudiant change d'onglet ou d'application, ou continue-t-il ?
+
+- ~~Q27. Faut-il pouvoir exporter et importer une suite ?~~ **Tranché** : non, les imports et exports se font au niveau des banques.
+- ~~Q28. Comment le module QCM traite-t-il les questions d'autres types ?~~ **Tranché** : il utilise les QCM et les vrai / faux (comme QCM à deux réponses) et ignore les autres types avec un avertissement qui en donne le nombre ([PRD Banques](banques_prd.md), §7).
+
+**Usage**
+
+- Q19. Faut-il pouvoir faire ses séances hors connexion, sur téléphone ? Rejoint la Q14 du PRD Mentor.
+- Q20. En plus de l'avertissement affiché (§7.5), faut-il des rappels envoyés (notification, e-mail) quand l'étudiant n'a pas fait de séance depuis un certain temps ? Avec quel délai par défaut ?
+
+**Intégration à Mentor**
+
+- Q21. Correspondance des termes : une *question* Leitner est-elle la *carte Leitner* du PRD Mentor, rattachée à une notion ; une *suite* correspond-elle à une leçon, un chapitre ou une formation ?
