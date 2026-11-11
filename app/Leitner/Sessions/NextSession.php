@@ -43,4 +43,23 @@ final readonly class NextSession
     {
         return array_sum($this->perBox) + $this->introductions;
     }
+
+    /**
+     * « Séance n° 4 — boîtes posées : 1, 2 et 3 — 12 questions, dont 2 nouvelles. »
+     */
+    public function describe(): string
+    {
+        $boxes = count($this->boxes) === 1
+            ? 'boîte posée : 1'
+            : 'boîtes posées : '.implode(', ', array_slice($this->boxes, 0, -1)).' et '.$this->boxes[array_key_last($this->boxes)];
+        $total = $this->total();
+        $questions = $total.' question'.($total > 1 ? 's' : '');
+        $new = match ($this->introductions) {
+            0 => '',
+            1 => ', dont 1 nouvelle',
+            default => ", dont {$this->introductions} nouvelles",
+        };
+
+        return "Séance n° {$this->number} — {$boxes} — {$questions}{$new}.";
+    }
 }

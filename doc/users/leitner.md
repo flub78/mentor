@@ -84,3 +84,57 @@ Une question bien répondue monte d'une boîte, et chaque boîte est posée deux
 3. Choisissez son **placement** : **directement en boîte 1** (elle sera posée à la prochaine séance) ou **en banque** (elle sera introduite avec les autres nouvelles questions).
 
 Vos questions sont rangées dans une banque personnelle, « <nom de la suite> — mes questions », créée à la première question et ajoutée aux sources de la suite. Elle est conservée si vous supprimez la suite.
+
+## Lire l'état d'une suite
+
+Cliquez sur une suite dans la liste **Suites de révision** pour ouvrir son état :
+
+- **Boîtes** : le nombre de questions dans chaque boîte, sous forme de barres ;
+- **Répartition** : les questions encore en banque (jamais posées), par difficulté, celles qui sont dans les boîtes, maîtrisées ou suspendues ; le total vérifie que rien ne manque ;
+- **Prochaine séance** : son numéro, les boîtes posées, le nombre de questions et de nouvelles questions ; la date de la dernière séance et le nombre de séances des 7 derniers jours.
+
+Si vous avez fait moins de 3 séances sur les 7 derniers jours, un avertissement **Rythme insuffisant** s'affiche, ici et dans la colonne **Rythme** de la liste des suites. Il ne bloque rien : vous restez libre de votre rythme.
+
+## Comprendre les boîtes et le rythme
+
+Les séances sont numérotées. La boîte 1 est posée à chaque séance, la boîte 2 une séance sur deux, la boîte 3 une sur quatre, la boîte 4 une sur huit, et ainsi de suite. Le rythme compte en séances, pas en jours : l'idéal est une séance par jour, ou par jour ouvré.
+
+- Une **bonne réponse** fait monter la question d'une boîte ; dans la dernière boîte, elle devient **maîtrisée** et n'est plus posée.
+- Une **mauvaise réponse** fait reculer la question d'une boîte ; si la réponse précédente était déjà fausse, elle revient en boîte 1.
+- Au début de chaque séance, si la boîte 1 contient moins de questions que le minimum de la suite, de nouvelles questions sont prises dans la banque, les plus faciles d'abord.
+
+## Faire une séance
+
+1. Ouvrez la suite et cliquez sur **Commencer la séance**.
+2. La page annonce le numéro de la séance, les boîtes posées et le nombre de questions. Choisissez si besoin l'**ordre de présentation** pour cette séance, puis cliquez sur **Commencer la séance**.
+3. Pour chaque question :
+   - **QCM** : choisissez une proposition, puis **Valider** ;
+   - **Vrai / faux** : cliquez sur **Vrai** ou **Faux** ;
+   - **Auto-évaluation** : réfléchissez, cliquez sur **Voir la réponse**, puis dites honnêtement si vous saviez ;
+   - **Valeur numérique** : saisissez le nombre (virgule ou point, unité facultative), puis **Valider**.
+4. La correction s'affiche : la réponse attendue, l'explication et le mouvement de la question (« Boîte 2 → boîte 3 »). Cliquez sur **Question suivante**.
+
+En haut de la page, vous voyez votre position dans la séance et le pourcentage de bonnes réponses.
+
+- **Passer** laisse une question dans sa boîte ; elle sera reposée à une prochaine séance.
+- **Annuler ma réponse**, juste après une réponse, permet de répondre de nouveau (par exemple après une erreur de clic). Une seule annulation est possible, avant de passer à la question suivante.
+- Si la suite repose les erreurs, une question échouée revient en fin de séance jusqu'à être réussie ; ces reprises ne changent pas sa boîte.
+- **Terminer la séance** arrête la séance à tout moment : les questions non posées restent dans leur boîte.
+
+À la fin, le **bilan** donne le taux de bonnes réponses, les nouvelles questions, les questions maîtrisées, les mouvements entre boîtes, les questions échouées avec leur réponse attendue, et ce que posera la prochaine séance.
+
+### Raccourcis clavier
+
+| Touche | Action |
+|---|---|
+| 1 à 9 | Choisir une proposition (QCM) |
+| V / F | Répondre vrai ou faux |
+| Espace | Voir la réponse (auto-évaluation) |
+| O / N | Je savais / je ne savais pas |
+| Entrée | Valider, ou passer à la question suivante |
+| P | Passer la question |
+| A | Annuler ma réponse |
+
+## Reprendre une séance interrompue
+
+Chaque réponse est enregistrée dès qu'elle est donnée : fermer la page ou perdre la connexion ne fait rien perdre. En rouvrant la suite, **Reprendre la séance** repart à la première question sans réponse. Vous pouvez aussi **abandonner** la séance : les réponses déjà données sont conservées, et une séance abandonnée sans aucune réponse ne compte pas.

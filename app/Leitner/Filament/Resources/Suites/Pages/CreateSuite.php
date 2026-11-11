@@ -29,7 +29,7 @@ class CreateSuite extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return SuiteResource::getUrl('edit', ['record' => $this->getRecord()]);
+        return SuiteResource::getUrl('view', ['record' => $this->getRecord()]);
     }
 
     /**

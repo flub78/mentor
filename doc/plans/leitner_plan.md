@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Leitner
 
-- **Statut** : MVP en cours — étapes 0 à 3 livrées
+- **Statut** : MVP en cours — étapes 0 à 4 livrées (vérification à largeur téléphone à faire)
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [leitner_prd.md](../prds/leitner_prd.md), §9.2 « Découpage en lots »
@@ -245,30 +245,31 @@ valeurs `controle` et `placement` au lot 2.
 
 **Page de séance (`App\Leitner\Filament\Pages\Seance`)**
 
-- [ ] Ouverture depuis une suite : si une séance est en cours, proposition de la **reprendre** ou de l'**abandonner** (6a) ; sinon, composition annoncée (numéro, boîtes posées, nombre de questions, nouvelles questions) et choix de l'ordre de présentation pour cette séance.
-- [ ] Écran question : énoncé, image (zoomable, texte alternatif), boîte d'origine discrète, saisie par la vue du type ; position (7 / 23) et taux de réussite de la séance en permanence.
-- [ ] Après réponse : verdict, réponse attendue, explication, détail du handler ; mouvement de boîte (« boîte 3 → boîte 4 ») ; boutons « Question suivante », « Annuler ma réponse », « Passer » avant réponse.
-- [ ] Vues de saisie : QCM (propositions mélangées sauf `shuffle` faux), vrai / faux, auto-évaluation (« Voir la réponse » puis « Je savais » / « Je ne savais pas »), valeur numérique (champ et unité).
-- [ ] Raccourcis clavier : 1-9 pour les propositions, V / F, Espace pour « Voir la réponse », Entrée pour valider et passer à la suite ; aide affichée.
-- [ ] Bilan de fin de séance (`SessionSummary`) ; bouton « Terminer la séance » à tout moment.
-- [ ] Mise en page utilisable à largeur téléphone (gros boutons, image adaptée).
+- [x] Ouverture depuis une suite : si une séance est en cours, proposition de la **reprendre** ou de l'**abandonner** (6a) ; sinon, composition annoncée (numéro, boîtes posées, nombre de questions, nouvelles questions) et choix de l'ordre de présentation pour cette séance.
+- [x] Écran question : énoncé, image (zoomable, texte alternatif), boîte d'origine discrète, saisie par la vue du type ; position (7 / 23) et taux de réussite de la séance en permanence.
+- [x] Après réponse : verdict, réponse attendue, explication, détail du handler ; mouvement de boîte (« boîte 3 → boîte 4 ») ; boutons « Question suivante », « Annuler ma réponse », « Passer » avant réponse.
+- [x] Vues de saisie : QCM (propositions mélangées sauf `shuffle` faux), vrai / faux, auto-évaluation (« Voir la réponse » puis « Je savais » / « Je ne savais pas »), valeur numérique (champ et unité).
+- [x] Raccourcis clavier : 1-9 pour les propositions, V / F, Espace pour « Voir la réponse », Entrée pour valider et passer à la suite ; aide affichée.
+- [x] Bilan de fin de séance (`SessionSummary`) ; bouton « Terminer la séance » à tout moment.
+- [ ] Mise en page utilisable à largeur téléphone (gros boutons, image adaptée) : à vérifier, la fenêtre du navigateur piloté n'a pas pu être réduite.
 
 **État de la suite (UC-11)**
 
-- [ ] Page de la suite : barres des boîtes (nombre par boîte), questions en banque par difficulté, maîtrisées, suspendues, avec le total qui vérifie l'égalité du PRD ; prochaine séance (numéro, boîtes, nombre de questions, introductions prévues) ; date de la dernière séance ; régularité et avertissement ; bouton « Commencer la séance » / « Reprendre la séance ».
-- [ ] Liste des suites : même résumé en une ligne, avertissement de régularité visible.
+- [x] Page de la suite (`ViewSuite`, lecture via `SuiteState`) : barres des boîtes (nombre par boîte), questions en banque par difficulté, maîtrisées, suspendues, avec le total qui vérifie l'égalité du PRD ; prochaine séance (numéro, boîtes, nombre de questions, introductions prévues) ; date de la dernière séance ; régularité et avertissement ; bouton « Commencer la séance » / « Reprendre la séance ».
+- [x] Liste des suites : même résumé en une ligne, avertissement de régularité visible.
 
 **Tests**
 
-- [ ] Séance complète avec Livewire sur les quatre types : réponses justes et fausses, mouvements affichés, bilan juste.
-- [ ] Reprise d'une séance interrompue (nouvelle instance de la page) : elle repart à la première entrée sans réponse.
-- [ ] Une question ne peut pas être validée sans réponse ; saisie numérique invalide → message, pas de verdict.
-- [ ] État de la suite : compteurs et prochaine séance conformes au moteur après plusieurs séances ; avertissement affiché ou non selon les dates (horloge simulée).
+- [x] Séance complète avec Livewire sur les quatre types : réponses justes et fausses, mouvements affichés, bilan juste.
+- [x] Reprise d'une séance interrompue (nouvelle instance de la page) : elle repart à la première entrée sans réponse.
+- [x] Une question ne peut pas être validée sans réponse ; saisie numérique invalide → message, pas de verdict.
+- [x] État de la suite : compteurs et prochaine séance conformes au moteur après plusieurs séances ; avertissement affiché ou non selon les dates (horloge simulée).
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/leitner.md` : « Faire une séance », « Comprendre les boîtes et le rythme », « Lire l'état d'une suite », « Reprendre une séance interrompue », raccourcis clavier.
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur (ordinateur et largeur téléphone) ; commit.
+- [x] `doc/users/leitner.md` : « Faire une séance », « Comprendre les boîtes et le rythme », « Lire l'état d'une suite », « Reprendre une séance interrompue », raccourcis clavier.
+- [x] `composer qa` vert ; vérification manuelle dans le navigateur sur ordinateur (séance complète des quatre types, raccourcis clavier, annulation, reprise d'une erreur, bilan) ; commit.
+- [ ] Vérification manuelle à largeur téléphone.
 
 ### Étape 5 — Clôture du MVP
 

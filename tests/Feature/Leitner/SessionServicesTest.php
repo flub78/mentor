@@ -425,6 +425,7 @@ class SessionServicesTest extends TestCase
         $this->assertCount(1, $summary->failed);
         $this->assertEquals(new NextSession(2, [1, 2], [1 => 1, 2 => 2], 1), $summary->next);
         $this->assertSame(4, $summary->next->total());
+        $this->assertSame('Séance n° 2 — boîtes posées : 1 et 2 — 4 questions, dont 1 nouvelle.', $summary->next->describe());
     }
 
     private function assertRefused(callable $action, string $message): void
