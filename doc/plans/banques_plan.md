@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 livré — étapes B1 à B8
+- **Statut** : lot B1 livré ; lot B1.1 en cours
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -11,6 +11,7 @@
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
 | B1 — Banques communes | Module Banques, banque par défaut, reprise des banques QCM et Leitner, import / export, modules QCM et Leitner branchés dessus, déplacement | B1 à B8 (§4) | Livré |
+| B1.1 — Référence et ordre | Référence stable des questions, import qui met à jour les questions déjà présentes ; ordre fixe des propositions d'un QCM | R1 à R4 (§5) | En cours |
 | B2 — Types complémentaires | Réponse courte, énumération, correspondance ; compléments d'édition | À détailler (§5) | — |
 | B3 — Questions ouvertes | Question ouverte corrigée par l'IA | À détailler (§5) | — |
 | v1, v2 | Banques prédéfinies et personnelles, signalements, accès ; autres types | À détailler | — |
@@ -159,7 +160,50 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ---
 
-## 5. Lots suivants
+## 5. Lot B1.1 — Référence et ordre des propositions
+
+**Objectif** (PRD §9.2) : une banque exportée, corrigée dans un tableur puis réimportée met à jour ses questions sans perdre la progression des suites Leitner ; un QCM non mélangé s'affiche dans l'ordre du fichier. Origine : suggestions S-018 et S-021 du projet poker, qui produit des banques au format de Mentor.
+
+### Décisions techniques
+
+| Sujet | Choix | Alternatives écartées |
+|---|---|---|
+| Référence | Colonne `reference` (texte court, facultatif) de `banques_questions`, index unique (`bank_id`, `reference`) : une banque copiée par export / import garde ses références. | Unique dans toute l'application : interdirait de réimporter une banque dans une nouvelle banque. Identifiant interne exporté : n'existe pas dans un fichier écrit à la main ou par un autre outil. |
+| Questions déjà présentes à l'import | Choix du formateur dans le rapport : mettre à jour, ou ignorer ces lignes (PRD UC-05). | Toujours créer (la référence ne servirait qu'à l'aller-retour) ; toujours mettre à jour (pas de garde-fou). |
+| Nature d'une mise à jour par import | De fond si la réponse attendue (`payload`) change, mineure sinon ; appliquée par le registre des utilisations (`UsageRegistry`), comme une modification à la main. | Demander la nature ligne par ligne : trop lourd pour un import. |
+| Ordre fixe d'un QCM | `payload.correct_position` : rang de la bonne réponse parmi les propositions (0 par défaut), les mauvaises restant dans leur ordre. Toute permutation s'écrit ainsi ; les clés des réponses (`bonne`, `fausse-N`) ne changent pas. Remis à 0 quand les réponses sont mélangées, pour qu'un réimport ne voie pas de faux changement. | Liste complète des clés dans le `payload` : redondante, et à réparer à chaque modification des mauvaises réponses. |
+| Colonne `ordre` | Liste des textes des propositions ; à l'import, les mauvaises réponses (et leurs explications) sont rangées dans cet ordre et la place de la bonne réponse en est déduite. | Colonne « position de la bonne réponse » : plus simple, mais ne fixe pas l'ordre voulu des mauvaises réponses quand le fichier les numérote autrement. |
+
+### Étape R1 — Référence des questions
+
+- [ ] Migration : colonne `reference` et index unique (`bank_id`, `reference`) ; modèle (`fillable`).
+- [ ] Formulaire de question, section Compléments : champ « Référence », unique dans la banque, message qui nomme la question qui la porte.
+- [ ] Déplacement et copie (`QuestionMover`) : référence gardée si elle est libre dans la banque cible, retirée sinon, et dite dans le message de fin.
+- [ ] Tests : unicité dans une banque, même référence dans deux banques, déplacement et copie en conflit.
+
+### Étape R2 — Ordre fixe des propositions d'un QCM
+
+- [ ] `QcmHandler` : `correct_position` (normalisation, règle de cohérence, `options()` dans l'ordre d'affichage) ; formulaire : « Place de la bonne réponse », visible sans mélange.
+- [ ] Module QCM : les réponses d'une question (`Question::answers`) suivent l'ordre d'affichage (étude, passage, correction) ; séance Leitner idem.
+- [ ] Format d'échange : colonnes `reference` et `ordre` (lecture, erreurs, avertissement quand `melange` vaut `oui`), écriture à l'export.
+- [ ] Tests : ordre affiché dans les trois modules, lecture et erreurs de `ordre`, aller-retour export / import.
+
+### Étape R3 — Import avec mise à jour
+
+- [ ] Analyse : lignes reconnues par leur référence, comparées à la question (inchangée, modifiée, réponse attendue modifiée) ; erreurs (type différent, référence répétée dans le fichier) ; ces lignes ne sont pas des doublons.
+- [ ] Rapport avant import et choix « Mettre à jour » / « Ignorer ces lignes » ; import : mise à jour (image gardée si la cellule est vide), effet sur les suites Leitner, notification (créées, mises à jour, inchangées, ignorées, suites touchées).
+- [ ] Import d'un questionnaire QCM : références déjà prises dans la banque d'arrivée non reprises, et dites.
+- [ ] Tests : mise à jour mineure et de fond (progression Leitner), choix « ignorer », type différent, image gardée, questionnaire.
+
+### Étape R4 — Documentation et clôture
+
+- [ ] `doc/users/banques.md` : référence, place de la bonne réponse, « Corriger une banque dans un tableur » (export, correction, réimport) ; format (`reference`, `ordre`) ; fichiers exemples.
+- [ ] Vérification dans le navigateur : saisie, export, correction, réimport avec mise à jour, ordre affiché en étude QCM et en séance Leitner.
+- [ ] Statuts de ce plan ; `composer qa` vert ; PR (après accord pour pousser).
+
+---
+
+## 6. Lots suivants
 
 - **B2** : reprend les éléments « types et compléments d'édition » jusqu'ici prévus à l'étape 6 du [plan Leitner](leitner_plan.md) et au lot 5 du [plan QCM](qcm_plan.md) (types réponse courte, énumération, correspondance ; images dans les propositions ; duplication, décomptes, prévisualisation, recherche, doublons à la saisie).
 - **B3** : type question ouverte et correction par l'IA, après la livraison de l'interface LLM du socle Laraskel.

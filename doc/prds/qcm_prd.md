@@ -239,6 +239,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
   - 3a. Le formateur annule : rien n'est importé.
 - **Règles**
   - L'import crée toujours de nouveaux objets ; il ne modifie jamais un questionnaire ou un examen existant (Q24).
+  - Les questions importées sont toujours de nouvelles questions, même quand leur référence ([PRD Banques](banques_prd.md), UC-05) est déjà portée par une question de la banque d'arrivée : elles sont alors créées sans référence, et le rapport final le dit.
   - Une ligne en erreur n'empêche pas l'import des autres, mais aucune ligne n'est importée à moitié.
 
 #### UC-18 — Diffuser un examen par un lien

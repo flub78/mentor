@@ -134,7 +134,7 @@ Les banques et leurs questions sont gérées par le module [Banques de questions
 #### UC-02 — Effets d'une modification de question sur les suites
 
 - **Acteur** : Formateur.
-- **Scénario** : quand le formateur modifie une question déjà introduite dans une progression, il indique si la modification est **mineure** (correction de forme : la question garde sa boîte) ou **de fond** (la question revient en boîte 1 dans toutes les suites qui l'utilisent, échecs consécutifs remis à zéro) ; la notification donne le nombre de suites touchées.
+- **Scénario** : quand le formateur modifie une question déjà introduite dans une progression, il indique si la modification est **mineure** (correction de forme : la question garde sa boîte) ou **de fond** (la question revient en boîte 1 dans toutes les suites qui l'utilisent, échecs consécutifs remis à zéro) ; la notification donne le nombre de suites touchées. Un import qui met à jour une question ([PRD Banques](banques_prd.md), UC-05) suit la même règle : la modification est de fond quand la réponse attendue change.
 - **Règles**
   - Supprimer une question la retire de toutes les progressions ; la confirmation annonce le nombre de suites concernées.
   - Déplacer une question vers une banque qui n'est pas source d'une suite la retire de cette suite, avec sa progression ([PRD Banques](banques_prd.md), UC-03).
