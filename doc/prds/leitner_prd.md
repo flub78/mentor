@@ -8,7 +8,7 @@
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [QCM](qcm_prd.md) |
-| **Plan** | *à rédiger* |
+| **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
 
 **Évolutions de la version 0.5** : taille d'étude facultative, fixée à la création d'une suite, pour ne travailler qu'un échantillon d'une grosse banque (UC-05, v2).
 
@@ -453,7 +453,7 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
 | **MVP** | UC-01, UC-02 (types QCM, vrai / faux, auto-évaluation, valeur numérique), UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
-| **Lot 2 — Types et outils** | Types énumération, correspondance, réponse courte ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; illustrations dans les propositions ; UC-04 import / export ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur importe une banque de capitales, s'entraîne en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
+| **Lot 2 — Types et outils** | Types énumération, correspondance, réponse courte ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; illustrations dans les propositions ; UC-04 import / export ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur importe une banque de capitales, s'entraîne en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
 | **Lot 3 — IA et banques QCM** | Question ouverte corrigée par l'IA, avec bascule en auto-évaluation ; UC-09 pour l'IA ; banques QCM comme sources (UC-05) via l'interface publique du module QCM | Une suite mêle une banque QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
 | **v1** | Comptes et rôles du socle ; banques prédéfinies et personnelles distinctes ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
 | **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image ; questions inversées (UC-02, 2a) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |
