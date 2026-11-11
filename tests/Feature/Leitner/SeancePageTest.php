@@ -81,7 +81,7 @@ class SeancePageTest extends TestCase
             $answered[] = $question->statement;
 
             match ($question->statement) {
-                'Capitale de la Suisse ?' => $page->set('response', 'fausse-0')->call('submit')
+                'Capitale de la Suisse ?' => $page->set('response', (string) array_search('fausse-0', array_keys($page->instance()->qcmOptions($page->instance()->displayedEntry(), $question)), true))->call('submit')
                     ->assertSee('Mauvaise réponse')->assertSeeText('Réponse attendue : Berne')->assertSee('Plus grande ville, pas la capitale.'),
                 'Vienne est sur le Danube.' => $page->call('answer', 'vrai')->assertSee('Bonne réponse')->assertSee('Boîte 1 → boîte 2.'),
                 'Pythagore ?' => $page->call('reveal')->assertSee('Par les aires')->call('selfAssess', true)->assertSee('Bonne réponse'),
@@ -253,5 +253,16 @@ class SeancePageTest extends TestCase
         $this->assertSame(Verdict::Juste, $entry->verdict);
         $this->assertNotNull($entry->duration_ms);
         $this->assertGreaterThanOrEqual(0, $entry->duration_ms);
+    }
+
+    public function test_qcm_answer_keys_are_not_written_in_the_page(): void
+    {
+        $suite = $this->suite();
+        Question::factory()->for($this->bank)->qcm()->create();
+
+        $html = $this->page($suite)->call('start')->html();
+
+        $this->assertStringNotContainsString("'bonne'", $html);
+        $this->assertStringNotContainsString("'fausse-", $html);
     }
 }

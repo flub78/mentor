@@ -151,8 +151,19 @@ class Study extends Page
             return;
         }
 
+        // La page n'envoie que le rang de la réponse dans l'ordre affiché, jamais
+        // sa clé : elle ne révèle pas la bonne réponse.
+        $order = $this->session->answerOrders[$this->session->currentQuestionId()] ?? [];
+        $key = ctype_digit($this->choice) ? ($order[(int) $this->choice] ?? null) : null;
+
+        if ($key === null) {
+            Notification::make()->danger()->title('Réponse inconnue : choisissez l\'une des réponses proposées.')->send();
+
+            return;
+        }
+
         try {
-            $this->session->answer($this->choice);
+            $this->session->answer($key);
         } catch (\InvalidArgumentException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
         }

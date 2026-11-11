@@ -138,7 +138,7 @@
                         @foreach ($current['answers'] as $answer)
                             @php($selected = $current['chosen'] === $answer->key)
                             <button type="button" role="radio" aria-checked="{{ $selected ? 'true' : 'false' }}"
-                                    wire:click="choose('{{ $answer->key }}')" wire:key="answer-{{ $answer->key }}"
+                                    wire:click="choose({{ $loop->index }})" wire:key="answer-{{ $current['position'] }}-{{ $loop->index }}"
                                     @class([
                                         'flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left',
                                         'border-amber-500 bg-amber-50 ring-1 ring-amber-500' => $selected,

@@ -389,8 +389,14 @@ class Seance extends Page
 
     private function typedResponse(SessionEntry $entry): mixed
     {
-        return match ($entry->question?->type) {
+        $question = $entry->question;
+
+        return match ($question?->type) {
             QuestionType::VraiFaux => $this->response === 'vrai',
+            // Rang dans l'ordre affiché → clé de la proposition (la page ne connaît pas les clés).
+            QuestionType::Qcm => ctype_digit((string) $this->response)
+                ? (array_keys($this->qcmOptions($entry, $question))[(int) $this->response] ?? null)
+                : null,
             default => $this->response,
         };
     }

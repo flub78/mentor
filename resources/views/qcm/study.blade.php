@@ -105,11 +105,11 @@
                     <div style="{{ $stack }} gap: .6rem;" role="radiogroup" aria-label="Réponses">
                         @foreach ($this->currentAnswers($question) as $answer)
                             @php($isChosen = $answered && $session->responses[$question->id] === $answer->key)
-                            <div wire:key="answer-{{ $answer->key }}" style="{{ $stack }} gap: .25rem;">
+                            <div wire:key="answer-{{ $question->id }}-{{ $loop->index }}" style="{{ $stack }} gap: .25rem;">
                                 <label style="{{ $row }} gap: .5rem; cursor: {{ $answered ? 'default' : 'pointer' }};">
                                     <x-filament::input.radio
                                         name="choice"
-                                        value="{{ $answer->key }}"
+                                        value="{{ $loop->index }}"
                                         wire:model="choice"
                                         :disabled="$answered"
                                     />

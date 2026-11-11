@@ -165,14 +165,21 @@ class TakeExam extends Component
         $this->step = self::STEP_QUESTION;
     }
 
-    public function choose(string $answerKey): void
+    /**
+     * Choisit la réponse affichée au rang `$index` (ordre de l'écran). La page
+     * ne connaît que ce rang, jamais la clé de la réponse : elle ne peut pas
+     * révéler la bonne réponse (PRD QCM §7, sécurité).
+     */
+    public function choose(int $index): void
     {
         if (! $this->isAnswering()) {
             return;
         }
 
         if ($this->preview) {
-            if (in_array($answerKey, $this->previewItems[$this->position]['answer_order'], true)) {
+            $answerKey = $this->previewItems[$this->position]['answer_order'][$index] ?? null;
+
+            if ($answerKey !== null) {
                 $this->previewItems[$this->position]['chosen_key'] = $answerKey;
                 unset($this->items);
             }
@@ -180,7 +187,7 @@ class TakeExam extends Component
             return;
         }
 
-        $this->record(fn (AttemptRecorder $recorder, AttemptItem $item) => $recorder->answer($item, $answerKey));
+        $this->record(fn (AttemptRecorder $recorder, AttemptItem $item) => $recorder->answer($item, (string) ($item->answer_order[$index] ?? '')));
     }
 
     public function toggleBookmark(): void

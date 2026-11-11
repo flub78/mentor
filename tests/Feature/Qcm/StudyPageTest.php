@@ -6,6 +6,7 @@ use App\Qcm\Filament\Pages\Study;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -53,7 +54,7 @@ class StudyPageTest extends TestCase
             $currentId = $page->get('session')->currentQuestionId();
             $answer = $currentId === $good->id ? $good->correctAnswer : $wrong;
 
-            $page->set('choice', $answer->key)->call('validateAnswer');
+            $page->set('choice', $this->rankOf($page, $answer->key))->call('validateAnswer');
 
             if ($currentId === $good->id) {
                 $page->assertSee('Bonne réponse !')->assertSee('Le cumulonimbus est le nuage d\'orage.');
@@ -84,7 +85,7 @@ class StudyPageTest extends TestCase
 
         $current = $questions->firstWhere('id', $page->get('session')->currentQuestionId());
 
-        $page->set('choice', (string) $current->correctAnswer->key)
+        $page->set('choice', $this->rankOf($page, (string) $current->correctAnswer->key))
             ->call('validateAnswer')
             ->assertSee('100 % de bonnes réponses (1 / 1)')
             ->assertSee('1 restante(s)');
@@ -149,5 +150,32 @@ class StudyPageTest extends TestCase
             ->call('restart')
             ->assertSet('step', Study::STEP_CONFIG)
             ->assertSet('session', null);
+    }
+
+    public function test_answer_keys_are_not_written_in_the_page(): void
+    {
+        $bank = Bank::factory()->create();
+        Question::factory()->for($bank)->withAnswers()->create();
+
+        $html = Livewire::test(Study::class)
+            ->set('selectedBanks', [(string) $bank->id])
+            ->call('start')
+            ->html();
+
+        $this->assertStringNotContainsString('value="bonne"', $html);
+        $this->assertStringNotContainsString('value="fausse-', $html);
+    }
+
+    /**
+     * Rang affiché d'une réponse : la page n'envoie que des rangs, jamais les
+     * clés des réponses.
+     */
+    private function rankOf(Testable $page, string $key): string
+    {
+        $session = $page->get('session');
+        $rank = array_search($key, $session->answerOrders[$session->currentQuestionId()] ?? [], true);
+        $this->assertIsInt($rank, 'Réponse absente de l\'ordre affiché.');
+
+        return (string) $rank;
     }
 }

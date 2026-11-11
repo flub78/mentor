@@ -5,6 +5,7 @@ namespace Tests\Feature\Qcm;
 use App\Qcm\Filament\Resources\Exams\Pages\EditExam;
 use App\Qcm\Livewire\TakeExam;
 use App\Qcm\Models\Attempt;
+use App\Qcm\Models\AttemptItem;
 use App\Qcm\Models\AttemptStatus;
 use App\Qcm\Models\Exam;
 use App\Qcm\Models\FieldRequirement;
@@ -51,13 +52,13 @@ class TakeExamTest extends TestCase
             ->assertSet('step', TakeExam::STEP_QUESTION)
             ->assertSee('Question 1 sur 3')
             ->assertSee($first->statement)
-            ->call('choose', $this->correctAnswer($first))
+            ->call('choose', $this->correctRank($first))
             ->call('toggleBookmark')
             ->assertSee('★ Marquée')
             ->call('next')
             ->assertSee('Question 2 sur 3')
-            ->call('choose', $this->wrongAnswer($second))
-            ->call('choose', $this->correctAnswer($second))
+            ->call('choose', $this->wrongRank($second))
+            ->call('choose', $this->correctRank($second))
             ->call('goTo', 0)
             ->assertSee($first->statement)
             ->call('reviewBeforeFinish')
@@ -85,7 +86,7 @@ class TakeExamTest extends TestCase
             ->assertSee('Correction détaillée');
 
         // Les réponses ne peuvent plus changer.
-        $component->call('choose', $this->wrongAnswer($first));
+        $component->call('choose', $this->wrongRank($first));
         $this->assertSame($this->correctAnswer($first), $attempt->items()->where('position', 0)->value('chosen_key'));
         $this->assertNull($attempt->items()->where('question_id', $third->id)->value('chosen_key'));
     }
@@ -125,6 +126,8 @@ class TakeExamTest extends TestCase
             $this->assertStringNotContainsString('EXPLICATION-', $html);
             $this->assertStringNotContainsString('bonne réponse', $html);
             $this->assertStringNotContainsString('is_correct', $html);
+            $this->assertStringNotContainsString("'bonne'", $html, 'La clé de la bonne réponse ne doit pas figurer dans la page.');
+            $this->assertStringNotContainsString('fausse-', $html);
         }
 
         $html = $component->call('reviewBeforeFinish')->html();
@@ -139,9 +142,9 @@ class TakeExamTest extends TestCase
         [$first, $second, $third] = $exam->questionnaire->questions()->get()->all();
 
         $component = $this->identified($exam)
-            ->call('choose', $this->correctAnswer($first))
+            ->call('choose', $this->correctRank($first))
             ->call('next')
-            ->call('choose', $this->wrongAnswer($second))
+            ->call('choose', $this->wrongRank($second))
             ->call('toggleBookmark')
             ->call('finish');
 
@@ -190,14 +193,15 @@ class TakeExamTest extends TestCase
         $exam = $this->exam(['duration_minutes' => 30, 'shuffle_questions' => false]);
         $first = $exam->questionnaire->questions()->first();
 
-        Livewire::test(TakeExam::class, ['exam' => $exam, 'asPreview' => true])
+        $preview = Livewire::test(TakeExam::class, ['exam' => $exam, 'asPreview' => true])
             ->assertSee('Prévisualisation')
             ->call('begin')
             ->assertSet('identity', ['nom' => 'Exemple', 'prenom' => 'Candidat'])
             ->call('start')
             ->assertSet('step', TakeExam::STEP_QUESTION)
-            ->assertSee('Temps restant')
-            ->call('choose', $this->correctAnswer($first))
+            ->assertSee('Temps restant');
+
+        $preview->call('choose', $this->correctRank($first, $preview))
             ->call('toggleBookmark')
             ->assertSee('★ Marquée')
             ->call('reviewBeforeFinish')
@@ -215,7 +219,7 @@ class TakeExamTest extends TestCase
         $this->freezeSecond();
         $exam = $this->exam(['duration_minutes' => 20, 'shuffle_questions' => false]);
         $first = $exam->questionnaire->questions()->first();
-        $this->identified($exam)->call('choose', $this->correctAnswer($first))->call('toggleBookmark');
+        $this->identified($exam)->call('choose', $this->correctRank($first))->call('toggleBookmark');
         $attempt = Attempt::sole();
 
         $this->travel(5)->minutes();
@@ -330,5 +334,30 @@ class TakeExamTest extends TestCase
     private function wrongAnswer(Question $question): string
     {
         return (string) $question->wrongAnswers->first()?->key;
+    }
+
+    /**
+     * Rang affiché de la bonne réponse : la page n'envoie que des rangs, jamais
+     * les clés des réponses.
+     */
+    private function correctRank(Question $question, ?Testable $preview = null): int
+    {
+        return $this->rankOf($question, $this->correctAnswer($question), $preview);
+    }
+
+    private function wrongRank(Question $question, ?Testable $preview = null): int
+    {
+        return $this->rankOf($question, $this->wrongAnswer($question), $preview);
+    }
+
+    private function rankOf(Question $question, string $key, ?Testable $preview): int
+    {
+        $order = $preview !== null
+            ? collect($preview->get('previewItems'))->firstWhere('question_id', $question->id)['answer_order']
+            : AttemptItem::query()->where('question_id', $question->id)->latest('id')->value('answer_order');
+        $rank = array_search($key, $order, true);
+        $this->assertIsInt($rank, 'Réponse absente de l\'ordre affiché.');
+
+        return $rank;
     }
 }
