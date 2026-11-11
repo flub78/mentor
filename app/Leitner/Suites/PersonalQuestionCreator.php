@@ -2,8 +2,8 @@
 
 namespace App\Leitner\Suites;
 
-use App\Leitner\Models\Bank;
-use App\Leitner\Models\Question;
+use App\Banques\Models\Bank;
+use App\Banques\Models\Question;
 use App\Leitner\Models\Suite;
 use Illuminate\Support\Facades\DB;
 

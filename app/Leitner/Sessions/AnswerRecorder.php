@@ -2,12 +2,12 @@
 
 namespace App\Leitner\Sessions;
 
+use App\Banques\Questions\InvalidResponse;
+use App\Banques\Questions\Verdict;
 use App\Leitner\Engine\BoxMover;
 use App\Leitner\Models\ProgressItem;
 use App\Leitner\Models\Session;
 use App\Leitner\Models\SessionEntry;
-use App\Leitner\Questions\InvalidResponse;
-use App\Leitner\Questions\Verdict;
 use Illuminate\Support\Facades\DB;
 
 /**

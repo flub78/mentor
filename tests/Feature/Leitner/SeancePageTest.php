@@ -2,15 +2,15 @@
 
 namespace Tests\Feature\Leitner;
 
+use App\Banques\Models\Bank;
+use App\Banques\Models\Question;
+use App\Banques\Questions\Verdict;
 use App\Leitner\Filament\Pages\Seance;
 use App\Leitner\Filament\Resources\Suites\Pages\ViewSuite;
 use App\Leitner\Filament\Resources\Suites\SuiteResource;
-use App\Leitner\Models\Bank;
 use App\Leitner\Models\ProgressItem;
-use App\Leitner\Models\Question;
 use App\Leitner\Models\Session;
 use App\Leitner\Models\Suite;
-use App\Leitner\Questions\Verdict;
 use App\Leitner\Sessions\SessionStatus;
 use App\Leitner\Suites\PresentationOrder;
 use Filament\Facades\Filament;

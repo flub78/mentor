@@ -2,6 +2,7 @@
 
 namespace App\Leitner\Models;
 
+use App\Banques\Models\Question;
 use App\Leitner\Sessions\SessionStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;

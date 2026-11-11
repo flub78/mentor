@@ -2,12 +2,6 @@
 
 return [
     /*
-     * Taille maximale d'une image de question, en kilo-octets (PRD Leitner
-     * UC-02, Q18).
-     */
-    'image_max_kb' => (int) env('LEITNER_IMAGE_MAX_KB', 2048),
-
-    /*
      * Paramètres proposés à la création d'une suite (PRD Leitner UC-05).
      * Ordre de présentation : « melange », « boite_un_d_abord » ou
      * « boites_hautes_d_abord ».

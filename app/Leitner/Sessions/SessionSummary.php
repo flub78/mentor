@@ -2,9 +2,9 @@
 
 namespace App\Leitner\Sessions;
 
+use App\Banques\Questions\Verdict;
 use App\Leitner\Models\Session;
 use App\Leitner\Models\SessionEntry;
-use App\Leitner\Questions\Verdict;
 use Illuminate\Support\Collection;
 
 /**

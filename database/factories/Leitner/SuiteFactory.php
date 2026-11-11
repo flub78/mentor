@@ -2,7 +2,7 @@
 
 namespace Database\Factories\Leitner;
 
-use App\Leitner\Models\Bank;
+use App\Banques\Models\Bank;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\PresentationOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;

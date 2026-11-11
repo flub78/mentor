@@ -2,8 +2,8 @@
 
 namespace App\Leitner\Engine;
 
-use App\Leitner\Models\Question;
-use App\Leitner\Questions\Difficulty;
+use App\Banques\Models\Question;
+use App\Banques\Questions\Difficulty;
 use Illuminate\Support\Collection;
 
 /**

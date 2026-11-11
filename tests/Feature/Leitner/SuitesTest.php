@@ -2,15 +2,15 @@
 
 namespace Tests\Feature\Leitner;
 
-use App\Leitner\Models\Bank;
+use App\Banques\Models\Bank;
+use App\Banques\Models\Question;
 use App\Leitner\Models\ProgressItem;
-use App\Leitner\Models\Question;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\MasteryEstimate;
 use App\Leitner\Suites\PersonalQuestionCreator;
 use App\Leitner\Suites\PresentationOrder;
-use App\Leitner\Suites\QuestionUsage;
 use App\Leitner\Suites\SuiteSettingsUpdater;
+use App\Leitner\Suites\SuiteUsage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LogicException;
 use Tests\TestCase;
@@ -242,13 +242,13 @@ class SuitesTest extends TestCase
         ]);
         $mastered->update(['mastered_at' => now()]);
 
-        $this->assertSame(2, QuestionUsage::progressionsWithQuestion($item->question));
-        $this->assertSame(2, QuestionUsage::resetProgress($item->question));
+        $this->assertSame(2, SuiteUsage::progressionsWithQuestion($item->question));
+        $this->assertSame(2, SuiteUsage::resetProgress($item->question));
 
         $this->assertSame([1, 0], [$item->fresh()->box, $item->fresh()->consecutive_failures]);
         $this->assertSame(1, $mastered->fresh()->box);
         $this->assertNull($mastered->fresh()->mastered_at);
-        $this->assertSame(2, QuestionUsage::suitesUsingBank($bank));
+        $this->assertSame(2, SuiteUsage::suitesUsingBank($bank));
     }
 
     public function test_deleting_a_suite_keeps_banks_and_personal_bank(): void

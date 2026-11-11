@@ -2,7 +2,8 @@
 
 namespace App\Leitner\Models;
 
-use App\Leitner\Questions\Verdict;
+use App\Banques\Models\Question;
+use App\Banques\Questions\Verdict;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;

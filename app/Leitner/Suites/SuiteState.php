@@ -2,11 +2,11 @@
 
 namespace App\Leitner\Suites;
 
+use App\Banques\Models\Question;
+use App\Banques\Questions\Difficulty;
 use App\Leitner\Engine\Regularity;
 use App\Leitner\Models\Progression;
-use App\Leitner\Models\Question;
 use App\Leitner\Models\Session;
-use App\Leitner\Questions\Difficulty;
 use App\Leitner\Sessions\NextSession;
 use Illuminate\Support\Carbon;
 

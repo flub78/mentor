@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Leitner;
 
+use App\Banques\Models\Question;
+use App\Banques\Questions\Difficulty;
+use App\Banques\Questions\Verdict;
 use App\Leitner\Engine\BoxMover;
 use App\Leitner\Engine\BoxSchedule;
 use App\Leitner\Engine\Introducer;
@@ -9,9 +12,6 @@ use App\Leitner\Engine\Move;
 use App\Leitner\Engine\Regularity;
 use App\Leitner\Engine\SessionComposer;
 use App\Leitner\Models\ProgressItem;
-use App\Leitner\Models\Question;
-use App\Leitner\Questions\Difficulty;
-use App\Leitner\Questions\Verdict;
 use App\Leitner\Suites\PresentationOrder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;

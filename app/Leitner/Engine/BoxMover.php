@@ -2,7 +2,7 @@
 
 namespace App\Leitner\Engine;
 
-use App\Leitner\Questions\Verdict;
+use App\Banques\Questions\Verdict;
 
 /**
  * Mouvements entre boîtes (PRD Leitner §7.2) :

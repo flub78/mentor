@@ -2,15 +2,15 @@
 
 namespace Tests\Feature\Leitner;
 
-use App\Leitner\Filament\Resources\Banks\Pages\EditBank;
-use App\Leitner\Filament\Resources\Banks\Pages\ListBanks;
-use App\Leitner\Filament\Resources\Banks\RelationManagers\QuestionsRelationManager;
+use App\Banques\Filament\Resources\Banks\Pages\EditBank;
+use App\Banques\Filament\Resources\Banks\Pages\ListBanks;
+use App\Banques\Filament\Resources\Banks\RelationManagers\QuestionsRelationManager;
+use App\Banques\Models\Bank;
+use App\Banques\Models\Question;
 use App\Leitner\Filament\Resources\Suites\Pages\CreateSuite;
 use App\Leitner\Filament\Resources\Suites\Pages\EditSuite;
 use App\Leitner\Filament\Resources\Suites\Pages\ListSuites;
 use App\Leitner\Filament\Resources\Suites\SuiteResource;
-use App\Leitner\Models\Bank;
-use App\Leitner\Models\Question;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\PresentationOrder;
 use Filament\Actions\DeleteAction;
@@ -205,7 +205,7 @@ class SuiteResourceTest extends TestCase
 
         Livewire::test(ListBanks::class)
             ->mountAction(TestAction::make(DeleteAction::class)->table($bank))
-            ->assertMountedActionModalSee('Elle sera retirée des 2 suites qui l\'utilisent');
+            ->assertMountedActionModalSee('Elle sera retirée des 2 suites Leitner qui l\'utilisent');
     }
 
     public function test_question_deletion_announces_the_suites_where_it_is_revised(): void
@@ -216,7 +216,7 @@ class SuiteResourceTest extends TestCase
 
         Livewire::test(QuestionsRelationManager::class, ['ownerRecord' => $bank, 'pageClass' => EditBank::class])
             ->mountAction(TestAction::make(DeleteAction::class)->table($question))
-            ->assertMountedActionModalSee('Elle disparaîtra de la suite où elle est en cours de révision.');
+            ->assertMountedActionModalSee('Elle disparaîtra de la suite Leitner où elle est en cours de révision.');
     }
 
     public function test_change_kind_is_only_asked_for_an_introduced_question(): void
@@ -253,7 +253,7 @@ class SuiteResourceTest extends TestCase
         $manager()
             ->callAction(TestAction::make(EditAction::class)->table($question), ['payload' => ['value' => 'faux'], 'change_kind' => 'fond'])
             ->assertHasNoActionErrors()
-            ->assertNotified('Question remise en boîte 1');
+            ->assertNotified('Modification de fond appliquée');
         $this->assertSame(1, $suite->progression->items()->sole()->box);
         $this->assertSame(['value' => false], $question->fresh()->payload);
     }

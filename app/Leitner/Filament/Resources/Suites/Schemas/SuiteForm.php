@@ -2,7 +2,7 @@
 
 namespace App\Leitner\Filament\Resources\Suites\Schemas;
 
-use App\Leitner\Models\Bank;
+use App\Banques\Models\Bank;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\MasteryEstimate;
 use App\Leitner\Suites\PresentationOrder;

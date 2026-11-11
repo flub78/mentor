@@ -2,13 +2,13 @@
 
 namespace App\Leitner\Filament\Resources\Suites;
 
+use App\Banques\Filament\Schemas\QuestionFormSchema;
 use App\Leitner\Filament\Resources\Suites\Pages\CreateSuite;
 use App\Leitner\Filament\Resources\Suites\Pages\EditSuite;
 use App\Leitner\Filament\Resources\Suites\Pages\ListSuites;
 use App\Leitner\Filament\Resources\Suites\Pages\ViewSuite;
 use App\Leitner\Filament\Resources\Suites\Schemas\SuiteForm;
 use App\Leitner\Filament\Resources\Suites\Tables\SuitesTable;
-use App\Leitner\Filament\Schemas\QuestionFormSchema;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\PersonalQuestionCreator;
 use BackedEnum;

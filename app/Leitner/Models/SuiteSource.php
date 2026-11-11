@@ -2,6 +2,7 @@
 
 namespace App\Leitner\Models;
 
+use App\Banques\Models\Bank;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laraskel\Users\Models\Concerns\TracksAuthor;
