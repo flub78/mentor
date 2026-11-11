@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Leitner
 
-- **Statut** : à démarrer
+- **Statut** : MVP en cours — étape 0 livrée
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [leitner_prd.md](../prds/leitner_prd.md), §9.2 « Découpage en lots »
@@ -11,7 +11,7 @@
 
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
-| MVP | Banques, questions de quatre types, suites, séances selon les règles §7, état d'une suite | 0 à 5 (§4) | À faire |
+| MVP | Banques, questions de quatre types, suites, séances selon les règles §7, état d'une suite | 0 à 5 (§4) | En cours |
 | Lot 2 — Types et outils | Énumération, correspondance, réponse courte ; import / export ; actions sur les questions ; contestation ; historique ; suite acquise, contrôle d'entretien, test de placement | 6 à 11 (§5) | À faire |
 | Lot 3 — IA et banques QCM | Interface publique du module QCM, banques QCM comme sources ; questions ouvertes corrigées par l'IA | 12 à 14 (§6) | À faire |
 | v1, v2 | Comptes et rôles, suites proposées, signalements ; taille d'étude, autres types, etc. | À détailler (§7) | — |
@@ -115,11 +115,11 @@ valeurs `controle` et `placement` au lot 2.
 
 ### Étape 0 — Panel Leitner sans connexion
 
-- [ ] Créer le panel : `php artisan make:filament-panel leitner` ; dans `LeitnerPanelProvider`, `->path('leitner')`, sans `->login()` ni `->authMiddleware(...)`, `->databaseTransactions()`, découverte dans `app/Leitner/Filament`, marque « Mentor — Leitner », couleur distincte du QCM. Bloc PHPDoc qui rappelle que le panel n'est pas fait pour être exposé sur Internet.
-- [ ] Liens de navigation croisés : « Leitner » dans le panel `qcm`, « QCM » dans le panel `leitner` (`NavigationItem` vers l'URL de l'autre panel).
-- [ ] `config/leitner.php` : `image_max_kb`, `defaults` (`box_count` 5, `min_box_one` 10, `presentation_order` mélangé, `retry_errors` vrai), `regularity` (`window_days` 7, `min_sessions` 3).
-- [ ] Tests (`tests/Feature/Leitner/PanelTest.php`) : `/leitner` répond 200 sans connexion ; le panel `qcm` reste le panel par défaut et `/` redirige toujours vers `/qcm` ; les liens croisés sont présents ; l'interface est en français.
-- [ ] `composer qa` vert ; commit.
+- [x] Créer le panel : `php artisan make:filament-panel leitner` ; dans `LeitnerPanelProvider`, `->path('leitner')`, sans `->login()` ni `->authMiddleware(...)`, `->databaseTransactions()`, découverte dans `app/Leitner/Filament`, marque « Mentor — Leitner », couleur distincte du QCM. Bloc PHPDoc qui rappelle que le panel n'est pas fait pour être exposé sur Internet.
+- [x] Liens de navigation croisés : « Leitner » dans le panel `qcm`, « QCM » dans le panel `leitner` (`NavigationItem` vers l'URL de l'autre panel).
+- [x] `config/leitner.php` : `image_max_kb`, `defaults` (`box_count` 5, `min_box_one` 10, `presentation_order` mélangé, `retry_errors` vrai), `regularity` (`window_days` 7, `min_sessions` 3).
+- [x] Tests (`tests/Feature/Leitner/PanelTest.php`) : `/leitner` répond 200 sans connexion ; le panel `qcm` reste le panel par défaut et `/` redirige toujours vers `/qcm` ; les liens croisés sont présents ; l'interface est en français.
+- [x] `composer qa` vert ; commit.
 
 ### Étape 1 — Banques et questions des types du MVP (UC-01, UC-02)
 
