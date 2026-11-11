@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 livré — étapes B1 à B8 (PR à ouvrir)
+- **Statut** : lot B1 livré — étapes B1 à B8
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -155,7 +155,7 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 - [x] Sauvegarde de la base de développement, migration, puis critère de sortie du §1 déroulé dans le navigateur (QCM et Leitner) : banques partagées visibles dans les deux modules, ancien fichier QCM réimporté dans une banque, étude QCM et suite Leitner sur cette banque. Le parcours a révélé que les pages d'examen, d'étude QCM et de séance Leitner écrivaient les clés des réponses dans le HTML ; elles n'envoient plus que le rang affiché (tests de non-régression).
 - [x] Mettre à jour le statut de ce plan, des plans QCM et Leitner et des PRD concernés (les PRD ne portent pas de statut de lot).
 - [x] `composer qa` vert ; `php artisan laraskel:outillage --check` conforme.
-- [ ] PR.
+- [x] PR : [#1](https://github.com/flub78/mentor/pull/1).
 
 ---
 
