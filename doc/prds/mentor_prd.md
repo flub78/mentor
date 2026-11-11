@@ -40,12 +40,13 @@ Ces principes s'appliquent à tous les cas d'utilisation et à tout ce que produ
 
 ### 1.4 Architecture modulaire
 
-Mentor est construit comme un ensemble de **modules indépendants qui s'utilisent les uns les autres**. Chaque module peut être utilisé seul ou intégré dans Mentor, qui les assemble en un parcours de formation complet. Un module est livré et utilisable dès qu'il est prêt, sans attendre les autres : le module QCM, en particulier, doit pouvoir servir seul dès sa première version.
+Mentor est construit comme un ensemble de **modules indépendants qui s'utilisent les uns les autres**. Chaque module peut être utilisé seul ou intégré dans Mentor, qui les assemble en un parcours de formation complet. Un module est livré et utilisable dès qu'il est prêt, sans attendre les autres : le module QCM, en particulier, doit pouvoir servir seul dès sa première version (avec le module Banques de questions, dont il dépend).
 
 | Module | Rôle | Utilise | PRD | Cas d'utilisation du présent PRD |
 |---|---|---|---|---|
-| **QCM** | Gérer des banques de questions et des questionnaires ; définir des examens (dont les examens blancs) ; importer et exporter banques, questionnaires et examens ; faire passer les examens à des candidats identifiés et leur délivrer un certificat de résultat. | — | [qcm_prd.md](qcm_prd.md) | UC-11, 12, 13, 19, 20, 21 (import QCM) |
-| **Leitner** | Étude par répétition espacée avec des questions / réponses. Utilise les questions QCM et des questions textuelles (réponse libre). | QCM | [leitner_prd.md](leitner_prd.md) | UC-10, 10b, 10c |
+| **Banques de questions** | Gérer les banques et leurs questions de tous types (QCM, vrai / faux, valeur numérique, énumération…), une seule fois pour toute l'application ; banque par défaut ; déplacer des questions ; importer et exporter les banques dans un format unique. | — | [banques_prd.md](banques_prd.md) | UC-19, 21 (import des questions) |
+| **QCM** | Composer des questionnaires à partir des banques ; définir des examens (dont les examens blancs) ; importer et exporter questionnaires et examens ; faire passer les examens à des candidats identifiés et leur délivrer un certificat de résultat. Pose les questions QCM et vrai / faux. | Banques | [qcm_prd.md](qcm_prd.md) | UC-11, 12, 13, 20, 21 (questionnaires et examens) |
+| **Leitner** | Étude par répétition espacée, sur des suites tirées des banques ; pose tous les types de questions. | Banques | [leitner_prd.md](leitner_prd.md) | UC-10, 10b, 10c |
 | **Présentation** | Créer et afficher des présentations, équivalent PowerPoint. Pour commencer, les pages sont des pages Markdown ; l'usage d'une bibliothèque existante (reveal.js, Marp…) reste possible (Q7). | — | `doc/prds/presentation_prd.md` *(à rédiger)* | UC-18 (présentations) |
 | **Déroulement de support** | Dérouler des présentations, des PDF, des vidéos, en enregistrant les temps de lecture. | Présentation | `doc/prds/deroulement_prd.md` *(à rédiger)* | UC-04, 04b |
 | **Coach IA** | Connaît les autres modules ; définit et adapte un programme adapté à l'étudiant ; répond aux questions, rédige synthèses et bilans. | Tous | `doc/prds/coach_prd.md` *(à rédiger)* | UC-02, 03, 04c, 07, 09, 15 ; exigences IA-* (§6) |
@@ -55,7 +56,7 @@ Mentor est construit comme un ensemble de **modules indépendants qui s'utilisen
 
 - Chaque module a son **propre PRD**, qui décrit son usage autonome. Le présent document reste le PRD d'ensemble : il décrit le parcours intégré et renvoie aux PRD des modules pour le détail.
 - Un module ne dépend que des **interfaces publiques** des modules qu'il utilise (API, formats d'échange), jamais de leur stockage interne.
-- Les dépendances vont dans un seul sens (pas de cycle) : QCM et Présentation ne dépendent d'aucun autre module ; Leitner dépend de QCM ; Déroulement dépend de Présentation ; le Coach IA et Mentor s'appuient sur tous les autres.
+- Les dépendances vont dans un seul sens (pas de cycle) : Banques de questions et Présentation ne dépendent d'aucun autre module ; QCM et Leitner dépendent de Banques de questions ; Déroulement dépend de Présentation ; le Coach IA et Mentor s'appuient sur tous les autres.
 - Utilisé seul, un module fournit ce dont il a besoin pour fonctionner (organisation de ses contenus) ; intégré à Mentor, il se rattache aux formations, notions et inscriptions de Mentor *(mécanisme à définir, Q28)*.
 
 ### 1.5 Socle technique : application dérivée de Laraskel
@@ -106,7 +107,7 @@ Formation
 - **Synthèse (overview)** : présentation d'ensemble d'un niveau (formation, chapitre, leçon, partie, notion), affichée avant le détail.
 - **Question QCM** : énoncé, image(s) optionnelle(s), une réponse exacte, N réponses fausses, une explication par réponse fausse (et une explication générale de la bonne réponse), rattachement à une ou plusieurs notions / chapitres, niveau de difficulté.
 - **Carte Leitner** : une notion à mémoriser, placée dans une boîte 1 à N. Deux types :
-  - **carte QCM** : réutilise une question de la banque QCM, correction automatique ;
+  - **carte QCM** : réutilise une question QCM des banques de questions, correction automatique ;
   - **carte question / réponse** : une question au recto, une réponse de référence au verso. L'étudiant saisit sa réponse en texte libre et l'agent IA juge si elle est correcte sur le fond, sans exiger la formulation exacte.
 - **Origine d'une carte** : *étudiant* (créée pendant l'étude, privée), *concepteur* (rattachée à la formation), *IA* (générée pour compléter une banque insuffisante).
 - **Séance** : période d'activité de l'étudiant (début, fin, contenus consultés, actions).
@@ -146,7 +147,7 @@ Formation
 | **E. Conception** |||
 | UC-17 | Créer / structurer une formation | Concepteur | MVP |
 | UC-18 | Gérer les supports pédagogiques | Concepteur | MVP |
-| UC-19 | Gérer la banque de QCM | Concepteur | MVP |
+| UC-19 | Gérer les banques de questions | Concepteur | MVP |
 | UC-20 | Composer une évaluation ou un examen blanc | Concepteur | MVP |
 | UC-21 | Importer des contenus existants | Concepteur | v1 |
 
@@ -445,9 +446,9 @@ Indicateurs affichés pour chaque formation :
 - **Questions de contrôle** : le concepteur peut attacher deux ou trois questions à chaque support obligatoire ; à défaut, elles sont tirées des notions du support (UC-04b).
 - **Règles** : tout support doit déclarer sa licence / origine (contenus libres de droits ou produits en interne).
 
-#### UC-19 — Gérer la banque de QCM
+#### UC-19 — Gérer les banques de questions
 
-- **Scénario** : créer / éditer une question : énoncé, image(s), une bonne réponse, N mauvaises réponses chacune avec son explication, explication générale, notions et chapitres rattachés, difficulté, source.
+- **Scénario** : créer / éditer une question : énoncé, image(s), une bonne réponse, N mauvaises réponses chacune avec son explication, explication générale, notions et chapitres rattachés, difficulté, source. Les banques et leurs questions sont gérées par le module [Banques de questions](banques_prd.md), partagé par les modules QCM et Leitner.
 - **Variantes** : génération assistée par l'agent IA (brouillons de questions à partir d'un support, à relire et valider) ; détection de doublons ; statistiques par question (taux de réussite, réponse fausse la plus choisie) pour repérer les questions mal formulées.
 - **Règle** : une question QCM générée par l'IA n'est jamais publiée dans les évaluations ni les examens blancs sans validation humaine. Les cartes Leitner générées pour combler un manque suivent la règle de UC-10c.
 - **Cartes question / réponse** : le concepteur les gère dans la même banque (question, réponse de référence, critères attendus, leçon rattachée) et fixe le seuil minimal de cartes par leçon.

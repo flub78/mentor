@@ -17,9 +17,11 @@ Aucun.
 
 ## Spécificités
 
-- Mentor est composé de modules indépendants (QCM, Leitner, Présentation,
-  Déroulement de support, Coach IA) qui s'utilisent les uns les autres et
-  restent utilisables seuls (PRD §1.4).
+- Mentor est composé de modules indépendants (Banques de questions, QCM,
+  Leitner, Présentation, Déroulement de support, Coach IA) qui s'utilisent les
+  uns les autres et restent utilisables seuls (PRD §1.4). Les banques et leurs
+  questions sont gérées une seule fois, par le module Banques de questions, dont
+  QCM et Leitner dépendent.
 - Chaque module a son propre PRD dans `doc/prds/` (`<module>_prd.md`) ; le PRD
   d'ensemble `doc/prds/mentor_prd.md` décrit le parcours intégré et renvoie aux
   PRD des modules.

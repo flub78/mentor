@@ -2,12 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.3 (brouillon) |
+| **Version** | 0.4 (brouillon) |
 | **Date** | 8 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §9 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
+| **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [qcm_plan.md](../plans/qcm_plan.md) |
+
+**Évolutions de la version 0.4** : les banques et les questions sont gérées par le module [Banques de questions](banques_prd.md), partagé avec le module Leitner ; toute question vit dans une banque (plus de question propre à un questionnaire : elle va dans une banque, par défaut la banque par défaut) ; le module QCM utilise les questions QCM et les vrai / faux, posés comme des QCM à deux réponses, et ignore les autres types avec un avertissement (§6) ; le fichier d'échange des questions est celui du module Banques.
 
 **Évolutions de la version 0.3** : un **questionnaire** est une liste de questions, dont certaines n'appartiennent à aucune banque ; un **examen** utilise un questionnaire et fixe la durée, le taux de réussite minimal et les options de passage ; import / export des questionnaires et des examens (UC-16, UC-17) dans un format d'échange commun (§6.1) ; identification du candidat, certificat de résultat imprimable et réédition (UC-12, UC-19) ; collecte des passages par lien, à la manière d'un formulaire en ligne (UC-18) ; nouveau découpage en lots (§8).
 
@@ -15,11 +18,11 @@
 
 ## 1. Vision
 
-Le module QCM gère des **banques de questions à choix multiples** et des **questionnaires**, listes de questions prises dans les banques ou saisies directement dans le questionnaire. Il propose deux usages : l'**étude**, où l'étudiant voit immédiatement s'il a bien répondu, et l'**examen**, où un candidat identifié répond à un questionnaire dans un temps imparti, sans correction avant la fin.
+Le module QCM fait travailler et évaluer sur des **questions à choix multiples** rangées dans les banques du module [Banques de questions](banques_prd.md), qu'il partage avec le module Leitner. Il gère des **questionnaires**, listes de questions prises dans les banques. Il propose deux usages : l'**étude**, où l'étudiant voit immédiatement s'il a bien répondu, et l'**examen**, où un candidat identifié répond à un questionnaire dans un temps imparti, sans correction avant la fin.
 
 Chaque passage d'examen produit un **certificat de résultat imprimable**. Les résultats sont enregistrés, ce qui permet de **rééditer** un certificat plus tard, pour le renvoyer à qui le demande. Un examen peut être **diffusé par un lien** pour collecter les passages de candidats sans compte. Banques, questionnaires et examens s'**importent** et s'**exportent** dans un même format de fichier.
 
-Le module est utilisable **seul**, dès sa première version, sans les autres modules de Mentor. Intégré à Mentor, il fournit les évaluations de fin de chapitre, les examens blancs et les questions des cartes Leitner (voir [PRD Mentor](mentor_prd.md), UC-11 à UC-13, UC-19, UC-20).
+Le module est utilisable sans les autres modules de Mentor, à l'exception du module Banques de questions dont il dépend. Intégré à Mentor, il fournit les évaluations de fin de chapitre, les examens blancs et les questions des cartes Leitner (voir [PRD Mentor](mentor_prd.md), UC-11 à UC-13, UC-19, UC-20).
 
 Premier cas d'application : la préparation à l'examen théorique des élèves pilotes (planeur, avion, ULM), dont les questions sont organisées par module (météorologie, réglementation, etc.).
 
@@ -38,7 +41,7 @@ Premier cas d'application : la préparation à l'examen théorique des élèves 
 - Surveillance d'examen (webcam, verrouillage du navigateur).
 - Délivrance de résultats officiels : un certificat de résultat atteste d'un passage dans l'application, il n'a pas de valeur réglementaire.
 - Répétition espacée : relève du module Leitner, qui réutilise les questions QCM.
-- Temps de réponse limité en mode étude : l'entraînement chronométré se fait dans le module Leitner, qui peut prendre une banque QCM comme source ([PRD Leitner](leitner_prd.md), §7.7).
+- Temps de réponse limité en mode étude : l'entraînement chronométré se fait dans le module Leitner, qui utilise les mêmes banques ([PRD Leitner](leitner_prd.md), §7.7).
 
 ### 1.3 Périmètre du MVP et des lots sans connexion
 
@@ -69,20 +72,17 @@ Dans le MVP et les lots 2 et 3, il n'y a ni compte ni rôle : un **utilisateur u
 
 ## 3. Glossaire
 
-- **Banque de questions** : ensemble nommé de questions, avec une description. Tous les formateurs voient toutes les banques ; l'appartenance d'une banque à un formateur et sa visibilité pour les autres sont reportées (Q4).
-- **Question** :
+- **Banque de questions**, **question**, **thème**, **banque par défaut** : voir le [PRD Banques de questions](banques_prd.md), §3. Toute question appartient à exactement une banque.
+- **Question QCM** : question de type QCM, avec :
   - un **énoncé** ;
   - une **bonne réponse** ;
   - plusieurs **mauvaises réponses**, habituellement trois, chacune avec une **explication facultative** de ce qui la rend fausse ;
   - une **explication générale facultative** de la bonne réponse ;
-  - une **illustration facultative** (image, schéma, carte…) sur laquelle la question peut porter ;
-  - un **module facultatif** (météorologie, réglementation…) qui sert à organiser les séances d'étude et à calculer les taux par module ;
-  - plus tard, un **statut** : *brouillon* (invisible des étudiants) ou *publiée* (lot ultérieur, §1.3).
-- Une question appartient **soit à une banque, soit à un questionnaire** :
-  - **question de banque** : rangée dans une banque ; elle peut figurer dans plusieurs questionnaires et sert à l'étude libre ;
-  - **question propre** : saisie directement dans un questionnaire, elle n'appartient à aucune banque et ne figure que dans ce questionnaire.
+  - une **illustration facultative** (image, schéma, carte…) sur laquelle la question peut porter ; sans illustration, rien n'est affiché à sa place ;
+  - un **module** facultatif, le *thème* de la question dans le module Banques, qui sert à organiser les séances d'étude et à calculer les taux par module.
+- **Questions utilisables** : le module QCM pose les questions de type QCM et les **vrai / faux**, présentés comme des QCM à deux réponses « Vrai » et « Faux ». Il ignore les questions des autres types (§6).
 - **Module** : thème d'une question, saisi en texte libre. La liste des modules d'une banque (ou d'un questionnaire) est l'ensemble des noms de module utilisés par ses questions. Une question sans module est rangée dans « Sans module ».
-- **Questionnaire** : liste ordonnée de questions, avec un titre, une description facultative et une **version** facultative (Q25). Certaines questions viennent d'une banque, d'autres sont propres au questionnaire. Un questionnaire peut être composé à la main ou **généré par tirage** au hasard dans des banques (UC-08).
+- **Questionnaire** : liste ordonnée de questions prises dans les banques, avec un titre, une description facultative et une **version** facultative (Q25). Un questionnaire peut être composé à la main ou **généré par tirage** au hasard dans des banques (UC-08).
 - **Examen** : épreuve définie par le formateur, qui **utilise un questionnaire** et en pose **toutes les questions**, et fixe : les consignes, la durée maximale (facultative), le **taux de réussite minimal**, l'affichage ou non d'une **correction détaillée** à la fin du passage, les champs d'identification demandés au candidat et le nombre maximal de passages. Un **examen blanc** est un examen d'entraînement qui reproduit les conditions de l'examen réel.
 - **Examen libre** : examen lancé par l'étudiant lui-même sur un questionnaire généré par tirage dans les banques auxquelles il a accès, avec les paramètres par défaut (voir UC-12).
 - **Session d'étude** : suite de questions choisie par l'étudiant, en mode étude.
@@ -103,13 +103,13 @@ Dans le MVP et les lots 2 et 3, il n'y a ni compte ni rôle : un **utilisateur u
 |---|---|---|---|
 | **A. Comptes et accès** |||
 | UC-01 | Gérer les comptes et les inscriptions | Administrateur | v1 |
-| UC-02 | Donner accès aux banques et aux examens | Formateur | v1 |
+| UC-02 | Donner accès aux examens (accès aux banques → [PRD Banques](banques_prd.md), UC-07) | Formateur | v1 |
 | **B. Banques et questions** |||
-| UC-03 | Gérer les banques de questions | Formateur | MVP (compléments lot 5) |
-| UC-04 | Gérer les questions | Formateur | MVP (compléments lots 2 et 5) |
-| UC-05 | Copier ou déplacer des questions | Formateur | Lot 5 |
-| UC-06 | Exporter une banque | Formateur | Lot 2 |
-| UC-07 | Importer des questions dans une banque | Formateur | Lot 2 |
+| UC-03 | Gérer les banques de questions → [PRD Banques](banques_prd.md), UC-01 | Formateur | MVP, puis lot B1 |
+| UC-04 | Gérer les questions → [PRD Banques](banques_prd.md), UC-02 | Formateur | MVP, puis lot B1 |
+| UC-05 | Copier ou déplacer des questions → [PRD Banques](banques_prd.md), UC-03 | Formateur | Lot B1 |
+| UC-06 | Exporter une banque → [PRD Banques](banques_prd.md), UC-04 | Formateur | Lot 2, puis lot B1 |
+| UC-07 | Importer des questions dans une banque → [PRD Banques](banques_prd.md), UC-05 | Formateur | Lot 2, puis lot B1 |
 | **C. Questionnaires et examens** |||
 | UC-08 | Composer un questionnaire | Formateur | Lot 2 |
 | UC-20 | Définir un examen | Formateur | Lot 2 (prévisualisation lot 3) |
@@ -124,7 +124,7 @@ Dans le MVP et les lots 2 et 3, il n'y a ni compte ni rôle : un **utilisateur u
 | UC-12 | Passer un examen | Candidat | Lot 3 |
 | UC-13 | Consulter la correction détaillée | Candidat | Lot 3 |
 | UC-14 | Consulter son historique et sa progression | Étudiant | v1 |
-| UC-15 | Signaler une question | Étudiant | v1 |
+| UC-15 | Signaler une question → [PRD Banques](banques_prd.md), UC-06 | Étudiant | v1 |
 
 Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réalisés par l'utilisateur unique, sans connexion (§1.3).
 
@@ -160,68 +160,7 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
 
 ### B. Banques et questions
 
-#### UC-03 — Gérer les banques de questions
-
-- **Acteur** : Formateur.
-- **Scénario** : créer une banque (nom, description), la renommer, la dupliquer, la supprimer. La liste des banques affiche pour chacune le nombre de questions, au total et par module.
-- **Règles**
-  - La suppression d'une banque demande une confirmation qui indique le nombre de questions et de questionnaires concernés.
-  - Les résultats déjà enregistrés ne changent pas (§6, intégrité des résultats).
-
-#### UC-04 — Gérer les questions
-
-- **Acteur** : Formateur.
-- **Scénario nominal**
-  1. Dans une banque, ou dans un questionnaire pour une question propre (UC-08), le formateur crée une question : énoncé, bonne réponse, mauvaises réponses avec explications facultatives, explication générale facultative, illustration facultative, module facultatif.
-  2. Il prévisualise la question telle que l'étudiant ou le candidat la verra.
-  3. Il l'enregistre ; la question est aussitôt utilisable.
-- **Variantes**
-  - 1a. Modifier une question existante.
-  - 1b. Supprimer une question, après confirmation.
-  - 1c. Rechercher et filtrer les questions d'une banque : texte, module, présence d'une illustration.
-  - 1d. Agir sur une sélection de questions : changer de module, supprimer.
-  - 3a. *Lot ultérieur* : enregistrer la question en *brouillon* ou la *publier* ; publier ou repasser en brouillon une sélection de questions.
-- **Règles**
-  - **Saisie du module** : le champ est en texte libre ; le système propose les noms de module déjà utilisés dans la banque (ou le questionnaire), pour que le formateur les réutilise plutôt que d'en créer de proches (« Météo » et « Météorologie »).
-  - Une question a exactement une bonne réponse et au moins une mauvaise réponse ; trois mauvaises réponses sont proposées par défaut.
-  - L'ordre des réponses est mélangé à chaque affichage ; le formateur peut l'interdire pour une question dont les réponses se réfèrent les unes aux autres (« aucune des réponses précédentes »).
-  - Modifier ou supprimer une question ne change pas les résultats déjà enregistrés (§6).
-  - Le système signale les **doublons probables** (même énoncé dans la même banque ou le même questionnaire) à la création et à l'import.
-  - Formats d'illustration acceptés et taille maximale : à préciser (Q8).
-
-#### UC-05 — Copier ou déplacer des questions
-
-- **Acteur** : Formateur.
-- **Scénario** : le formateur sélectionne une ou plusieurs questions, choisit « Copier vers » ou « Déplacer vers », puis la banque ou le questionnaire cible.
-- **Règles**
-  - Une copie est une nouvelle question indépendante de l'originale, illustration comprise. Copier une question de banque dans un questionnaire en fait une question propre, que le formateur peut modifier sans toucher la banque.
-  - Un déplacement conserve la question. Si la question figure dans un questionnaire, le système le signale et le questionnaire continue de l'utiliser.
-  - La question garde son nom de module ; s'il n'existait pas dans la cible, il s'ajoute à sa liste de modules.
-
-#### UC-06 — Exporter une banque
-
-- **Acteur** : Formateur.
-- **Scénario** : le formateur exporte une banque entière ou une sélection de questions, dans l'un des deux formats du fichier d'échange (§6.1) :
-  - **CSV** seul, sans les illustrations ni les paramètres ;
-  - **ZIP** contenant le fichier CSV, les illustrations référencées et les paramètres de la banque (nom, description).
-- **Règle** : un fichier exporté peut être réimporté sans modification (UC-07), dans une banque ou comme questionnaire (UC-17).
-
-#### UC-07 — Importer des questions dans une banque
-
-- **Acteur** : Formateur.
-- **Scénario nominal**
-  1. Le formateur choisit une banque cible, ou demande la création d'une nouvelle banque, et téléverse un fichier d'échange CSV ou ZIP.
-  2. Le système analyse le fichier et présente un **rapport avant import** : nombre de questions valides, lignes en erreur avec le motif et le numéro de ligne, doublons probables, illustrations référencées mais absentes du ZIP.
-  3. Le formateur choisit le traitement des doublons (ignorer, importer quand même) et confirme.
-  4. Le système importe les questions valides et affiche le rapport final.
-- **Variantes**
-  - 1a. **Nouvelle banque** : le nom et la description sont repris des paramètres du ZIP, ou à défaut du nom du fichier ; le formateur peut les modifier avant de confirmer. Si le nom est déjà pris, le système le signale et demande un autre nom.
-  - 2a. Fichier illisible (encodage, séparateur, colonnes manquantes) : rejet avec un message qui dit ce qui est attendu et renvoie à la documentation du format.
-  - 2b. Fichier de questionnaire ou d'examen : seules les questions sont importées ; les autres paramètres sont ignorés et le rapport le signale.
-  - 3a. Le formateur annule : rien n'est importé.
-- **Règles**
-  - Une ligne en erreur n'empêche pas l'import des autres, mais aucune ligne n'est importée à moitié.
-  - Les noms de module du fichier sont repris tels quels. Le rapport avant import liste ceux qui n'existent pas encore dans la banque cible, pour repérer les fautes de frappe.
+Les banques et leurs questions sont gérées par le module [Banques de questions](banques_prd.md) : UC-03 à UC-07 de ce PRD y sont devenus UC-01 à UC-05 (gestion des banques et des questions, déplacement et copie, export et import). Les banques et questions créées par le module QCM avant ce découpage sont reprises par le module Banques (lot B1).
 
 ### C. Questionnaires et examens
 
@@ -231,20 +170,20 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
 - **Scénario nominal**
   1. Le formateur crée un questionnaire : titre, description facultative, version facultative.
   2. Il y ajoute des questions :
-     - des **questions propres**, saisies dans le questionnaire comme en UC-04 ;
-     - des **questions de banque**, sélectionnées dans une ou plusieurs banques avec les filtres de UC-04 ;
-     - des **questions tirées au hasard** dans des banques : il choisit une ou plusieurs banques ; pour chaque module, le système affiche le nombre de questions disponibles et le formateur indique combien en tirer, ou « toutes » ; le système tire les questions et les ajoute à la liste comme questions de banque.
+     - des **questions nouvelles**, saisies depuis le questionnaire comme dans une banque ; elles sont rangées dans une banque choisie par le formateur, la **banque par défaut** si aucune n'est choisie, et le message de confirmation dit laquelle ;
+     - des **questions de banque**, sélectionnées dans une ou plusieurs banques avec les filtres du module Banques ;
+     - des **questions tirées au hasard** dans des banques : il choisit une ou plusieurs banques ; pour chaque module, le système affiche le nombre de questions disponibles et le formateur indique combien en tirer, ou « toutes » ; le système tire les questions et les ajoute à la liste.
   3. Il fixe l'ordre des questions et enregistre.
 - **Variantes**
   - 1a. **Générer un questionnaire par tirage** : le formateur crée le questionnaire directement à partir d'un tirage (étape 2, troisième cas), par exemple pour préparer un nouvel examen blanc ; il peut ensuite retoucher la liste comme n'importe quel questionnaire.
   - 2b. Tirage dont un module manque de questions : le système le signale, indique le nombre disponible et tire toutes celles du module.
   - 2c. Les questions déjà présentes dans le questionnaire ne sont pas tirées une seconde fois.
-  - 2a. Modifier une question propre ; retirer une question de banque (elle reste dans sa banque) ; supprimer une question propre, après confirmation.
-  - 3a. Dupliquer un questionnaire pour en créer une variante : les questions propres sont copiées, les questions de banque restent partagées.
-  - 3b. Supprimer un questionnaire, après une confirmation qui indique le nombre de questions propres supprimées et les examens qui l'utilisent. Un questionnaire utilisé par un examen ne peut pas être supprimé tant que l'examen existe ; le message le dit et nomme les examens.
+  - 2a. Modifier une question (elle est modifiée dans sa banque, donc partout où elle sert) ; retirer une question du questionnaire (elle reste dans sa banque).
+  - 3a. Dupliquer un questionnaire pour en créer une variante : les questions restent partagées avec leurs banques.
+  - 3b. Supprimer un questionnaire, après une confirmation qui indique les examens qui l'utilisent ; ses questions restent dans leurs banques. Un questionnaire utilisé par un examen ne peut pas être supprimé tant que l'examen existe ; le message le dit et nomme les examens.
 - **Règles**
-  - Les questions propres suivent les règles de UC-04 (une bonne réponse, doublons). Elles ne sont pas proposées dans l'étude libre, qui porte sur les banques (Q22).
-  - Une question de banque modifiée dans sa banque l'est aussi dans tous les questionnaires qui l'utilisent, pour les passages futurs.
+  - Seules les questions QCM et vrai / faux sont proposées, tirées ou ajoutées ; les autres types sont ignorés avec l'avertissement du §6.
+  - Une question modifiée dans sa banque l'est aussi dans tous les questionnaires qui l'utilisent, pour les passages futurs.
   - Le tirage n'a lieu qu'à la génération : une fois enregistré, le questionnaire est une liste fixe, la même pour tous les candidats.
   - Pour le tirage, les modules de même nom sont regroupés entre banques **sans tenir compte des majuscules** (« Météo » et « météo » forment un seul module).
   - Modifier un questionnaire ne change pas les résultats déjà enregistrés ; le formateur peut changer la version pour distinguer les certificats émis avant et après (Q25).
@@ -279,7 +218,7 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
   - un **questionnaire** : CSV seul (les questions, dans l'ordre) ou ZIP (le CSV, les illustrations et les paramètres du questionnaire : titre, description, version) ;
   - un **examen** : ZIP contenant son questionnaire, comme ci-dessus, et les paramètres de l'examen (titre, consignes, durée, taux de réussite minimal, options de passage, champs d'identification).
 - **Règles**
-  - Le fichier est autonome : les questions de banque y sont écrites en entier, comme les questions propres.
+  - Le fichier est autonome : les questions y sont écrites en entier.
   - Les résultats ne sont pas exportés avec l'examen ; ils s'exportent depuis la liste des résultats (UC-09).
   - Un fichier exporté peut être réimporté sans modification (UC-17).
 
@@ -290,7 +229,7 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
   1. Le formateur téléverse un fichier d'échange CSV ou ZIP.
   2. Le système analyse le fichier et présente un **rapport avant import** : titre et paramètres lus, nombre de questions valides, lignes en erreur avec le motif et le numéro de ligne, doublons probables dans le fichier, illustrations absentes du ZIP, paramètres d'examen invalides (taux hors de 0 à 100 %, durée négative, champ d'identification inconnu).
   3. Le formateur vérifie ou modifie les titres et confirme.
-  4. Le système crée un **nouveau questionnaire**, dont toutes les questions sont des questions propres, et, si le fichier contient des paramètres d'examen, un **nouvel examen** qui l'utilise. Il affiche le rapport final et ouvre ce qu'il a créé.
+  4. Le système crée les questions dans une banque choisie par le formateur (la banque par défaut si aucune n'est choisie), puis un **nouveau questionnaire** qui les utilise et, si le fichier contient des paramètres d'examen, un **nouvel examen** qui l'utilise. Il affiche le rapport final et ouvre ce qu'il a créé.
 - **Variantes**
   - 1a. **CSV seul**, ou fichier de banque : seul un questionnaire est créé, avec le nom du fichier (ou de la banque) comme titre.
   - 2a. Fichier illisible : rejet avec un message qui dit ce qui est attendu et renvoie à la documentation du format.
@@ -378,7 +317,9 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
   - 4a. L'étudiant passe une question sans répondre : elle n'entre pas dans le pourcentage.
   - 7a. Depuis le bilan, l'étudiant relance une session sur les seules questions échouées.
   - 7b. L'étudiant quitte avant la fin : les réponses déjà données sont conservées et comptent dans sa progression (UC-14), mais la session ne peut pas être reprise. La reprise d'une session interrompue est reportée (v2, Q10).
-- **Règle** : les réponses du mode étude alimentent la progression de l'étudiant (UC-14) et les statistiques des questions (UC-10).
+- **Règles**
+  - Les réponses du mode étude alimentent la progression de l'étudiant (UC-14) et les statistiques des questions (UC-10).
+  - Seules les questions QCM et vrai / faux des banques choisies sont tirées ; les autres types sont ignorés avec l'avertissement du §6.
 
 #### UC-12 — Passer un examen
 
@@ -431,7 +372,7 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
 #### UC-15 — Signaler une question
 
 - **Acteur** : Étudiant.
-- **Scénario** : en mode étude ou depuis une correction, l'étudiant signale une question qu'il pense erronée ou ambiguë, avec un commentaire. Le formateur voit les signalements dans la banque ou le questionnaire, corrige la question ou classe le signalement, et l'étudiant est informé de la suite donnée.
+- **Scénario** : en mode étude ou depuis une correction, l'étudiant signale une question ; le signalement est traité dans le module Banques de questions ([PRD Banques](banques_prd.md), UC-06).
 - **Règle** : il n'y a pas de signalement pendant un passage en cours, pour ne pas donner d'indice. Le signalement est possible depuis la correction.
 
 ---
@@ -441,20 +382,17 @@ Avant le lot 4, les cas d'utilisation du formateur et de l'étudiant sont réali
 - **Message de résultat** : toute action (enregistrement, import, export, fin de passage, réédition) affiche clairement son résultat, succès ou échec ; un message d'erreur dit ce qui ne va pas et comment le corriger.
 - **Confirmation** : toute suppression demande une confirmation qui indique ce qui sera perdu.
 - **Intégrité des résultats** : un résultat enregistré n'est jamais recalculé après coup par une modification de question, de questionnaire ou d'examen, sauf décision explicite du formateur de neutraliser une question erronée (Q13).
-- **Mélange** : l'ordre des réponses est mélangé à chaque affichage (UC-04) ; le candidat ne peut pas reconnaître une question à la position de sa bonne réponse.
+- **Mélange** : l'ordre des réponses est mélangé à chaque affichage, sauf interdiction sur la question ; le candidat ne peut pas reconnaître une question à la position de sa bonne réponse. Les réponses « Vrai » et « Faux » gardent cet ordre.
+- **Types de questions** : le module pose les questions QCM et les vrai / faux, comme QCM à deux réponses (l'explication de la question tient lieu d'explication de la mauvaise réponse). Quand il utilise une banque (étude, tirage, ajout à un questionnaire, import d'un questionnaire), il ignore les autres types et l'annonce : « 12 questions n'étaient pas de type QCM ou vrai / faux et n'ont pas été utilisées. »
 
 ### 6.1 Fichier d'échange
 
-Banques, questionnaires et examens partagent **un même format**, pour qu'un fichier passe de l'un à l'autre :
-
-- **CSV** : une ligne par question, dans l'ordre ; pour chaque question : énoncé, bonne réponse, mauvaises réponses et leurs explications (nombre variable), explication générale, module, nom du fichier d'illustration. Encodage UTF-8.
-- **ZIP** : le fichier CSV, les illustrations qu'il référence, et un **fichier de paramètres** (JSON) :
-  - pour une banque : nom et description ;
+- Les **questions** s'échangent dans le format du module Banques de questions ([PRD Banques](banques_prd.md), §8), dont l'ancien format QCM est un cas particulier : un fichier exporté avant le découpage reste importable.
+- Pour un **questionnaire** ou un **examen**, l'archive ZIP contient en plus un **fichier de paramètres** (JSON), qui porte une version du format :
   - pour un questionnaire : titre, description, version ;
   - pour un examen : les paramètres du questionnaire, plus ceux de l'examen (titre, consignes, durée maximale, taux de réussite minimal, options de passage, champs d'identification).
-- Le fichier de paramètres porte une version du format ; un fichier d'une version antérieure reste importable.
 - Un fichier exporté se réimporte sans modification et redonne le même contenu (aux identifiants internes près).
-- Le format est décrit dans la documentation utilisateur, avec des fichiers exemples téléchargeables (banque, questionnaire, examen).
+- Le format est décrit dans la documentation utilisateur, avec des fichiers exemples téléchargeables (questionnaire, examen).
 
 ---
 
@@ -481,26 +419,27 @@ Banques, questionnaires et examens partagent **un même format**, pour qu'un fic
 | **Lot 2 — Questionnaires, examens et échanges** | Fichier d'échange (§6.1) ; UC-06 et UC-07 export / import des banques ; UC-08 questionnaires (questions propres, de banque, génération par tirage) ; UC-20 définition des examens ; UC-16 et UC-17 export / import des questionnaires et des examens ; détection des doublons à l'import (UC-04) ; sans connexion | L'utilisateur importe une banque et un examen existants, modifie le questionnaire, exporte l'examen, et le fichier réimporté redonne le même questionnaire et le même examen |
 | **Lot 3 — Passage, résultats et certificats** | UC-12 passage avec identification, chronomètre et certificat de résultat imprimable ; UC-13 correction détaillée en fin de passage ; UC-09 liste des résultats et export CSV ; UC-19 réédition du certificat ; prévisualisation des examens (UC-20) ; sur le poste où l'application est ouverte, sans connexion | Un candidat s'identifie, passe un examen blanc chronométré et imprime son certificat ; l'utilisateur modifie ensuite le questionnaire, retrouve le résultat et réédite le même certificat |
 | **Lot 4 — Diffusion en ligne** | Connexion du formateur ; UC-18 diffusion par lien ; envoi du certificat par e-mail (UC-18, UC-19) ; suivi des résultats au fil de l'eau (UC-09) | Le formateur diffuse un lien ; des candidats sans compte, sur leur propre appareil, s'identifient et passent l'examen ; le formateur voit leurs résultats et leur renvoie un certificat |
-| **Lot 5 — Compléments d'édition et d'étude** | UC-03 duplication de banque et décompte par module ; UC-04 prévisualisation d'une question, recherche, actions groupées, interdiction du mélange, doublons à la saisie ; UC-05 copie / déplacement ; UC-11 passer une question, relancer sur les échecs | À définir |
-| **v1** | UC-01 comptes et rôles ; UC-02 accès aux banques et aux examens ; UC-09 vue par étudiant ; UC-10 statistiques des questions ; UC-14 historique et progression ; UC-15 signalements ; filtres de tirage (questions jamais vues, échouées) | Un formateur suit les résultats de ses étudiants et corrige les questions problématiques à partir des données d'usage |
-| **v2** | Statut brouillon / publié ; groupes d'étudiants (Q6) ; reprise d'une session d'étude interrompue (Q10) ; appartenance des banques, questionnaires et examens, visibilité entre formateurs (Q4) ; autres médias (son, vidéo) ; autres types de questions (Q1) ; tiers-temps (Q14) | À définir |
+| **Lot B1 (module Banques)** | Banques et questions confiées au module Banques de questions, avec reprise des données existantes ; questionnaires sans questions propres ; vrai / faux posés comme QCM à deux réponses ; avertissement pour les autres types (§6) | Les études, questionnaires, examens et résultats existants fonctionnent comme avant ; une banque Leitner utilisée dans le module QCM produit l'avertissement attendu |
+| **Lot 5 — Compléments d'étude** | UC-11 passer une question, relancer sur les échecs (les compléments d'édition des banques et des questions sont au lot B2 du module Banques) | À définir |
+| **v1** | UC-01 comptes et rôles ; UC-02 accès aux examens ; UC-09 vue par étudiant ; UC-10 statistiques des questions ; UC-14 historique et progression ; UC-15 signalements (traités dans le module Banques) ; filtres de tirage (questions jamais vues, échouées) | Un formateur suit les résultats de ses étudiants et corrige les questions problématiques à partir des données d'usage |
+| **v2** | Statut brouillon / publié ; groupes d'étudiants (Q6) ; reprise d'une session d'étude interrompue (Q10) ; appartenance des banques, questionnaires et examens, visibilité entre formateurs (Q4) ; autres médias (son, vidéo) ; tiers-temps (Q14) | À définir |
 
 ---
 
 ## 9. Questions ouvertes
 
 **Contenu des questions**
-- Q1. Faut-il prévoir plus tard des questions à plusieurs bonnes réponses, ou d'autres types (vrai / faux, réponse numérique, appariement) ?
-- Q2. Faut-il un niveau de difficulté par question, pour équilibrer les questionnaires générés par tirage ?
+- ~~Q1. Faut-il prévoir d'autres types de questions ?~~ **Tranché** : les types sont définis par le module Banques de questions ; le module QCM pose les QCM et les vrai / faux (comme QCM à deux réponses), les autres types sont utilisés par le module Leitner. Les questions à plusieurs bonnes réponses restent à décider.
+- Q2. Faut-il utiliser le niveau de difficulté des questions (désormais saisi dans le module Banques) pour équilibrer les questionnaires générés par tirage ?
 - ~~Q3. La liste des modules est-elle commune à toutes les banques, ou propre à chaque banque ?~~ **Tranché** : propre à chaque banque, en texte libre, avec proposition des noms existants (§3, UC-04).
 - ~~Q3b. Une question peut-elle avoir plusieurs modules ?~~ **Tranché** : non, une question a au plus un module.
 - ~~Q16. Regroupement des modules entre banques : sur le nom exact, ou sans tenir compte des majuscules, des accents et des espaces en trop ?~~ **Tranché** : sans tenir compte des majuscules (UC-08, UC-20).
-- Q8. Formats d'illustration acceptés (JPEG, PNG, SVG, PDF ?) et taille maximale ?
+- Q8. Formats d'illustration acceptés et taille maximale : suivie par le module Banques ([PRD Banques](banques_prd.md), Q2).
 - Q9. Statut des questions importées : toujours *brouillon*, toujours *publiée*, ou selon une colonne du fichier ? *Reporté avec le statut (v2).*
 
 **Questionnaires, examens et échanges**
 - ~~Q21. Tirage d'un examen : parmi les questions de son questionnaire, ou directement dans des banques ?~~ **Tranché** : un examen pose toujours un questionnaire complet ; le tirage au hasard dans des banques sert à générer un questionnaire (UC-08).
-- Q22. Questions propres et étude libre — options : (a) l'étude ne porte que sur les banques (choix provisoire, UC-08) ; (b) l'étude peut aussi porter sur un questionnaire, questions propres comprises.
+- ~~Q22. Questions propres et étude libre~~ **Sans objet** : toute question vit dans une banque.
 - Q24. Import — options : (a) toujours de nouveaux questionnaires et examens (choix provisoire, UC-17) ; (b) possibilité aussi de remplacer les questions d'un questionnaire existant.
 - Q25. Version d'un questionnaire — options : (a) texte libre saisi par le formateur, facultatif (choix provisoire, UC-08) ; (b) numéro incrémenté automatiquement à chaque modification de la liste des questions ou d'une question propre ; (c) date de dernière modification.
 - Q26. Faut-il, en plus du taux global, des taux de réussite minimaux par module (un passage n'est alors réussi que si chaque module atteint son taux) ?

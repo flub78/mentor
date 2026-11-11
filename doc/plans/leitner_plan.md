@@ -12,8 +12,9 @@
 | Lot | Contenu (PRD §9.2) | Étapes | Statut |
 |---|---|---|---|
 | MVP | Banques, questions de quatre types, suites, séances selon les règles §7, état d'une suite | 0 à 5 (§4) | En cours |
-| Lot 2 — Types et outils | Énumération, correspondance, réponse courte ; import / export ; actions sur les questions ; contestation ; historique ; suite acquise, contrôle d'entretien, test de placement | 6 à 11 (§5) | À faire |
-| Lot 3 — IA et banques QCM | Interface publique du module QCM, banques QCM comme sources ; questions ouvertes corrigées par l'IA | 12 à 14 (§6) | À faire |
+| Lot B1 (module Banques) | Banques communes aux modules QCM et Leitner : voir le [plan Banques](banques_plan.md) | — | À faire |
+| Lot 2 — Séances enrichies et suivi | Nouveaux types en séance (lot B2 du module Banques) ; temps de réponse ; sources par niveau ; actions sur les questions ; contestation ; historique ; suite acquise, contrôle d'entretien, test de placement | 6 à 10 (§5) | À faire |
+| Lot 3 — Questions ouvertes | Questions ouvertes corrigées par l'IA en séance (lot B3 du module Banques) | 11 et 12 (§6) | À faire |
 | v1, v2 | Comptes et rôles, suites proposées, signalements ; taille d'étude, autres types, etc. | À détailler (§7) | — |
 
 Les étapes s'appuient sur des choix provisoires pour des questions ouvertes du PRD ; ils sont
@@ -54,19 +55,19 @@ séance) correspond aux règles §7.
 
 | Élément | PRD | Lot cible |
 |---|---|---|
-| Duplication d'une banque ; décompte par type, difficulté et thème dans la liste | UC-01 | Lot 2 |
-| Prévisualisation d'une question ; recherche plein texte ; doublons probables | UC-02 | Lot 2 |
-| Types énumération, correspondance, réponse courte ; images dans les propositions | §6 | Lot 2 |
+| Duplication d'une banque ; décompte par type, difficulté et thème dans la liste | PRD Banques UC-01 | Lot B2 (module Banques) |
+| Prévisualisation d'une question ; recherche plein texte ; doublons probables | PRD Banques UC-02 | Lot B2 (module Banques) |
+| Types énumération, correspondance, réponse courte ; images dans les propositions | PRD Banques §6 | Lot B2 (module Banques), puis lot 2 en séance |
 | Restriction d'une source par thème ou jusqu'à un niveau de difficulté ; état par banque | UC-05 (2), UC-11 | Lot 2 |
 | Temps de réponse limité | UC-08 (4e), §7.7 | Lot 2 |
 | Création d'une question pendant une séance | UC-03 (variante) | Lot 2 |
-| Import / export | UC-04 | Lot 2 |
+| Import / export des banques | PRD Banques UC-04, UC-05 | Lot B1 (module Banques) |
 | Actions sur les questions d'une suite ; réinitialisation | UC-06, UC-07 | Lot 2 |
 | Contestation d'un verdict | UC-09 | Lot 2 (IA lot 3) |
 | Historique et statistiques | UC-12 | Lot 2 |
 | Suite acquise, contrôle d'entretien, test de placement | UC-14, UC-15, §7.6 | Lot 2 |
-| Banques QCM comme sources ; questions ouvertes corrigées par l'IA | UC-05, §6 | Lot 3 |
-| Comptes, banques prédéfinies et personnelles, suites proposées, signalements, accès | UC-05 (1a), UC-10, UC-13 | v1 |
+| Questions ouvertes corrigées par l'IA | PRD Banques §6 | Lot B3 (module Banques), puis lot 3 en séance |
+| Comptes, suites proposées, signalements, accès (banques prédéfinies et personnelles : module Banques) | UC-05 (1a), UC-10, UC-13 | v1 |
 | Taille d'étude, texte à trous, classement, désignation sur image, questions inversées, etc. | — | v2 |
 
 ## 3. Décisions techniques
@@ -74,7 +75,7 @@ séance) correspond aux règles §7.
 | Sujet | Décision | Alternatives écartées |
 |---|---|---|
 | Interface | Un **panel Filament `leitner`** (`/leitner`), sans connexion, comme le panel `qcm` ; marque « Mentor — Leitner ». Le panel `qcm` reste le panel par défaut et `/` redirige toujours vers `/qcm` ; un lien de navigation relie les deux panels. | Ressources Leitner dans le panel `qcm` : mélange deux modules que le PRD veut indépendants. Page d'accueil commune aux modules : relève de l'assemblage Mentor, pas de ce module. |
-| Emplacement du code | `App\Leitner\` (modèles, ressources Filament, services), tables préfixées `leitner_`, `config/leitner.php`. Aucune classe de `App\Qcm\` n'est utilisée avant le lot 3, et alors seulement son interface publique. | Package dès maintenant : prématuré tant que la Q28 du PRD Mentor n'est pas tranchée (même choix que le QCM). |
+| Emplacement du code | `App\Leitner\` (modèles, ressources Filament, services), tables préfixées `leitner_`, `config/leitner.php`. Les banques et les questions, d'abord dans ce module, passent au module Banques de questions au lot B1 ([plan Banques](banques_plan.md)). | Package dès maintenant : prématuré tant que la Q28 du PRD Mentor n'est pas tranchée (même choix que le QCM). |
 | Types de questions | Une seule table `leitner_questions` avec une colonne `type` (énumération PHP `QuestionType`) et une colonne `payload` JSON qui porte la réponse attendue propre au type. Chaque type a une classe qui implémente `QuestionTypeHandler` : schéma du formulaire, validation du `payload`, vue de saisie de la réponse, correction (`evaluate()` → `Evaluation` : verdict et détail), texte de la réponse attendue. Ajouter un type = ajouter une classe et une vue. | Une table par type : multiplie migrations, relations et requêtes pour l'état d'une suite. Table de réponses comme le QCM : ne convient ni à l'énumération, ni à la correspondance, ni à la valeur numérique. |
 | Progression | Une **progression** par suite (`leitner_progressions`), avec `user_id` nul jusqu'en v1. Les questions *en banque* ne sont pas enregistrées : ce sont les questions des sources sans ligne dans `leitner_progress_items`. Une ligne est créée à l'introduction (ou au placement) et porte l'état (`box`, `mastered`, `suspended`), la boîte et le nombre d'échecs consécutifs. Les banques ne sont jamais modifiées par l'entraînement (PRD §3). | Une ligne par question des sources dès la création de la suite : à resynchroniser à chaque ajout de question dans une banque partagée. État porté par la question : interdit le partage des banques entre suites et étudiants. |
 | Séance | Tables `leitner_sessions` et `leitner_session_entries`. Les entrées de la séance (question, position, boîte de départ, reprise ou non) sont **créées au lancement** ; chaque réponse est écrite dès qu'elle est donnée (réponse, verdict, boîte d'arrivée). La reprise d'une séance interrompue repart de la première entrée sans réponse. | État dans le composant Livewire, comme l'étude QCM : contraire à l'exigence de fiabilité du PRD et à la reprise (UC-08, 6a). |
@@ -280,27 +281,29 @@ valeurs `controle` et `placement` au lot 2.
 
 ---
 
-## 5. Lot 2 — Types et outils
+## 5. Lot 2 — Séances enrichies et suivi
+
+**Prérequis** : lot B1 du [plan Banques](banques_plan.md) (banques communes, import et export) ; lot B2 pour les nouveaux types de questions.
 
 ### 5.1 Objectif et périmètre
 
-Toujours sans connexion, l'utilisateur dispose des types énumération, correspondance et réponse
-courte, du temps de réponse limité, des sources restreintes jusqu'à un niveau de difficulté, importe et exporte ses banques, agit sur les questions d'une suite, conteste un verdict,
-consulte son historique, voit ses suites acquises et les vérifie par des contrôles d'entretien,
-et passe un test de placement.
+Toujours sans connexion, l'utilisateur fait des séances avec les types du lot B2 du module Banques
+(énumération, correspondance, réponse courte), avec un temps de réponse limité s'il le souhaite et
+des sources restreintes jusqu'à un niveau de difficulté ; il agit sur les questions d'une suite,
+conteste un verdict, consulte son historique, voit ses suites acquises et les vérifie par des
+contrôles d'entretien, et passe un test de placement. La gestion, l'import et l'export des banques
+relèvent du module Banques.
 
-Critère de sortie (PRD §9.2) : l'utilisateur importe une banque de capitales, s'entraîne en
+Critère de sortie (PRD §9.2) : l'utilisateur s'entraîne sur une banque de capitales importée, en
 énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique.
 
 ### 5.2 Décisions techniques
 
 | Sujet | Décision | Alternatives écartées |
 |---|---|---|
-| Format CSV | Colonnes du QCM reprises telles quelles (`enonce`, `bonne_reponse`, `mauvaise_reponse_N` / `explication_N`, `explication`, `illustration`), plus `type`, `theme` (alias accepté : `module`), `difficulte`, `texte_alternatif` et des colonnes par type : `reponse`, `variantes`, `valeur`, `tolerance`, `type_tolerance`, `unite`, `elements`, `nombre_demande`, `ordre_impose`, `paires`, `leurres`, `paires_presentees`. Listes séparées par `|`, paires par `=`. Sans colonne `type`, une ligne est de type QCM : **un fichier de banque QCM s'importe donc sans passer par le code du module QCM**, le format d'échange documenté servant de contrat. | Lecteur CSV du module QCM : utiliserait son code interne. Colonne JSON par question : impossible à préparer dans un tableur. |
-| Format ZIP | Comme le QCM : `questions.csv`, `images/`, `banque.json` avec `format_version`. | — |
-| Code d'échange | `App\Leitner\Exchange\` : lecture et écriture CSV par type (chaque handler fournit `toCsv()` / `fromCsv()`), rapport avant import, import en deux temps dans une transaction, mêmes règles que le QCM (aucune écriture à l'analyse, images effacées en cas d'échec). | Factoriser avec `App\Qcm\Exchange` : dépendance au stockage et au code internes d'un autre module ; à reconsidérer si l'échange devient une brique Laraskel. |
 | Contrôle d'entretien et test de placement | Ce sont des séances de `kind` `controle` et `placement` : mêmes tables et même page, sans numéro de séance ; le `SessionStarter` et l'`AnswerRecorder` appliquent des règles propres au type de séance. | Tables séparées : dupliquent la saisie, la reprise et l'historique. |
 | Suite acquise | Colonne `acquired_at` sur la progression, posée ou effacée par un service `AcquisitionTracker` appelé après chaque réponse et chaque changement de sources ; colonnes `last_check_at`, `last_check_passed`, `next_check_at`. | Calcul à la volée : l'historique de l'acquisition (date) serait perdu. |
+
 
 ### 5.3 Modèle de données (ajouts)
 
@@ -312,31 +315,17 @@ leitner_sessions         kind : + controle, placement ; + check_rate?, check_pas
 leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (bool), timed_out (bool)
 ```
 
-### Étape 6 — Nouveaux types, sources par niveau, temps de réponse
+### Étape 6 — Nouveaux types en séance, sources par niveau, temps de réponse
 
-- [ ] `ReponseCourteHandler` : réponse attendue et variantes ; comparaison via `AnswerNormalizer`.
-- [ ] `EnumerationHandler` : éléments acceptables (libellé et variantes), nombre demandé, ordre imposé ou non ; chaque élément saisi reconnu ou non, doublons ignorés ; verdict juste si tout est reconnu ; détail élément par élément ; réponse partielle comptée fausse (Q9, choix provisoire).
-- [ ] `CorrespondanceHandler` : paires, leurres, nombre de paires présentées (tirées au hasard si la liste est longue, tirage enregistré dans l'entrée pour la reprise) ; détail paire par paire.
-- [ ] Images dans les propositions (QCM, correspondance) : une image facultative par proposition, avec texte alternatif.
-- [ ] Vues de saisie : liste de champs pour l'énumération (ajout de ligne au clavier), sélection par élément pour la correspondance (utilisable au clavier et sur téléphone).
+- [ ] Vues de saisie des types du lot B2 : liste de champs pour l'énumération (ajout de ligne au clavier), sélection par élément pour la correspondance (utilisable au clavier et sur téléphone), champ texte pour la réponse courte ; tirage des paires présentées enregistré dans l'entrée pour la reprise ; détail élément par élément ou paire par paire dans la correction.
 - [ ] Restriction d'une source par thèmes et jusqu'à un niveau de difficulté maximal (UC-05, 2) ; une question sans niveau compte comme moyenne pour cette restriction.
 - [ ] Temps de réponse (UC-08 4e, PRD §7.7) : paramètre `response_time_seconds` de la suite (nul = désactivé, 10 proposé) ; compte à rebours sur la page de séance (Alpine.js) ; à zéro, l'`AnswerRecorder` enregistre une réponse fausse `timed_out` sans réponse saisie ; durée réglable ou chronomètre désactivable en cours de séance, enregistré sur la suite, effectif à la question suivante ; question en cours remise à temps complet à la reprise ; le serveur refuse une réponse arrivée nettement après le délai (marge de 2 s pour la latence) et la compte comme temps écoulé.
 - [ ] Tests du temps de réponse : expiration → fausse et reprise en fin de séance ; changement de durée en cours de séance ; désactivation ; réponse tardive refusée par le serveur (horloge simulée) ; auto-évaluation chronométrée jusqu'à « Voir la réponse » ; restriction par niveau maximal.
-- [ ] Prévisualisation d'une question (UC-02, 3) ; recherche plein texte ; doublons probables à la saisie ; duplication d'une banque et décomptes par type, difficulté et thème (UC-01).
-- [ ] Tests : chaque handler (validations, verdicts, détail, normalisation, doublons, ordre imposé, leurres) ; séance avec Livewire sur chaque nouveau type ; reprise d'une séance avec une correspondance tirée.
-- [ ] Documentation utilisateur : « Saisir une énumération », « Saisir une correspondance », « Saisir une réponse courte ».
+- [ ] Tests : séance avec Livewire sur chaque nouveau type ; reprise d'une séance avec une correspondance tirée.
+- [ ] Documentation utilisateur : répondre aux nouveaux types en séance ; temps de réponse ; sources limitées par niveau.
 - [ ] `composer qa` vert ; commit.
 
-### Étape 7 — Import et export des banques (UC-04)
-
-- [ ] Lecture et écriture CSV et ZIP selon le §5.2 ; rapport avant import (questions valides, erreurs avec numéro de ligne et motif, doublons, thèmes nouveaux, images manquantes) ; choix du traitement des doublons ; rapport final.
-- [ ] Actions « Importer une banque », « Importer des questions », « Exporter (CSV) », « Exporter (ZIP) », sur la banque et sur une sélection.
-- [ ] Fichiers exemples `public/exemples/leitner/` : un par type, et une banque de capitales (énumération et correspondance) qui sert au critère de sortie.
-- [ ] Tests : aller-retour de chaque type, images comprises ; import d'un fichier exporté par le module QCM (fixture produite par le QCM) ; erreurs propres à chaque type (paire mal formée, tolérance non numérique, nombre demandé supérieur au nombre d'éléments) ; une ligne en erreur n'empêche pas les autres ; aucune écriture à l'analyse.
-- [ ] Documentation utilisateur : « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur », référence du format avec un exemple par type.
-- [ ] `composer qa` vert ; commit.
-
-### Étape 8 — Actions sur les questions d'une suite, réinitialisation (UC-06, UC-07, UC-03)
+### Étape 7 — Actions sur les questions d'une suite, réinitialisation (UC-06, UC-07, UC-03)
 
 - [ ] Liste des questions d'une suite, filtrable par état (en banque, boîte *k*, maîtrisée, suspendue), thème et difficulté.
 - [ ] Actions individuelles et groupées : introduire, suspendre, réactiver, déclarer connue (boîte choisie ou maîtrisée), remettre en boîte 1, réintroduire une question maîtrisée ; notification avec le nombre de questions touchées.
@@ -346,7 +335,7 @@ leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (
 - [ ] Documentation utilisateur : « Suspendre ou déclarer connue une question », « Recommencer une suite ».
 - [ ] `composer qa` vert ; commit.
 
-### Étape 9 — Contestation, historique et statistiques (UC-09, UC-12)
+### Étape 8 — Contestation, historique et statistiques (UC-09, UC-12)
 
 - [ ] Contestation (UC-09) après un verdict automatique d'une réponse saisie (réponse courte, énumération, valeur numérique, correspondance) : commentaire facultatif ; verdict retourné (Q12, choix provisoire : dernier mot à l'étudiant) ; mouvement de boîte recalculé (même mécanisme que l'annulation) ; contestation journalisée. QCM et vrai / faux : pas de contestation (renvoi au signalement en v1).
 - [ ] Liste des contestations dans la banque, par question, pour améliorer la réponse attendue.
@@ -356,7 +345,7 @@ leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (
 - [ ] Documentation utilisateur : « Contester un verdict », « Suivre sa progression ».
 - [ ] `composer qa` vert ; commit.
 
-### Étape 10 — Suite acquise, contrôle d'entretien, test de placement (UC-14, UC-15, §7.6)
+### Étape 9 — Suite acquise, contrôle d'entretien, test de placement (UC-14, UC-15, §7.6)
 
 - [ ] `AcquisitionTracker` : suite acquise quand toutes les questions sont maîtrisées ou suspendues et qu'aucune ne reste en banque ; acquisition perdue à l'ajout de questions ; date conservée.
 - [ ] Contrôle d'entretien (UC-14) : séance `controle` sur un échantillon aléatoire de questions maîtrisées (20 par défaut, toutes s'il y en a moins), restriction facultative par thème ; seuil 90 % ; question échouée → dernière boîte, échec consécutif compté (boîte 1 au prochain échec) ; conclusion « acquis confirmé » ou « à consolider » ; contrôle interrompu sans conclusion ; planification : 1 mois après l'acquisition, 3 mois après un contrôle réussi, puis 6 mois (Q22, choix provisoires dans `config/leitner.php`).
@@ -366,7 +355,7 @@ leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (
 - [ ] Documentation utilisateur : « Savoir qu'une suite est acquise », « Faire un contrôle d'entretien », « Passer un test de placement ».
 - [ ] `composer qa` vert ; commit.
 
-### Étape 11 — Clôture du lot 2
+### Étape 10 — Clôture du lot 2
 
 - [ ] Dérouler le critère de sortie du §5.1 dans le navigateur, sur ordinateur et à largeur téléphone.
 - [ ] Mettre à jour le statut de ce plan et du PRD Leitner (§9.2).
@@ -374,55 +363,37 @@ leitner_session_entries  + contested_at?, contest_comment?, verdict_overridden (
 
 ---
 
-## 6. Lot 3 — IA et banques QCM
+## 6. Lot 3 — Questions ouvertes corrigées par l'IA
 
 ### 6.1 Objectif et périmètre
 
-Une suite peut prendre une banque QCM comme source, par l'interface publique du module QCM, et
-contenir des questions ouvertes corrigées par l'IA, avec bascule en auto-évaluation quand l'IA
-n'est pas disponible.
+Une suite contient des questions ouvertes corrigées par l'IA (type du lot B3 du module Banques),
+avec bascule en auto-évaluation quand l'IA n'est pas disponible, et contestation du verdict.
 
-Critère de sortie (PRD §9.2) : une suite mêle une banque QCM et des questions ouvertes ; l'IA rend
-verdict et justification ; IA coupée, la séance continue en auto-évaluation.
+Critère de sortie (PRD §9.2) : une suite mêle des questions QCM et des questions ouvertes ; l'IA
+rend verdict et justification ; IA coupée, la séance continue en auto-évaluation.
 
-**Prérequis** : l'interface LLM du socle ([PRD Laraskel](../../../laraskel/doc/prds/interface-llm.md))
-n'existe pas encore dans les packages. L'étape 13 attend sa livraison dans Laraskel ; le besoin y
-est remonté plutôt que codé dans Mentor (PRD Mentor §1.5).
+**Prérequis** : lot B3 du [plan Banques](banques_plan.md), qui dépend lui-même de l'interface LLM
+du socle ([PRD Laraskel](../../../laraskel/doc/prds/interface-llm.md)), pas encore livrée.
 
 ### 6.2 Décisions techniques
 
 | Sujet | Décision | Alternatives écartées |
 |---|---|---|
-| Interface publique du QCM | Nouvel espace de noms `App\Qcm\Api\` dans le module QCM, seul point d'entrée des autres modules : `QuestionCatalog` (banques, identifiants des questions d'une banque, question sous forme d'objet `QcmQuestionView` : énoncé, réponses, explications, URL d'image, module) et un événement `QcmQuestionDeleted`. Les modèles du QCM restent internes. | Accès direct aux modèles ou tables `qcm_*` : interdit par le PRD Mentor §1.4. Copie des questions QCM dans Leitner : perd les corrections apportées à la banque QCM. |
-| Référence aux questions QCM | `leitner_suite_sources` et `leitner_progress_items` reçoivent une colonne `source` (`leitner`, `qcm`) et un identifiant externe ; `bank_id` / `question_id` deviennent nullables, exactement l'un des deux renseigné (même principe que les questions propres du QCM). Leitner écoute `QcmQuestionDeleted` pour retirer les lignes de progression. | Clé étrangère vers `qcm_questions` : couple les schémas des deux modules. |
-| Correction des questions QCM | Le `QcmHandler` de Leitner corrige à partir de `QcmQuestionView` ; les questions QCM sont en lecture seule dans Leitner. | — |
 | Correction par l'IA | Port `AnswerJudge` dans Leitner (`judge(question, référence, critères, réponse): Evaluation` avec justification) ; implémentation `LlmAnswerJudge` sur l'interface LLM du socle ; implémentation `UnavailableJudge` quand aucune interface n'est configurée. Appel synchrone avec délai maximal de 10 s et indicateur d'attente ; au-delà, ou en cas d'erreur, bascule en auto-évaluation signalée (UC-08, 4d). Seuls la question, la référence, les critères et la réponse sont envoyés, sans donnée d'identité. | Appel par file d'attente : l'étudiant attend de toute façon le verdict pour continuer ; complexité sans gain. |
 
-### Étape 12 — Interface publique du QCM et banques QCM comme sources
+### Étape 11 — Questions ouvertes en séance
 
-- [ ] Dans le module QCM : `App\Qcm\Api\QuestionCatalog`, `QcmQuestionView`, événement `QcmQuestionDeleted` (déclenché à la suppression d'une question, y compris en cascade) ; tests propres au module QCM ; mention dans le plan QCM.
-- [ ] Migrations Leitner (§6.2) ; contrôle « exactement une référence » dans les modèles.
-- [ ] Source QCM dans le formulaire de suite (UC-05) ; questions QCM *en banque*, introduites, posées et corrigées comme les autres ; lecture seule signalée dans la liste des questions de la suite.
-- [ ] Écoute de `QcmQuestionDeleted` : lignes de progression supprimées, entrées de séance conservées sans question.
-- [ ] Tests : suite mixte Leitner + QCM ; suppression d'une question QCM ; aucune requête Leitner sur les tables `qcm_*` (test d'architecture qui recherche les références à `App\Qcm\` hors de `App\Qcm\Api\`).
-- [ ] Documentation utilisateur : « Réviser une banque QCM avec Leitner ».
-- [ ] `composer qa` vert ; commit.
-
-### Étape 13 — Questions ouvertes corrigées par l'IA
-
-- [ ] Prérequis : interface LLM disponible dans le socle.
-- [ ] `QuestionOuverteHandler` : réponse de référence, critères facultatifs (éléments obligatoires, tolérances, réponses acceptables) ; correction déléguée à `AnswerJudge`.
-- [ ] `LlmAnswerJudge` : consigne en français qui demande un jugement sur le fond et une justification courte, réponse structurée (verdict, justification) ; réponse illisible → bascule en auto-évaluation.
-- [ ] Page de séance : indicateur d'attente, justification affichée, bascule signalée ; contestation (UC-09) étendue aux verdicts IA.
-- [ ] Format d'échange : type `question_ouverte` avec `reponse` et `criteres`.
+- [ ] Page de séance : saisie en texte libre, indicateur d'attente, justification affichée, bascule en auto-évaluation signalée.
+- [ ] Contestation (UC-09) étendue aux verdicts IA.
 - [ ] Tests avec un juge factice : verdicts juste et faux, justification affichée, délai dépassé et erreur → auto-évaluation, contestation ; contenu envoyé au juge sans donnée d'identité.
-- [ ] Documentation utilisateur : « Saisir une question ouverte corrigée par l'IA », « Que faire si l'IA se trompe ».
+- [ ] Documentation utilisateur : « Répondre à une question ouverte », « Que faire si l'IA se trompe ».
 - [ ] `composer qa` vert ; commit.
 
-### Étape 14 — Clôture du lot 3
+### Étape 12 — Clôture du lot 3
 
 - [ ] Dérouler le critère de sortie du §6.1, avec l'IA active puis coupée.
-- [ ] Mettre à jour le statut de ce plan, du PRD Leitner (§9.2) et du plan QCM (interface publique).
+- [ ] Mettre à jour le statut de ce plan et du PRD Leitner (§9.2).
 - [ ] `composer qa` vert ; PR.
 
 ---

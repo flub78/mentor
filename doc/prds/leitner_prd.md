@@ -2,13 +2,17 @@
 
 | | |
 |---|---|
-| **Version** | 0.6 (brouillon) |
+| **Version** | 0.8 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
-| **Module utilisé** | [QCM](qcm_prd.md) |
+| **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.8** : les banques et leurs questions passent au module [Banques de questions](banques_prd.md), partagé avec le module QCM (Q11 tranchée) : gestion des banques et des questions, types de questions et fichier d'échange y sont décrits ; Leitner ne dépend plus du module QCM ; imports et exports au niveau des banques (Q27, Q28 tranchées).
+
+**Évolutions de la version 0.7** : format d'échange complet (§8) : colonnes communes et propres à chaque type, listes et caractères réservés, valeurs, archive ZIP, rapport d'import et règles d'export.
 
 **Évolutions de la version 0.6** : temps de réponse limité, réglable même en cours de séance (§7.7) ; restriction d'une source jusqu'à un niveau de difficulté ; suites sur plusieurs banques, avec l'état détaillé par banque (UC-05, UC-11).
 
@@ -34,7 +38,7 @@ L'objectif est de **terminer** une suite : quand toutes ses questions sont maît
 
 À tout moment, l'étudiant sait **où il en est** : combien de questions sont dans chaque boîte, combien n'ont pas encore été posées, ce que contiendra sa prochaine séance.
 
-Le module est utilisable **seul**. Il réutilise les questions des banques du [module QCM](qcm_prd.md) par l'interface publique de celui-ci. Intégré à Mentor, il fournit les révisions Leitner du parcours (cartes rattachées aux notions, voir [PRD Mentor](mentor_prd.md), UC-10, UC-10b, UC-10c).
+Le module est utilisable sans le module QCM. Ses questions viennent des banques du module [Banques de questions](banques_prd.md), partagé avec le module QCM : une même banque sert à un examen blanc QCM et à une suite Leitner. Intégré à Mentor, il fournit les révisions Leitner du parcours (cartes rattachées aux notions, voir [PRD Mentor](mentor_prd.md), UC-10, UC-10b, UC-10c).
 
 ### 1.1 Objectifs
 
@@ -68,16 +72,8 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 
 ## 3. Glossaire
 
-- **Banque de questions** : ensemble nommé de questions, avec une description. Une banque est **prédéfinie** (créée par un formateur, en lecture seule pour l'étudiant) ou **personnelle** (créée par un étudiant, visible de lui seul).
-- **Partage des banques** : une banque est utilisée **simultanément** par plusieurs étudiants et par plusieurs suites. L'entraînement ne la modifie jamais : les boîtes, l'état *en banque* et l'historique appartiennent à la progression de chaque étudiant dans chaque suite.
-- **Banque QCM** : banque du module QCM, utilisable comme source d'une suite ; ses questions sont en lecture seule dans Leitner.
-- **Question** : élément à mémoriser. Elle comporte :
-  - un **type** (§6) qui fixe la forme de la réponse et la manière de la corriger ;
-  - un **énoncé**, avec une **illustration facultative** (image, carte, schéma) sur laquelle il peut porter ;
-  - la **réponse attendue**, sous la forme propre à son type ;
-  - une **explication facultative**, affichée après la réponse ;
-  - un **niveau de difficulté** (§10, Q13) ;
-  - un **thème facultatif**, en texte libre, qui sert à filtrer et à présenter les statistiques (même principe que le *module* d'une question QCM).
+- **Banque de questions**, **question**, **type de question**, **difficulté**, **thème**, **banque par défaut** : voir le [PRD Banques de questions](banques_prd.md), §3. Une question appartient à exactement une banque.
+- **Partage des banques** : une banque est utilisée **simultanément** par plusieurs étudiants, par plusieurs suites et par le module QCM. L'entraînement ne la modifie jamais : les boîtes, l'état *en banque* et l'historique appartiennent à la progression de chaque étudiant dans chaque suite.
 - **Suite** : ensemble de questions sur lequel l'étudiant s'entraîne. Elle a un **nom**, une **description**, une ou plusieurs **banques sources** et des **paramètres** : taille d'étude facultative, nombre de boîtes, nombre minimal de questions en boîte 1, ordre de présentation (§5, UC-05).
 - **Boîte** : niveau de mémorisation d'une question dans une suite, de 1 à N. Plus le numéro est élevé, moins la question est posée souvent.
 - **Question en banque** : pour un étudiant et une suite, question d'une banque source qui n'a encore jamais été introduite dans **sa** progression. Elle n'est dans aucune de ses boîtes ; la même question peut être en boîte 4 chez un autre étudiant.
@@ -86,7 +82,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 - **Suite acquise** : suite dont toutes les questions sont maîtrisées ou suspendues, sans question restant en banque (§7.6).
 - **Contrôle d'entretien** : vérification d'une suite acquise sur un échantillon de questions maîtrisées tirées au hasard (UC-14).
 - **Question suspendue** : question retirée temporairement des séances par l'étudiant, qui garde sa boîte.
-- **Temps de réponse** : durée laissée pour répondre à une question quand le mode chronométré est actif, y compris pour les questions issues des banques QCM ; une question sans réponse dans ce temps est comptée fausse (§7.7).
+- **Temps de réponse** : durée laissée pour répondre à une question quand le mode chronométré est actif, quel que soit son type ; une question sans réponse dans ce temps est comptée fausse (§7.7).
 - **Séance** : session d'entraînement sur une suite. Les séances d'une suite sont **numérotées** à partir de 1 ; le numéro décide des boîtes posées (§7.1).
 - **Question due** : question qui sera posée à la prochaine séance.
 - **Régularité** : nombre de séances faites sur une suite au cours des 7 derniers jours (§7.5).
@@ -103,10 +99,10 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 | ID | Cas d'utilisation | Acteur principal | Lot |
 |---|---|---|---|
 | **A. Banques et questions** |||
-| UC-01 | Gérer les banques de questions | Formateur / Étudiant | MVP |
-| UC-02 | Gérer les questions | Formateur / Étudiant | MVP (types complémentaires lots 2 et 3) |
+| UC-01 | Gérer les banques de questions → [PRD Banques](banques_prd.md), UC-01 | Formateur | — |
+| UC-02 | Effets d'une modification de question sur les suites (gestion des questions → [PRD Banques](banques_prd.md), UC-02, UC-03) | Formateur | MVP |
 | UC-03 | Ajouter ses propres questions à une suite | Étudiant | MVP |
-| UC-04 | Importer et exporter une banque | Formateur / Étudiant | Lot 2 |
+| UC-04 | Importer et exporter une banque → [PRD Banques](banques_prd.md), UC-04, UC-05 | Formateur | — |
 | **B. Suites** |||
 | UC-05 | Créer et paramétrer une suite | Étudiant / Formateur | MVP |
 | UC-06 | Agir sur les questions d'une suite | Étudiant | Lot 2 |
@@ -114,14 +110,14 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 | **C. Entraînement** |||
 | UC-08 | Faire une séance | Étudiant | MVP |
 | UC-09 | Contester ou corriger un verdict | Étudiant | Lot 2 (IA lot 3) |
-| UC-10 | Signaler une question | Étudiant | v1 |
+| UC-10 | Signaler une question → [PRD Banques](banques_prd.md), UC-06 | Étudiant | v1 |
 | **D. Suivi** |||
 | UC-11 | Consulter l'état d'une suite | Étudiant | MVP |
 | UC-12 | Consulter l'historique et les statistiques | Étudiant / Formateur | Lot 2 (vue formateur v1) |
 | UC-14 | Faire un contrôle d'entretien | Étudiant | Lot 2 |
 | UC-15 | Passer un test de placement | Étudiant | Lot 2 |
 | **E. Comptes et accès** |||
-| UC-13 | Donner accès aux banques et aux suites | Formateur | v1 |
+| UC-13 | Donner accès aux suites (accès aux banques → [PRD Banques](banques_prd.md), UC-07) | Formateur | v1 |
 
 ---
 
@@ -129,52 +125,27 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 
 ### A. Banques et questions
 
-#### UC-01 — Gérer les banques de questions
+Les banques et leurs questions sont gérées par le module [Banques de questions](banques_prd.md) (UC-01 à UC-05 de son PRD). Ce PRD ne décrit que leurs effets sur les suites.
 
-- **Acteurs** : Formateur (banques prédéfinies), Étudiant (banques personnelles).
-- **Scénario** : créer une banque (nom, description), la renommer, la dupliquer, la supprimer. La liste des banques affiche pour chacune le nombre de questions, au total, par type, par niveau de difficulté et par thème.
-- **Variante** : l'étudiant duplique une banque prédéfinie pour en faire une banque personnelle qu'il peut modifier.
+#### UC-02 — Effets d'une modification de question sur les suites
+
+- **Acteur** : Formateur.
+- **Scénario** : quand le formateur modifie une question déjà introduite dans une progression, il indique si la modification est **mineure** (correction de forme : la question garde sa boîte) ou **de fond** (la question revient en boîte 1 dans toutes les suites qui l'utilisent, échecs consécutifs remis à zéro) ; la notification donne le nombre de suites touchées.
 - **Règles**
-  - La suppression d'une banque demande une confirmation qui indique le nombre de questions et de suites concernées. Les questions de la banque quittent les boîtes des suites qui l'utilisent.
-  - Un étudiant ne modifie jamais une banque prédéfinie ; il peut la dupliquer ou signaler une question (UC-10).
-
-#### UC-02 — Gérer les questions
-
-- **Acteurs** : Formateur, Étudiant (dans ses banques personnelles).
-- **Scénario nominal**
-  1. Dans une banque, l'acteur choisit le type de question (§6).
-  2. Il saisit l'énoncé, l'illustration facultative, la réponse attendue sous la forme propre au type, l'explication facultative, le niveau de difficulté et le thème.
-  3. Il prévisualise la question telle qu'elle sera posée, y compris sa correction.
-  4. Il l'enregistre ; la question est aussitôt utilisable.
-- **Variantes**
-  - 1a. Modifier une question existante. Si la question figure déjà dans des boîtes, le système demande si la modification est **mineure** (correction de forme : la question garde sa boîte) ou **de fond** (la question revient en boîte 1 dans toutes les suites qui l'utilisent).
-  - 1b. Supprimer une question, après confirmation qui indique le nombre de suites où elle est en boîte.
-  - 1c. Rechercher et filtrer les questions : texte, type, difficulté, thème, présence d'une illustration.
-  - 2a. L'étudiant transforme une question en question **inversée** (« capitale → pays » devient « pays → capitale ») lorsque le type s'y prête *(v2)*.
-- **Règles**
-  - Le système vérifie la cohérence propre au type avant l'enregistrement (§6) ; un message dit précisément quel champ corriger.
-  - Le système signale les doublons probables (même énoncé dans la même banque).
-  - Une illustration a un **texte alternatif** obligatoire (accessibilité).
-  - Formats d'image acceptés et taille maximale : alignés sur le module QCM (Q18).
+  - Supprimer une question la retire de toutes les progressions ; la confirmation annonce le nombre de suites concernées.
+  - Déplacer une question vers une banque qui n'est pas source d'une suite la retire de cette suite, avec sa progression ([PRD Banques](banques_prd.md), UC-03).
+  - Supprimer une banque retire ses questions des suites qui l'ont pour source.
+  - *(v2)* L'étudiant transforme une question en question **inversée** (« capitale → pays » devient « pays → capitale ») lorsque le type s'y prête.
 
 #### UC-03 — Ajouter ses propres questions à une suite
 
 - **Acteur** : Étudiant.
 - **Scénario nominal**
   1. Depuis une suite, l'étudiant choisit « Nouvelle question ».
-  2. Il saisit la question (UC-02) ; elle est rangée dans sa **banque personnelle** associée à la suite, créée au besoin.
+  2. Il saisit la question comme dans une banque ([PRD Banques](banques_prd.md), UC-02) ; elle est rangée dans la **banque personnelle** de la suite, créée au besoin et ajoutée à ses sources.
   3. Il choisit de la placer **directement en boîte 1** ou de la laisser **en banque**, à introduire comme les autres (§7.3).
 - **Variante** : pendant une séance, après une question, l'étudiant crée une question complémentaire (« je veux aussi retenir ceci ») sans quitter la séance.
 - **Règle** : les questions de l'étudiant sont privées (Q14).
-
-#### UC-04 — Importer et exporter une banque
-
-- **Acteurs** : Formateur, Étudiant (banques personnelles).
-- **Scénario** : export d'une banque, ou d'une sélection, en fichier d'échange (§8) ; import dans une banque existante ou nouvelle, avec **rapport avant import** (questions valides, lignes en erreur avec motif et numéro de ligne, doublons probables, illustrations manquantes), choix du traitement des doublons, puis rapport final.
-- **Règles**
-  - Une ligne en erreur n'empêche pas l'import des autres ; aucune question n'est importée à moitié.
-  - Un fichier exporté se réimporte sans modification.
-  - Le format reprend celui du module QCM pour les questions QCM, de sorte qu'un fichier de banque QCM s'importe dans Leitner.
 
 ### B. Suites
 
@@ -183,7 +154,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 - **Acteurs** : Étudiant ; Formateur pour une suite proposée aux étudiants.
 - **Scénario nominal**
   1. L'acteur saisit le **nom** et la **description** de la suite.
-  2. Il choisit une ou plusieurs **banques sources** : banques prédéfinies, banques personnelles, banques QCM. Une suite réunit ainsi plusieurs banques, par exemple la théorie ULM avec les banques Météorologie, Réglementation et Mécanique du vol. Il peut restreindre chaque source à certains thèmes et à un **niveau de difficulté maximal** (« banque Météorologie jusqu'au niveau 2 »).
+  2. Il choisit une ou plusieurs **banques sources** parmi les banques du module Banques de questions, y compris celles que le module QCM utilise. Une suite réunit ainsi plusieurs banques, par exemple la théorie ULM avec les banques Météorologie, Réglementation et Mécanique du vol. Il peut restreindre chaque source à certains thèmes et à un **niveau de difficulté maximal** (« banque Météorologie jusqu'au niveau 2 »).
   3. Il fixe les paramètres, pré-remplis avec les valeurs par défaut :
      - **taille d'étude** *(v2)* : facultative ; par défaut, toutes les questions des sources. Si elle est fixée (ex. 300 questions sur une banque de 1 200), le système tire ce nombre de questions au hasard parmi les sources et la suite ne porte que sur elles ;
      - **nombre de boîtes** (défaut : 5 ; de 3 à 10) ; le système affiche, pour la valeur choisie, la durée estimée pour maîtriser une question (§7.2) ;
@@ -264,8 +235,7 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 #### UC-10 — Signaler une question
 
 - **Acteur** : Étudiant.
-- **Scénario** : pendant une séance ou depuis la liste des questions, l'étudiant signale une question prédéfinie qu'il pense erronée ou ambiguë, avec un commentaire. Le formateur la corrige ou classe le signalement ; l'étudiant est informé de la suite donnée.
-- **Règle** : pour une question QCM, le signalement est transmis au module QCM (UC-15 du [PRD QCM](qcm_prd.md)).
+- **Scénario** : pendant une séance ou depuis la liste des questions d'une suite, l'étudiant signale une question ; le signalement est traité dans le module Banques de questions ([PRD Banques](banques_prd.md), UC-06).
 
 ### D. Suivi
 
@@ -326,38 +296,16 @@ Comme pour le module QCM, les premiers lots fonctionnent **sans connexion** : un
 
 ### E. Comptes et accès
 
-#### UC-13 — Donner accès aux banques et aux suites
+#### UC-13 — Donner accès aux suites
 
 - **Acteur** : Formateur.
-- **Scénario** : le formateur ouvre une banque prédéfinie ou une suite proposée à des étudiants ; ceux-ci la voient dans leur liste et peuvent l'utiliser. Le retrait de l'accès retire la banque des sources de leurs suites, après les en avoir informés ; leur historique reste consultable.
+- **Scénario** : le formateur ouvre une suite proposée à des étudiants ; ceux-ci la voient dans leur liste et l'adoptent (UC-05, 1a). L'accès aux banques elles-mêmes relève du module Banques de questions ([PRD Banques](banques_prd.md), UC-07) ; quand il est retiré, la banque quitte les sources des suites de l'étudiant, après l'en avoir informé, et son historique reste consultable.
 
 ---
 
 ## 6. Types de questions
 
-Pour chaque type : ce que contient la question, comment l'étudiant répond, comment le verdict est rendu.
-
-| Type | Contenu de la question | Réponse de l'étudiant | Verdict | Lot |
-|---|---|---|---|---|
-| **QCM** | Une bonne réponse, plusieurs mauvaises avec explication facultative (voir [PRD QCM](qcm_prd.md), §3) | Choisit une proposition | Automatique | MVP |
-| **Vrai / faux** | Une affirmation et sa valeur de vérité | Vrai ou Faux | Automatique | MVP |
-| **Auto-évaluation** (recto / verso) | Une question et une réponse de référence | Réfléchit (ou écrit pour lui-même), puis « Voir la réponse » | L'étudiant : « Je savais » / « Je ne savais pas » | MVP |
-| **Valeur numérique** | La valeur attendue, l'unité facultative, une tolérance (absolue ou en %, ou aucune) | Saisit un nombre | Automatique : juste si l'écart est dans la tolérance | MVP |
-| **Énumération** | La liste des éléments acceptables, le nombre demandé (ex. « 8 capitales européennes » parmi 44), ordre imposé ou non, variantes acceptées par élément | Saisit des éléments | Automatique : chaque élément est reconnu ou non ; les doublons ne comptent pas | Lot 2 |
-| **Correspondance** | Des paires (capitale ↔ pays), avec éventuellement des leurres d'un côté ; nombre de paires présentées à chaque fois (tirées au hasard si la liste est longue) | Associe chaque élément de gauche à un élément de droite | Automatique, paire par paire | Lot 2 |
-| **Question ouverte corrigée par l'IA** | Une question, une réponse de référence, des critères facultatifs (éléments obligatoires, tolérances, réponses acceptables) | Saisit un texte libre | Agent IA : verdict et justification courte | Lot 3 |
-| **Réponse courte** | Une réponse attendue et ses variantes acceptées | Saisit quelques mots | Automatique, avec tolérance (Q10) | Lot 2 |
-| **Texte à trous** | Un texte dont certains mots sont masqués | Complète les trous | Automatique, trou par trou | v2 |
-| **Classement** | Des éléments et leur ordre attendu (chronologie, étapes d'une procédure) | Remet les éléments dans l'ordre | Automatique | v2 |
-| **Désignation sur image** | Une image et une ou plusieurs zones attendues | Clique sur l'image | Automatique : juste si le clic est dans la zone | v2 |
-
-**Règles communes**
-
-- Le verdict d'une énumération, d'une correspondance, d'un texte à trous ou d'un classement est *juste* si tout est juste. Le détail (éléments reconnus, paires justes) est toujours affiché. Le traitement d'une réponse **partiellement juste** est à trancher (Q9).
-- Les réponses saisies sont comparées sans tenir compte des majuscules, des accents ni des espaces en trop ; la tolérance aux fautes de frappe est à trancher (Q10).
-- La correction par l'IA juge le **fond** (notion, valeurs, unités), pas la formulation ni l'orthographe. Elle ne voit que la question, la réponse de référence, les critères et la réponse de l'étudiant.
-- Une question d'auto-évaluation de type « Vous rappelez-vous comment démontrer le théorème de Pythagore ? » est la forme simple de la question ouverte : l'étudiant juge seul, sans IA.
-- Toute question peut porter une illustration, dans l'énoncé (« Quel est ce monument ? ») ou dans les propositions (QCM, correspondance) *(lot 2)*.
+Les types de questions, leur contenu, leur saisie et leur correction sont décrits dans le [PRD Banques de questions](banques_prd.md), §6. Le module Leitner pose **tous les types** ; chacun devient utilisable en séance avec le lot du module Banques qui le crée (B1, B2, B3). La correction par l'IA des questions ouvertes s'accompagne, dans Leitner, de la contestation du verdict (UC-09).
 
 ---
 
@@ -441,11 +389,7 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 
 ## 8. Fichier d'échange
 
-- Le format est celui du module QCM ([PRD QCM](qcm_prd.md), §6.1), **étendu** : une colonne *type* et des colonnes propres à chaque type (éléments acceptables, paires, valeur et tolérance…), plus la difficulté et le thème.
-- **CSV** seul (sans illustrations) ou **ZIP** (CSV, illustrations, fichier de paramètres de la banque ; pour une suite, ses paramètres).
-- Un fichier de banque QCM s'importe sans modification : ses questions sont de type QCM.
-- La progression d'un étudiant (boîtes, historique) n'est pas exportée avec la banque ; son export relève des droits RGPD (§9).
-- Le format est décrit dans la documentation utilisateur, avec un fichier exemple par type de question.
+Les imports et exports se font au niveau des banques, dans le format décrit au [PRD Banques de questions](banques_prd.md), §8. Ni les suites ni la progression des étudiants ne sont exportées.
 
 ---
 
@@ -453,7 +397,7 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 
 ### 9.1 Exigences non fonctionnelles
 
-- **Utilisation autonome** : le module fonctionne sans les autres modules de Mentor. Sans le module QCM, seules les banques Leitner sont disponibles comme sources. Sans interface IA configurée, les questions ouvertes passent en auto-évaluation.
+- **Utilisation autonome** : le module fonctionne sans le module QCM ; il s'appuie sur le module Banques de questions. Sans interface IA configurée, les questions ouvertes passent en auto-évaluation.
 - **Sans connexion** jusqu'au lot 3 : un utilisateur unique, sur un poste non exposé à Internet (même principe que le module QCM, §1.3 de son PRD).
 - **Plateforme** : application web responsive ; les séances sont confortables sur téléphone (gros boutons, saisie courte, image zoomable).
 - **Clavier** : une séance se fait entièrement au clavier (raccourcis pour vrai / faux, choix QCM, « voir la réponse », « je savais / je ne savais pas », question suivante).
@@ -468,11 +412,11 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
-| **MVP** | UC-01, UC-02 (types QCM, vrai / faux, auto-évaluation, valeur numérique), UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
-| **Lot 2 — Types et outils** | Types énumération, correspondance, réponse courte ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; illustrations dans les propositions ; UC-04 import / export ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur importe une banque de capitales, s'entraîne en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
-| **Lot 3 — IA et banques QCM** | Question ouverte corrigée par l'IA, avec bascule en auto-évaluation ; UC-09 pour l'IA ; banques QCM comme sources (UC-05) via l'interface publique du module QCM | Une suite mêle une banque QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
-| **v1** | Comptes et rôles du socle ; banques prédéfinies et personnelles distinctes ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
-| **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image ; questions inversées (UC-02, 2a) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |
+| **MVP** | Questions des types QCM, vrai / faux, auto-évaluation, valeur numérique ; UC-02, UC-03, UC-05, UC-08, UC-11 ; règles §7 complètes (boîtes, introduction par difficulté, ordre de présentation, avertissement de régularité) ; sans connexion | L'utilisateur crée une banque de questions de quatre types, une suite de 5 boîtes, enchaîne au moins 8 séances, et l'état affiché (boîtes, banque, prochaine séance) correspond aux règles §7 |
+| **Lot 2 — Types et outils** | Séances avec les types du lot B2 du module Banques (énumération, correspondance, réponse courte) ; temps de réponse (§7.7) ; restriction des sources par thème et niveau maximal ; état par banque (UC-11) ; UC-14 suite acquise et contrôle d'entretien (§7.6) ; UC-15 test de placement ; UC-06 actions sur les questions ; UC-07 réinitialisation ; UC-09 contestation (types automatiques) ; UC-12 historique et statistiques étudiant | L'utilisateur s'entraîne sur une banque de capitales importée, en énumération et en correspondance, conteste un verdict, et retrouve ses séances dans l'historique |
+| **Lot 3 — IA** | Séances avec les questions ouvertes corrigées par l'IA (lot B3 du module Banques), avec bascule en auto-évaluation ; UC-09 pour l'IA | Une suite mêle des questions QCM et des questions ouvertes ; l'IA rend verdict et justification ; IA coupée, la séance continue en auto-évaluation |
+| **v1** | Comptes et rôles du socle ; suites proposées et adoptées (UC-05, 1a) ; UC-10 signalements (traités dans le module Banques) ; UC-12 vue formateur ; UC-13 accès | Un formateur propose une suite à deux étudiants ; chacun la complète de ses propres questions et progresse indépendamment ; le formateur voit les questions les plus contestées |
+| **v2** | Taille d'étude par échantillon (UC-05) ; texte à trous, classement, désignation sur image (module Banques) ; questions inversées (UC-02) ; génération de questions par l'IA (Q17) ; import d'autres formats (Q16) ; hors ligne (Q19) ; rappels (Q20) ; questions orales | À définir |
 
 ---
 
@@ -494,7 +438,7 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 
 - Q9. Réponse **partiellement juste** (énumération, correspondance, IA) — options : (a) comptée fausse, avec recul d'une boîte (choix provisoire, §7.2) ; (b) la question reste dans sa boîte ; (c) juste au-delà d'un seuil configurable (ex. 80 % des éléments). Rejoint la Q18 du PRD Mentor.
 - Q10. Tolérance des réponses saisies — options : (a) exacte, aux majuscules, accents et espaces près (choix provisoire) ; (b) tolérance de quelques fautes de frappe selon la longueur du mot ; (c) jugement par l'IA ; (d) au choix sur chaque question.
-- Q11. Où vivent les nouveaux types de questions — options : (a) **dans le module Leitner** (choix provisoire) : le module QCM reste limité aux questions à choix unique ; (b) **dans le module QCM** (réponse à sa Q1), et Leitner ne gère que les boîtes ; (c) dans un **module commun de questions** dont QCM et Leitner dépendent.
+- ~~Q11. Où vivent les nouveaux types de questions : dans Leitner, dans QCM ou dans un module commun ?~~ **Tranché** : dans un module commun, [Banques de questions](banques_prd.md), dont QCM et Leitner dépendent ; toute question vit dans une banque, une banque par défaut recueille les autres.
 - Q12. Contestation d'un verdict IA ou automatique : l'étudiant a-t-il le dernier mot (choix provisoire, UC-09), ou la contestation est-elle seulement journalisée ? Rejoint la Q17 du PRD Mentor.
 - Q13. Niveaux de difficulté — options : (a) trois niveaux, facile / moyen / difficile (choix provisoire) ; (b) cinq niveaux ; (c) valeur numérique libre. Le niveau doit-il pouvoir être ajusté automatiquement d'après les taux de réussite observés ?
 
@@ -513,6 +457,9 @@ Chaque erreur fait reculer la question et allonge la durée : avec les introduct
 - ~~Q24. Temps de réponse : le même pour toutes les questions, modulé par type, ou propre à chaque question ?~~ **Tranché** : le même pour toutes les questions de la suite (§7.7).
 - ~~Q25. Le temps de réponse s'applique-t-il aussi aux contrôles d'entretien et aux tests de placement ?~~ **Tranché** : non, seulement aux séances (§7.7).
 - Q26. Le chronomètre s'arrête-t-il quand l'étudiant change d'onglet ou d'application, ou continue-t-il ?
+
+- ~~Q27. Faut-il pouvoir exporter et importer une suite ?~~ **Tranché** : non, les imports et exports se font au niveau des banques.
+- ~~Q28. Comment le module QCM traite-t-il les questions d'autres types ?~~ **Tranché** : il utilise les QCM et les vrai / faux (comme QCM à deux réponses) et ignore les autres types avec un avertissement qui en donne le nombre ([PRD Banques](banques_prd.md), §7).
 
 **Usage**
 

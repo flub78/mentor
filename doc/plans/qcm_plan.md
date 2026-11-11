@@ -15,7 +15,8 @@
 | Lot 2 — Questionnaires, examens et échanges | Fichier d'échange, import / export des banques, des questionnaires et des examens, questionnaires (questions propres, de banque, génération par tirage), définition des examens | 4 à 7 (§5) | À faire |
 | Lot 3 — Passage, résultats et certificats | Identification, passage chronométré, certificat imprimable, correction détaillée, liste des résultats, réédition | 8 à 12 (§6) | En cours |
 | Lot 4 — Diffusion en ligne | Connexion du formateur, diffusion d'un examen par lien, envoi du certificat par e-mail | 13 à 16 (§7) | À faire |
-| Lot 5, v1, v2 | Compléments d'édition et d'étude, comptes et rôles, etc. | À détailler (§8) | — |
+| Lot B1 (module Banques) | Banques et questions confiées au module Banques de questions, partagé avec Leitner ; reprise des données ; vrai / faux comme QCM à deux réponses : voir le [plan Banques](banques_plan.md) | — | À faire, après la clôture du lot 3 |
+| Lot 5, v1, v2 | Compléments d'étude, comptes et rôles, etc. (compléments d'édition des banques : lot B2 du module Banques) | À détailler (§8) | — |
 
 Les lots 2 à 4 s'appuient sur des choix provisoires pour des questions ouvertes du PRD ; ils sont
 signalés « (Qn, choix provisoire) » et à revoir si la question est tranchée autrement.
@@ -47,10 +48,10 @@ module est juste.
 
 | Élément | PRD | Lot cible (PRD §8) |
 |---|---|---|
-| Dupliquer une banque ; décompte par module dans la liste des banques | UC-03 | Lot 5 |
+| Dupliquer une banque ; décompte par module dans la liste des banques | UC-03 | Lot B2 (module Banques) |
 | Détection des doublons à l'import | UC-04, UC-07 | Lot 2 |
-| Prévisualisation, recherche plein texte, actions groupées, doublons à la saisie, interdiction du mélange des réponses par question | UC-04 | Lot 5 |
-| Copier / déplacer des questions | UC-05 | Lot 5 |
+| Prévisualisation, recherche plein texte, actions groupées, doublons à la saisie ; interdiction du mélange des réponses par question | UC-04 | Lot B2 (module Banques) ; mélange : lot B1 |
+| Copier / déplacer des questions | UC-05 | Lot B1 (module Banques) |
 | Export / import CSV et ZIP des banques | UC-06, UC-07 | Lot 2 |
 | Questionnaires, examens, export / import des questionnaires et des examens | UC-08, UC-20, UC-16, UC-17 | Lot 2 |
 | Passage d'examen, certificat, correction détaillée, liste des résultats, réédition | UC-09, UC-12, UC-13, UC-19 | Lot 3 |
@@ -538,5 +539,5 @@ certificats, y compris par e-mail (UC-18, compléments de UC-09 et UC-19).
 
 ## 8. Lots suivants
 
-Le lot 5 (compléments d'édition et d'étude), v1 et v2 seront détaillés ici avant leur démarrage ;
-leur contenu est décrit au PRD §8.
+Le lot 5 (compléments d'étude), v1 et v2 seront détaillés ici avant leur démarrage. Les banques et les questions passent au module Banques de questions au lot B1 ([plan Banques](banques_plan.md)), qui reprend aussi les compléments d'édition.
+Le contenu des lots est décrit au PRD §8.
