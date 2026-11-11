@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Leitner
 
-- **Statut** : MVP en cours — étape 0 livrée
+- **Statut** : MVP en cours — étapes 0 et 1 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [leitner_prd.md](../prds/leitner_prd.md), §9.2 « Découpage en lots »
@@ -125,39 +125,38 @@ valeurs `controle` et `placement` au lot 2.
 
 **Base de données et modèles**
 
-- [ ] Migrations `create_leitner_banks_table`, `create_leitner_questions_table` (§3), `auditColumns()` ; index sur `(bank_id, type)`, `(bank_id, difficulty)`, `(bank_id, theme)`.
-- [ ] Énumération `App\Leitner\Questions\QuestionType` : `Qcm`, `VraiFaux`, `AutoEvaluation`, `ValeurNumerique` (libellés français, méthode `handler()`).
-- [ ] Énumération `Difficulty` (`Facile` = 1, `Moyen` = 2, `Difficile` = 3) avec `effective(?int)` qui ramène nul à `Moyen`.
-- [ ] Modèles `Bank`, `Question` (cast de `type`, `payload` en tableau, `difficulty`), trait `TracksAuthor` ; `Bank::themeNames()` pour l'autocomplétion ; suppression du fichier image au remplacement et à la suppression, y compris en cascade depuis une banque.
-- [ ] Interface `QuestionTypeHandler` et objet `Evaluation` (verdict `Verdict::Juste|Fausse`, détail affichable). Énumération `Verdict`.
-- [ ] Handlers du MVP, chacun avec `formSchema()`, `rules()`, `evaluate()`, `expectedAnswer()`, `answerView()` :
-  - [ ] `QcmHandler` : `payload` = bonne réponse, mauvaises réponses (au moins une, trois proposées) avec explication facultative, `shuffle` ; verdict automatique ; explication de la mauvaise réponse choisie dans le détail ;
-  - [ ] `VraiFauxHandler` : `payload` = valeur ;
-  - [ ] `AutoEvaluationHandler` : `payload` = réponse de référence ; verdict donné par l'étudiant (« Je savais » / « Je ne savais pas ») ;
-  - [ ] `ValeurNumeriqueHandler` : `payload` = valeur, tolérance (aucune, absolue, en %), unité facultative ; saisie avec virgule ou point ; message clair si la saisie n'est pas un nombre.
-- [ ] `AnswerNormalizer` (§3).
-- [ ] Fabriques `BankFactory`, `QuestionFactory` avec un état par type (`qcm()`, `vraiFaux()`, `autoEvaluation()`, `valeurNumerique()`) et `difficulty(int)`.
+- [x] Migrations `create_leitner_banks_table`, `create_leitner_questions_table` (§3), `auditColumns()` ; index sur `(bank_id, type)`, `(bank_id, difficulty)`, `(bank_id, theme)`.
+- [x] Énumération `App\Leitner\Questions\QuestionType` : `Qcm`, `VraiFaux`, `AutoEvaluation`, `ValeurNumerique` (libellés français, méthode `handler()`).
+- [x] Énumération `Difficulty` (`Facile` = 1, `Moyen` = 2, `Difficile` = 3) avec `effective(?int)` qui ramène nul à `Moyen`.
+- [x] Modèles `Bank`, `Question` (cast de `type`, `payload` en tableau, `difficulty`), trait `TracksAuthor` ; `Bank::themeNames()` pour l'autocomplétion ; suppression du fichier image au remplacement et à la suppression, y compris en cascade depuis une banque.
+- [x] Interface `QuestionTypeHandler` et objet `Evaluation` (verdict `Verdict::Juste|Fausse`, détail affichable). Énumération `Verdict`.
+- [x] Handlers du MVP, chacun avec `formSchema()`, `rules()`, `evaluate()`, `expectedAnswer()`, `answerView()` :
+  - [x] `QcmHandler` : `payload` = bonne réponse, mauvaises réponses (au moins une, trois proposées) avec explication facultative, `shuffle` ; verdict automatique ; explication de la mauvaise réponse choisie dans le détail ;
+  - [x] `VraiFauxHandler` : `payload` = valeur ;
+  - [x] `AutoEvaluationHandler` : `payload` = réponse de référence ; verdict donné par l'étudiant (« Je savais » / « Je ne savais pas ») ;
+  - [x] `ValeurNumeriqueHandler` : `payload` = valeur, tolérance (aucune, absolue, en %), unité facultative ; saisie avec virgule ou point ; message clair si la saisie n'est pas un nombre.
+- [x] `AnswerNormalizer` (§3).
+- [x] Fabriques `BankFactory`, `QuestionFactory` avec un état par type (`qcm()`, `vraiFaux()`, `autoEvaluation()`, `valeurNumerique()`) et `difficulty(int)`.
 
 **Interface**
 
-- [ ] `BankResource` : liste (nom, description, nombre de questions), création, modification, suppression avec confirmation qui annonce le nombre de questions et de suites concernées.
-- [ ] `QuestionsRelationManager` : liste (énoncé tronqué, type, difficulté, thème, image), filtres par type, difficulté et thème ; création, modification, suppression avec confirmation qui annonce le nombre de suites où la question est en boîte.
-- [ ] Formulaire commun `QuestionFormSchema` : type (sélection réactive, non modifiable après création), énoncé, image et texte alternatif (obligatoire si une image est fournie), explication, difficulté, thème avec suggestions ; puis les champs du handler du type choisi.
-- [ ] Modification d'une question déjà introduite dans une progression (UC-02, 1a) : choix « mineure » (garde sa boîte) ou « de fond » (retour en boîte 1 dans toutes les progressions, échecs consécutifs remis à zéro), avec notification qui donne le nombre de progressions touchées.
-- [ ] Messages de succès et d'erreur explicites pour chaque action.
+- [x] `BankResource` : liste (nom, description, nombre de questions), création, modification, suppression avec confirmation qui annonce le nombre de questions et de suites concernées.
+- [x] `QuestionsRelationManager` : liste (énoncé tronqué, type, difficulté, thème, image), filtres par type, difficulté et thème ; création, modification, suppression avec confirmation qui annonce le nombre de suites où la question est en boîte.
+- [x] Formulaire commun `QuestionFormSchema` : type (sélection réactive, non modifiable après création), énoncé, image et texte alternatif (obligatoire si une image est fournie), explication, difficulté, thème avec suggestions ; puis les champs du handler du type choisi.
+- Reporté à l'étape 2, qui crée les progressions : modification mineure ou de fond d'une question déjà introduite (UC-02, 1a) ; nombre de suites concernées dans les confirmations de suppression d'une banque et d'une question.
+- [x] Messages de succès et d'erreur explicites pour chaque action.
 
 **Tests**
 
-- [ ] Modèles : relations, thème vide ramené à nul, `themeNames()`, cascade banque → questions → images.
-- [ ] Chaque handler : `payload` valide et invalide (message qui nomme le champ), verdicts juste et faux, cas limites (tolérance exacte en absolu et en %, tolérance nulle, virgule décimale, saisie non numérique, QCM sans mauvaise réponse refusé).
-- [ ] `AnswerNormalizer` : majuscules, accents, espaces.
-- [ ] Ressource et gestionnaire de questions avec Livewire : créer une question de chaque type, refus des formulaires incomplets, modifier, supprimer ; image stockée et effacée (`Storage::fake`), texte alternatif exigé.
-- [ ] Modification mineure ou de fond d'une question introduite (avec l'étape 2, une fois les progressions créées).
+- [x] Modèles : relations, thème vide ramené à nul, `themeNames()`, cascade banque → questions → images.
+- [x] Chaque handler : `payload` valide et invalide (message qui nomme le champ), verdicts juste et faux, cas limites (tolérance exacte en absolu et en %, tolérance nulle, virgule décimale, saisie non numérique, QCM sans mauvaise réponse refusé).
+- [x] `AnswerNormalizer` : majuscules, accents, espaces.
+- [x] Ressource et gestionnaire de questions avec Livewire : créer une question de chaque type, refus des formulaires incomplets, modifier, supprimer ; image stockée et effacée (`Storage::fake`), texte alternatif exigé.
 
 **Documentation utilisateur**
 
-- [ ] `doc/users/leitner.md` : « Créer une banque », « Saisir une question » (un paragraphe par type), « Choisir la difficulté ».
-- [ ] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
+- [x] `doc/users/leitner.md` : « Créer une banque », « Saisir une question » (un paragraphe par type), « Choisir la difficulté ».
+- [x] `composer qa` vert ; vérification manuelle dans le navigateur ; commit.
 
 ### Étape 2 — Suites et progression (UC-05, UC-03)
 
@@ -182,6 +181,8 @@ valeurs `controle` et `placement` au lot 2.
 
 - [ ] `SuiteResource` : liste (nom, nombre de questions, répartition résumée, dernière séance) ; formulaire (nom, description, sources, paramètres pré-remplis depuis `config/leitner.php`, nombre de boîtes de 3 à 10 avec la **durée estimée** affichée à côté, PRD §7.2) ; suppression avec confirmation.
 - [ ] Action « Nouvelle question » sur la suite (UC-03), avec le choix « en boîte 1 » ou « en banque ».
+- [ ] Modification d'une question déjà introduite dans une progression (UC-02, 1a, reporté de l'étape 1) : choix « mineure » (garde sa boîte) ou « de fond » (retour en boîte 1 dans toutes les progressions, échecs consécutifs remis à zéro), avec notification qui donne le nombre de progressions touchées.
+- [ ] Confirmations de suppression d'une banque et d'une question : nombre de suites concernées (reporté de l'étape 1).
 
 **Tests**
 
@@ -190,6 +191,7 @@ valeurs `controle` et `placement` au lot 2.
 - [ ] Paramètres : réduction et augmentation du nombre de boîtes, ajout et retrait de source (y compris banque commune à deux sources).
 - [ ] Question personnelle : banque créée une seule fois, question en boîte 1 ou en banque.
 - [ ] Ajout d'une question dans une banque source : elle apparaît *en banque* sans autre action.
+- [ ] Modification mineure ou de fond d'une question introduite ; confirmations de suppression avec le nombre de suites.
 
 **Documentation utilisateur**
 
