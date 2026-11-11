@@ -114,6 +114,7 @@ Avant la bascule du module QCM, pour que l'import et l'export des banques ne dis
 
 ### Étape B4 — Bascule du module QCM sur les banques communes
 
+- [ ] Approche retenue pour limiter la réécriture : `App\Qcm\Models\Question` et `Bank` deviennent des sous-classes des modèles du module Banques (mêmes tables, portée limitée aux types QCM et vrai / faux, accesseurs `module` → `theme`, `answers`, `correctAnswer`, `wrongAnswers` calculés depuis la réponse attendue) ; `Answer` devient un objet sans table, identifié par une clé stable (`bonne`, `fausse-0`, `vrai`, `faux`) ; seuls les usages d'identifiants de réponse (étude, passages, correction), la création des questions de questionnaire et les échanges de questionnaires sont réécrits.
 - [ ] **Sauvegarde** de `database/database.sqlite` avant de migrer ; procédure notée dans le README.
 - [ ] Migration de bascule : clés étrangères de `qcm_questionnaire_questions.question_id` et `qcm_attempt_items.question_id` vers `banques_questions` ; reprise par `QcmToBanquesTransfer` ; liens des questionnaires réécrits avec la correspondance ; détail des passages terminés supprimé ; `qcm_attempt_items.chosen_key` ajouté (remplace `chosen_answer_id`, supprimé à l'étape B5).
 - [ ] Étude libre (`ModuleCatalog`, `StudyDraw`, page d'étude) : questions des banques communes, thème comme module, filtre `UsableQuestions` et avertissement.
