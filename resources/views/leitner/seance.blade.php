@@ -1,7 +1,7 @@
 @php
     use App\Leitner\Filament\Pages\Seance;
-    use App\Leitner\Models\Question;
-    use App\Leitner\Questions\Verdict;
+    use App\Banques\Models\Question;
+    use App\Banques\Questions\Verdict;
     use App\Leitner\Suites\PresentationOrder;
     use Illuminate\Support\Facades\Storage;
 

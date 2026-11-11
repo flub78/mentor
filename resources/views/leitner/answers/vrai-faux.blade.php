@@ -6,7 +6,7 @@
         <x-filament::button
             wire:key="tf-{{ $entry->id }}-{{ $value }}"
             wire:click="answer('{{ $value }}')"
-            :color="$answered ? ($given === $boolean ? ($entry->verdict === \App\Leitner\Questions\Verdict::Juste ? 'success' : 'danger') : 'gray') : 'primary'"
+            :color="$answered ? ($given === $boolean ? ($entry->verdict === \App\Banques\Questions\Verdict::Juste ? 'success' : 'danger') : 'gray') : 'primary'"
             :outlined="$answered && $given !== $boolean"
             :disabled="$answered"
             size="xl"

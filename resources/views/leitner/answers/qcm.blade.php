@@ -5,7 +5,7 @@
 <div style="{{ $stack }} gap: .5rem;" role="radiogroup" aria-label="Réponses proposées">
     @foreach ($options as $key => $text)
         @php($isSelected = $answered ? $given === $key : $page->response === $key)
-        @php($isCorrect = $key === \App\Leitner\Questions\Handlers\QcmHandler::CORRECT_KEY)
+        @php($isCorrect = $key === \App\Banques\Questions\Handlers\QcmHandler::CORRECT_KEY)
         <x-filament::button
             wire:key="option-{{ $entry->id }}-{{ $key }}"
             wire:click="$set('response', '{{ $key }}')"
