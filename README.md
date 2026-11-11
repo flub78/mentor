@@ -34,8 +34,9 @@ Mentor s'architecture sur des modules indépendants qui s'utilisent les uns les 
 
 | Module | Rôle |
 |---|---|
-| **QCM** | Gère des banques de questions ; crée et gère des examens à partir de ces banques. |
-| **Leitner** | Étude par répétition espacée avec des questions / réponses ; utilise les questions QCM et des questions textuelles. |
+| **Banques de questions** | Gère les banques et leurs questions de tous types, communes aux modules QCM et Leitner ; import et export. |
+| **QCM** | Questionnaires, examens (dont examens blancs) et étude libre à partir des banques ; pose les QCM et les vrai / faux. |
+| **Leitner** | Étude par répétition espacée sur des suites tirées des banques ; pose tous les types de questions. |
 | **Présentation** | Équivalent PowerPoint (ou bibliothèque existante) ; pour commencer, les pages sont des pages Markdown. |
 | **Déroulement de support** | Déroule des présentations, des PDF, des vidéos, en enregistrant les temps de lecture. |
 | **Coach IA** | Connaît les autres modules ; définit et adapte un programme adapté à l'étudiant. |
@@ -43,7 +44,6 @@ Mentor s'architecture sur des modules indépendants qui s'utilisent les uns les 
 ## Documentation
 
 - [PRD d'ensemble](doc/prds/mentor_prd.md) — parcours intégré et architecture (§1.4).
-- [Plan du module QCM](doc/plans/qcm_plan.md) — lots et étapes avec cases à cocher.
-- Chaque module a son PRD indépendant dans `doc/prds/` :
-  - [QCM](doc/prds/qcm_prd.md) ;
-  - à rédiger : `leitner_prd.md`, `presentation_prd.md`, `deroulement_prd.md`, `coach_prd.md`.
+- PRD des modules, dans `doc/prds/` : [Banques de questions](doc/prds/banques_prd.md), [QCM](doc/prds/qcm_prd.md), [Leitner](doc/prds/leitner_prd.md) ; à rédiger : `presentation_prd.md`, `deroulement_prd.md`, `coach_prd.md`.
+- Plans d'implémentation (lots et étapes avec cases à cocher) : [Banques](doc/plans/banques_plan.md), [QCM](doc/plans/qcm_plan.md), [Leitner](doc/plans/leitner_plan.md).
+- Guides d'utilisation : [Banques de questions](doc/users/banques.md), [QCM](doc/users/qcm.md), [Leitner](doc/users/leitner.md).

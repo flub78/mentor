@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 à B6 livrées
+- **Statut** : lot B1 en cours — étapes B1 à B7 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -145,9 +145,10 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ### Étape B7 — Documentation utilisateur
 
-- [ ] `doc/users/banques.md` : « Créer une banque », « Saisir une question » (par type), « Ranger les questions de la banque par défaut », « Déplacer ou copier des questions », « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur », référence du format.
-- [ ] `doc/users/qcm.md` et `doc/users/leitner.md` : sections sur les banques remplacées par des renvois ; vrai / faux dans le QCM ; avertissement des types.
-- [ ] README : sauvegarde de la base avant la migration du lot B1.
+- [x] `doc/users/banques.md` : « Créer une banque », « Saisir une question » (par type), « Ranger les questions de la banque par défaut », « Déplacer ou copier des questions », « Exporter une banque », « Importer des questions », « Préparer un fichier dans un tableur », référence du format.
+- [x] `doc/users/qcm.md` et `doc/users/leitner.md` : sections sur les banques remplacées par des renvois ; vrai / faux dans le QCM ; avertissement des types ; questions créées ou importées depuis un questionnaire rangées dans une banque.
+- [x] README : tableau des modules et section Documentation (PRD, plans et guides des trois modules).
+- [x] README : sauvegarde de la base avant la migration du lot B1 (faite à l'étape B4).
 
 ### Étape B8 — Clôture du lot B1
 

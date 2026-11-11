@@ -2,35 +2,16 @@
 
 Le module QCM s'ouvre sur la page d'accueil de Mentor (`/qcm`). Dans cette première version, il n'y a pas de connexion : toute personne qui accède à l'application peut tout faire.
 
-## Créer une banque
+## Banques et questions
 
-1. Dans le menu, ouvrez **Banques de questions**, puis cliquez sur **Créer**.
-2. Donnez un **nom** à la banque (obligatoire, différent de celui des autres banques) et, si vous le souhaitez, une **description**.
-3. Cliquez sur **Créer** : la banque s'ouvre, prête à recevoir ses questions.
+Les banques et leurs questions sont communes aux modules QCM et Leitner : le menu **Banques de questions** est décrit dans le [guide des banques](banques.md) (créer une banque, saisir une question, la déplacer, importer et exporter une banque, format des fichiers).
 
-Pour renommer une banque, ouvrez-la et modifiez son nom. Pour la supprimer, utilisez **Supprimer** dans la liste ou dans la banque : la confirmation indique combien de questions seront supprimées avec elle.
-
-## Saisir une question
-
-1. Ouvrez la banque, puis, dans la section **Questions**, cliquez sur **Créer**.
-2. Remplissez :
-   - l'**énoncé** ;
-   - éventuellement une **image** (schéma, carte, photo) sur laquelle porte la question ;
-   - la **bonne réponse** ;
-   - les **mauvaises réponses** : trois lignes sont proposées. Ajoutez-en avec **Ajouter une mauvaise réponse**, ou supprimez celles dont vous n'avez pas besoin ; il en faut au moins une. Pour chacune, vous pouvez expliquer pourquoi elle est fausse ;
-   - dans **Compléments**, l'**explication** de la bonne réponse et le **module** (facultatifs).
-3. Cliquez sur **Créer**. La question est aussitôt utilisable.
-
-Pour modifier ou supprimer une question, utilisez **Modifier** ou **Supprimer** sur sa ligne. Pour n'afficher que les questions d'un module, utilisez le filtre **Module** de la liste.
-
-## Réutiliser un nom de module
-
-Le module est un texte libre qui regroupe les questions par thème (par exemple « Météorologie », « Réglementation »). En saisissant le module, le champ propose les noms déjà utilisés dans la banque : choisissez-en un plutôt que d'en taper une variante (« Météo » et « Météorologie » seraient deux modules différents).
+Le module QCM pose les questions de type **QCM** et **vrai / faux** ; un vrai / faux est présenté comme un QCM à deux réponses, « Vrai » et « Faux », toujours dans cet ordre. Les autres types (auto-évaluation, valeur numérique…) servent au module Leitner : quand une banque en contient, le module QCM les écarte et l'annonce, par exemple « 3 questions n'étaient pas de type QCM ou vrai / faux et n'ont pas été utilisées ». Le **module** d'une question QCM est son thème dans la banque.
 
 ## Lancer une session d'étude
 
-1. Ouvrez **Étudier** dans le menu, ou cliquez sur **Étudier** sur la ligne d'une banque (elle est alors déjà cochée).
-2. Cochez une ou plusieurs banques. Les modules de ces banques s'affichent, avec le nombre de questions disponibles ; les modules de même nom sont regroupés, majuscules comprises (« Météo » et « météo » ne font qu'un).
+1. Ouvrez **Étudier** dans le menu.
+2. Cochez une ou plusieurs banques ; une banque sans question QCM ou vrai / faux est grisée, et le nombre de questions d'autres types, non utilisées, est indiqué. Les modules de ces banques s'affichent, avec le nombre de questions disponibles ; les modules de même nom sont regroupés, majuscules comprises (« Météo » et « météo » ne font qu'un).
 3. Pour chaque module, laissez **Toutes** coché, ou décochez-le et indiquez le nombre de questions voulu (0 pour ignorer le module). Le nombre total de questions tirées s'affiche sous la liste.
 4. Cliquez sur **Commencer**. Les questions sont tirées au hasard et les réponses sont mélangées.
 5. Pour chaque question, choisissez une réponse puis cliquez sur **Valider**. Vous voyez aussitôt si elle est bonne, la bonne réponse, l'explication de votre mauvaise réponse et l'explication générale quand elles existent. Cliquez ensuite sur **Question suivante**.
@@ -51,7 +32,7 @@ La session n'est pas enregistrée : recharger la page ou la quitter la perd.
 
 ## Composer un questionnaire
 
-Un questionnaire est une liste ordonnée de questions. Certaines viennent d'une banque, d'autres, les **questions propres**, n'existent que dans le questionnaire.
+Un questionnaire est une liste ordonnée de questions prises dans les banques.
 
 1. Dans le menu, ouvrez **Questionnaires**, puis cliquez sur **Créer**.
 2. Donnez un **titre** et, si vous le souhaitez, une **version** (elle figurera sur les certificats de résultat ; changez-la quand vous modifiez un questionnaire déjà utilisé) et une description.
@@ -59,17 +40,17 @@ Un questionnaire est une liste ordonnée de questions. Certaines viennent d'une 
 
 Pour changer l'ordre des questions, cliquez sur l'icône de réordonnancement au-dessus de la liste, puis faites glisser les questions.
 
-**Dupliquer** crée une variante : les questions propres sont copiées, les questions de banque restent partagées. Un questionnaire utilisé par un examen ne peut pas être supprimé ; le message nomme les examens concernés.
+**Dupliquer** crée une variante qui utilise les mêmes questions. Supprimer un questionnaire ne supprime pas ses questions : elles restent dans leurs banques. Un questionnaire utilisé par un examen ne peut pas être supprimé ; le message nomme les examens concernés.
 
-## Ajouter des questions propres ou prises dans une banque
+## Ajouter des questions
 
 Dans le questionnaire, au-dessus de la liste des questions :
 
-- **Nouvelle question** : saisissez une question propre, avec le même formulaire que dans une banque. Elle n'apparaît dans aucune banque ni dans l'étude libre.
-- **Ajouter depuis une banque** : choisissez la banque, éventuellement un module, puis cochez les questions. Les questions déjà présentes ne sont pas proposées.
+- **Nouvelle question** : saisissez une question QCM ou vrai / faux. Choisissez la **banque** où la ranger ; à défaut, elle va dans la banque par défaut, d'où vous pourrez la déplacer (voir le [guide des banques](banques.md)). Le message de confirmation dit dans quelle banque elle est rangée.
+- **Ajouter depuis une banque** : choisissez la banque, éventuellement un module, puis cochez les questions. Les questions déjà présentes ne sont pas proposées ; les questions d'autres types sont écartées et annoncées.
 - **Tirer au hasard** : voir ci-dessous.
 
-La colonne **Origine** indique si une question est propre ou d'où elle vient. Une question de banque se modifie dans sa banque (**Modifier dans la banque**) : la modification vaut pour tous les questionnaires qui l'utilisent. **Retirer** l'enlève du questionnaire sans la supprimer de sa banque ; **Supprimer** efface une question propre.
+La colonne **Banque** indique d'où vient chaque question. Une question se modifie dans sa banque (**Modifier dans la banque**) : la modification vaut pour tous les questionnaires qui l'utilisent, et pour les suites Leitner. **Retirer** l'enlève du questionnaire sans la supprimer de sa banque.
 
 ## Générer un questionnaire par tirage
 
@@ -144,25 +125,6 @@ Dans **Résultats** (ou dans les résultats d'un examen), appliquez si besoin un
 
 Les taux sont des pourcentages écrits avec une virgule (par exemple `66,67`), sans le signe %.
 
-## Exporter une banque
-
-Ouvrez la banque : au-dessus de la liste des questions, **Exporter** propose deux formats :
-
-- **CSV (questions seules)** : un fichier à ouvrir dans un tableur, sans les images ;
-- **ZIP (questions, illustrations et paramètres)** : le CSV, les images et le nom de la banque ; c'est le format à utiliser pour sauvegarder une banque ou la transmettre à une autre instance de Mentor.
-
-Pour n'exporter que certaines questions, cochez-les dans la liste, puis utilisez **Exporter la sélection (CSV)** ou **(ZIP)** dans les actions groupées.
-
-## Importer des questions
-
-- **Dans une nouvelle banque** : dans **Banques de questions**, cliquez sur **Importer une banque**.
-- **Dans une banque existante** : ouvrez la banque, puis cliquez sur **Importer des questions**.
-
-1. Choisissez le fichier (CSV, ou ZIP pour importer aussi les images), puis cliquez sur **Suivant**. Si le fichier est inutilisable (encodage, colonnes manquantes, archive endommagée), un message dit ce qui ne va pas et rien n'est importé.
-2. Lisez le **rapport** : nombre de questions valides, lignes en erreur et leur motif, doublons probables (même énoncé, aux majuscules et à la ponctuation finale près), images inutilisables, modules qui n'existent pas encore dans la banque (vérifiez les fautes de frappe).
-3. Pour une nouvelle banque, vérifiez son **nom** (repris du fichier) ; s'il y a des doublons, choisissez de les importer ou non.
-4. Cliquez sur **Importer**. Les lignes en erreur ne sont pas importées ; les autres le sont toutes. Pour annuler, fermez la fenêtre : rien n'est importé.
-
 ## Exporter un questionnaire ou un examen
 
 - **Questionnaire** : ouvrez-le, puis **Exporter** → **CSV (questions seules)** ou **ZIP (questions, illustrations et paramètres)**. Le ZIP garde le titre, la description et la version.
@@ -176,33 +138,14 @@ Le fichier est autonome : les questions prises dans des banques y sont écrites 
 2. Choisissez le fichier, puis cliquez sur **Suivant** :
    - un ZIP d'examen crée un questionnaire **et** un examen qui l'utilise ;
    - un ZIP de questionnaire, un ZIP de banque ou un CSV seul crée seulement un questionnaire (titré d'après le fichier s'il n'a pas de paramètres).
-3. Lisez le rapport : en plus des contrôles de l'import de banque, il signale les paramètres d'examen invalides (taux hors de 0 à 100, durée négative, renseignement inconnu…), remplacés par la valeur par défaut.
-4. Vérifiez les titres, choisissez le sort des doublons s'il y en a, puis cliquez sur **Importer**. Le questionnaire importé s'ouvre.
+3. Lisez le rapport : en plus des contrôles de l'import de banque (voir le [guide des banques](banques.md)), il signale les paramètres d'examen invalides (taux hors de 0 à 100, durée négative, renseignement inconnu…), remplacés par la valeur par défaut, et les questions d'autres types que QCM et vrai / faux, qui ne sont pas reprises.
+4. Choisissez la **banque** où ranger les questions importées (la banque par défaut est proposée), vérifiez les titres, choisissez le sort des doublons s'il y en a, puis cliquez sur **Importer**. Le questionnaire importé s'ouvre.
 
-L'import crée toujours un nouveau questionnaire (et un nouvel examen) : il ne modifie jamais un questionnaire existant. Toutes les questions importées sont des questions propres au questionnaire. Exemples : [questionnaire-exemple.zip](../../public/exemples/qcm/questionnaire-exemple.zip), [examen-exemple.zip](../../public/exemples/qcm/examen-exemple.zip).
+L'import crée toujours un nouveau questionnaire (et un nouvel examen) et de nouvelles questions dans la banque choisie : il ne modifie jamais un questionnaire existant. Exemples : [questionnaire-exemple.zip](../../public/exemples/qcm/questionnaire-exemple.zip), [examen-exemple.zip](../../public/exemples/qcm/examen-exemple.zip).
 
-## Préparer un fichier dans un tableur
+## Format des fichiers de questionnaire et d'examen
 
-1. Téléchargez le fichier exemple [banque-exemple.csv](../../public/exemples/qcm/banque-exemple.csv) (aussi proposé dans la fenêtre d'import) et ouvrez-le dans votre tableur.
-2. Gardez la première ligne (les noms de colonnes), remplacez les lignes suivantes par vos questions, une par ligne.
-3. Enregistrez au format **CSV UTF-8** (séparateur point-virgule ou virgule).
-4. Pour joindre des images, créez une archive ZIP contenant le CSV nommé `questions.csv` et un répertoire `images/` avec les fichiers cités dans la colonne `illustration` (voir [banque-exemple.zip](../../public/exemples/qcm/banque-exemple.zip)).
-
-## Format des fichiers d'échange
-
-Banques, questionnaires et examens s'échangent dans le même format.
-
-**CSV** — une ligne d'en-tête, puis une ligne par question. Encodage UTF-8, séparateur `;` ou `,`. L'en-tête tolère majuscules, accents et espaces (« Bonne réponse » vaut `bonne_reponse`) ; une colonne inconnue est signalée et ignorée.
-
-| Colonne | Obligatoire | Contenu |
-|---|---|---|
-| `enonce` | oui | Énoncé de la question |
-| `bonne_reponse` | oui | Texte de la bonne réponse |
-| `mauvaise_reponse_1`, `mauvaise_reponse_2`… | au moins la 1re | Textes des mauvaises réponses, autant que nécessaire |
-| `explication_1`, `explication_2`… | non | Pourquoi la mauvaise réponse de même numéro est fausse |
-| `explication` | non | Explication générale de la bonne réponse |
-| `module` | non | Module (thème) de la question |
-| `illustration` | non | Nom du fichier image, rangé dans `images/` de l'archive ZIP |
+Les questions suivent le format des banques, décrit dans le [guide des banques](banques.md) (« Format des fichiers d'échange »). Les anciens fichiers du module QCM restent lisibles.
 
 **ZIP** — à la racine : `questions.csv`, le répertoire `images/`, et au plus un fichier de paramètres :
 
