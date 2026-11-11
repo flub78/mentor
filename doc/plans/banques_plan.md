@@ -200,7 +200,7 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 - [x] `doc/users/banques.md` : référence, place de la bonne réponse, « Corriger une banque dans un tableur » (export, correction, réimport) ; format (`reference`, `ordre`) ; fichiers exemples.
 - [x] Vérification dans le navigateur : saisie d'un QCM à ordre fixe avec référence, ordre affiché en étude QCM et en séance Leitner, export (`reference`, `ordre`). Le réimport avec mise à jour est couvert par les tests (le téléversement n'aboutit pas dans le navigateur piloté par l'agent).
 - [x] Statuts de ce plan ; `composer qa` vert.
-- [ ] PR (après accord pour pousser).
+- [x] PR : [#2](https://github.com/flub78/mentor/pull/2).
 
 ---
 
