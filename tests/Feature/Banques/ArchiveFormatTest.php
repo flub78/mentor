@@ -100,7 +100,7 @@ A ?;Oui;Non;de trop
         $question = new QuestionRow(0, QuestionType::Qcm, "Énoncé avec ; et \"guillemets\"\nsur deux lignes ?", ['correct' => 'Bonne', 'wrong' => [
             ['text' => 'Fausse 1', 'explanation' => 'Parce que.'],
             ['text' => 'Fausse 2', 'explanation' => null],
-        ], 'shuffle' => true], 'Explication', 'Météo', null, 'carte.png', 'Une carte');
+        ], 'shuffle' => true, 'correct_position' => 0], 'Explication', 'Météo', null, 'carte.png', 'Une carte');
 
         $read = (new QuestionCsv)->parse((new QuestionCsv)->write([$question]))->questions[0];
 

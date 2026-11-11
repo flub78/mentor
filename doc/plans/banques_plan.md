@@ -176,28 +176,28 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ### Étape R1 — Référence des questions
 
-- [ ] Migration : colonne `reference` et index unique (`bank_id`, `reference`) ; modèle (`fillable`).
-- [ ] Formulaire de question, section Compléments : champ « Référence », unique dans la banque, message qui nomme la question qui la porte.
-- [ ] Déplacement et copie (`QuestionMover`) : référence gardée si elle est libre dans la banque cible, retirée sinon, et dite dans le message de fin.
-- [ ] Tests : unicité dans une banque, même référence dans deux banques, déplacement et copie en conflit.
+- [x] Migration : colonne `reference` et index unique (`bank_id`, `reference`) ; modèle (`fillable`).
+- [x] Formulaire de question, section Compléments : champ « Référence », unique dans la banque, message qui nomme la question qui la porte.
+- [x] Déplacement et copie (`QuestionMover`) : référence gardée si elle est libre dans la banque cible, retirée sinon, et dite dans le message de fin.
+- [x] Tests : unicité dans une banque, même référence dans deux banques, déplacement et copie en conflit.
 
 ### Étape R2 — Ordre fixe des propositions d'un QCM
 
-- [ ] `QcmHandler` : `correct_position` (normalisation, règle de cohérence, `options()` dans l'ordre d'affichage) ; formulaire : « Place de la bonne réponse », visible sans mélange.
-- [ ] Module QCM : les réponses d'une question (`Question::answers`) suivent l'ordre d'affichage (étude, passage, correction) ; séance Leitner idem.
-- [ ] Format d'échange : colonnes `reference` et `ordre` (lecture, erreurs, avertissement quand `melange` vaut `oui`), écriture à l'export.
-- [ ] Tests : ordre affiché dans les trois modules, lecture et erreurs de `ordre`, aller-retour export / import.
+- [x] `QcmHandler` : `correct_position` (normalisation, règle de cohérence, `options()` dans l'ordre d'affichage) ; formulaire : « Place de la bonne réponse », visible sans mélange.
+- [x] Module QCM : les réponses d'une question (`Question::answers`) suivent l'ordre d'affichage (étude, passage, correction) ; séance Leitner idem.
+- [x] Format d'échange : colonnes `reference` et `ordre` (lecture, erreurs, avertissement quand `melange` vaut `oui`), écriture à l'export.
+- [x] Tests : ordre affiché dans les trois modules, lecture et erreurs de `ordre`, aller-retour export / import.
 
 ### Étape R3 — Import avec mise à jour
 
-- [ ] Analyse : lignes reconnues par leur référence, comparées à la question (inchangée, modifiée, réponse attendue modifiée) ; erreurs (type différent, référence répétée dans le fichier) ; ces lignes ne sont pas des doublons.
-- [ ] Rapport avant import et choix « Mettre à jour » / « Ignorer ces lignes » ; import : mise à jour (image gardée si la cellule est vide), effet sur les suites Leitner, notification (créées, mises à jour, inchangées, ignorées, suites touchées).
-- [ ] Import d'un questionnaire QCM : références déjà prises dans la banque d'arrivée non reprises, et dites.
-- [ ] Tests : mise à jour mineure et de fond (progression Leitner), choix « ignorer », type différent, image gardée, questionnaire.
+- [x] Analyse : lignes reconnues par leur référence, comparées à la question (inchangée, modifiée, réponse attendue modifiée) ; erreurs (type différent, référence répétée dans le fichier) ; ces lignes ne sont pas des doublons.
+- [x] Rapport avant import et choix « Mettre à jour » / « Ignorer ces lignes » ; import : mise à jour (image gardée si la cellule est vide), effet sur les suites Leitner, notification (créées, mises à jour, inchangées, ignorées, suites touchées).
+- [x] Import d'un questionnaire QCM : références déjà prises dans la banque d'arrivée non reprises, et dites.
+- [x] Tests : mise à jour mineure et de fond (progression Leitner), choix « ignorer », type différent, image gardée, questionnaire.
 
 ### Étape R4 — Documentation et clôture
 
-- [ ] `doc/users/banques.md` : référence, place de la bonne réponse, « Corriger une banque dans un tableur » (export, correction, réimport) ; format (`reference`, `ordre`) ; fichiers exemples.
+- [x] `doc/users/banques.md` : référence, place de la bonne réponse, « Corriger une banque dans un tableur » (export, correction, réimport) ; format (`reference`, `ordre`) ; fichiers exemples.
 - [ ] Vérification dans le navigateur : saisie, export, correction, réimport avec mise à jour, ordre affiché en étude QCM et en séance Leitner.
 - [ ] Statuts de ce plan ; `composer qa` vert ; PR (après accord pour pousser).
 

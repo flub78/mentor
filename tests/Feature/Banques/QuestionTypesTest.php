@@ -66,6 +66,7 @@ class QuestionTypesTest extends TestCase
                 ['text' => 'Marseille', 'explanation' => null],
             ],
             'shuffle' => true,
+            'correct_position' => 0,
         ], $payload);
         $this->assertSame([], QuestionType::Qcm->payloadErrors($payload));
     }

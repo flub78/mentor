@@ -22,7 +22,8 @@ use Livewire\Component;
 
 /**
  * Import de questions dans une banque (PRD Banques UC-05) : téléversement, rapport
- * avant import, choix du traitement des doublons, confirmation.
+ * avant import, choix du traitement des questions déjà présentes et des
+ * doublons, confirmation.
  */
 final class ImportBankAction
 {
@@ -31,7 +32,7 @@ final class ImportBankAction
      */
     public static function make(string $name, string $label, Closure $target): Action
     {
-        $importer = new BankImporter;
+        $importer = app(BankImporter::class);
 
         return Action::make($name)
             ->label($label)
@@ -71,6 +72,14 @@ final class ImportBankAction
                             ->label('Description')
                             ->rows(2)
                             ->visible(fn (): bool => $target($livewire) === null),
+                        Radio::make('existing')
+                            ->label('Questions déjà présentes (reconnues par leur référence)')
+                            ->options([
+                                'update' => 'Les mettre à jour avec le contenu du fichier',
+                                'skip' => 'Les laisser telles quelles (ignorer ces lignes)',
+                            ])
+                            ->default('update')
+                            ->visible(fn (Get $get): bool => ($get('report')['existing'] ?? []) !== []),
                         Radio::make('duplicates')
                             ->label('Doublons probables')
                             ->options([
@@ -94,6 +103,7 @@ final class ImportBankAction
                     $bank,
                     ['name' => $data['name'] ?? null, 'description' => $data['description'] ?? null],
                     ($data['duplicates'] ?? 'skip') !== 'import',
+                    ($data['existing'] ?? 'update') === 'update',
                 );
 
                 Notification::make()
@@ -103,12 +113,29 @@ final class ImportBankAction
                         1 => '1 question importée',
                         default => "{$result['imported']} questions importées",
                     }.' dans « '.$result['bank']->name.' »')
-                    ->body($result['skipped'] > 0 ? "{$result['skipped']} doublon(s) non importé(s)." : null)
+                    ->body(self::summary($result) ?: null)
                     ->send();
 
                 if ($bank === null) {
                     $action->redirect(BankResource::getUrl('edit', ['record' => $result['bank']]));
                 }
             });
+    }
+
+    /**
+     * Ce que l'import a fait en plus des créations : mises à jour, lignes
+     * inchangées ou ignorées, doublons écartés, effets dans les modules.
+     *
+     * @param  array{updated: int, unchanged: int, ignored: int, skipped: int, report: string}  $result
+     */
+    private static function summary(array $result): string
+    {
+        return implode(' ', array_filter([
+            $result['updated'] > 0 ? "{$result['updated']} question(s) déjà présente(s) mise(s) à jour." : null,
+            $result['unchanged'] > 0 ? "{$result['unchanged']} question(s) déjà présente(s) inchangée(s)." : null,
+            $result['ignored'] > 0 ? "{$result['ignored']} ligne(s) de questions déjà présentes ignorée(s)." : null,
+            $result['skipped'] > 0 ? "{$result['skipped']} doublon(s) non importé(s)." : null,
+            $result['report'] !== '' ? $result['report'] : null,
+        ]));
     }
 }

@@ -18,14 +18,14 @@ Pour renommer une banque, ouvrez-la et modifiez son nom. Pour la supprimer, util
 2. Choisissez le **type de question** (voir ci-dessous). Le type ne peut plus être changé ensuite : pour un autre type, créez une nouvelle question.
 3. Saisissez l'**énoncé**. Si la question porte sur une image (« Quel est ce monument ? »), ajoutez l'**image** et décrivez-la en quelques mots : cette description est lue par les lecteurs d'écran et elle est obligatoire dès qu'il y a une image. Sans image, rien n'est affiché à sa place.
 4. Remplissez la réponse attendue, selon le type.
-5. Dans **Compléments**, ajoutez si vous le souhaitez une **explication** (affichée après la réponse), la **difficulté** et un **thème**. Le champ thème propose les thèmes déjà utilisés dans la banque : reprenez-les plutôt que d'en créer des variantes (« Météo » et « Météorologie » seraient deux thèmes différents). Dans le module QCM, le thème s'appelle **module**.
+5. Dans **Compléments**, ajoutez si vous le souhaitez une **explication** (affichée après la réponse), la **difficulté** et un **thème**. Le champ thème propose les thèmes déjà utilisés dans la banque : reprenez-les plutôt que d'en créer des variantes (« Météo » et « Météorologie » seraient deux thèmes différents). Dans le module QCM, le thème s'appelle **module**. Donnez enfin, si vous le souhaitez, une **référence** à la question (`meteo-042`) : un identifiant qui vous appartient, unique dans la banque et jamais montré à l'étudiant, grâce auquel un fichier corrigé puis réimporté retrouve la question même si son énoncé a changé (voir « Corriger une banque dans un tableur »).
 6. Cliquez sur **Créer**. La question est aussitôt utilisable.
 
 Les filtres de la liste affichent les questions d'un type, d'une difficulté ou d'un thème.
 
 ### QCM
 
-Saisissez la **bonne réponse** et les **mauvaises réponses** : trois lignes sont proposées, il en faut au moins une. Pour chaque mauvaise réponse, vous pouvez expliquer pourquoi elle est fausse ; l'explication s'affiche quand elle est choisie. Les réponses sont mélangées à chaque affichage ; désactivez **Mélanger les réponses** si elles se réfèrent les unes aux autres (« aucune des réponses précédentes »).
+Saisissez la **bonne réponse** et les **mauvaises réponses** : trois lignes sont proposées, il en faut au moins une. Pour chaque mauvaise réponse, vous pouvez expliquer pourquoi elle est fausse ; l'explication s'affiche quand elle est choisie. Les réponses sont mélangées à chaque affichage ; désactivez **Mélanger les réponses** si elles se réfèrent les unes aux autres (« aucune des réponses précédentes ») ou si leur ordre aide à lire (« A · B · Partage »). Les réponses s'affichent alors toujours dans le même ordre : les mauvaises réponses dans l'ordre de la liste (glissez-les pour le changer), la bonne réponse à la **place** que vous choisissez (en premier par défaut).
 
 ### Vrai / faux
 
@@ -81,6 +81,7 @@ Les questions créées depuis un questionnaire QCM, ou importées avec un questi
 
 - Un **déplacement** garde la question et ses utilisations : un questionnaire QCM continue de la poser. Une suite Leitner qui n'a pas la banque d'arrivée pour source perd la question et sa progression ; la fenêtre l'annonce dès que vous choisissez la banque.
 - Une **copie** est une nouvelle question indépendante, image comprise, qui n'est utilisée nulle part.
+- La référence suit la question, sauf si une question de la banque d'arrivée la porte déjà : elle est alors retirée, et le message de fin le dit.
 
 ## Exporter une banque
 
@@ -97,11 +98,22 @@ Pour n'exporter que certaines questions, cochez-les puis choisissez **Exporter l
 - **Banque existante** : ouvrez-la, puis **Importer des questions**.
 
 1. Choisissez le fichier CSV ou ZIP, puis cliquez sur **Suivant**.
-2. Lisez le **rapport** : nombre de questions valides par type, lignes en erreur (non importées) avec leur numéro, la colonne en cause et les valeurs admises, remarques sur les lignes importées, doublons probables, thèmes nouveaux, images manquantes.
-3. Pour une nouvelle banque, vérifiez son nom ; choisissez le sort des doublons s'il y en a.
+2. Lisez le **rapport** : nombre de questions valides par type, questions déjà présentes (reconnues par leur référence), lignes en erreur (non importées) avec leur numéro, la colonne en cause et les valeurs admises, remarques sur les lignes importées, doublons probables, thèmes nouveaux, images manquantes.
+3. Pour une nouvelle banque, vérifiez son nom ; choisissez le sort des questions déjà présentes et des doublons s'il y en a.
 4. Cliquez sur **Importer**.
 
 Une ligne en erreur n'empêche pas l'import des autres. Les fichiers exportés par les anciennes versions du module QCM s'importent tels quels : leurs questions sont des QCM, leur colonne `module` devient le thème.
+
+## Corriger une banque dans un tableur
+
+1. Donnez une **référence** à chaque question à suivre (à la saisie, ou dans la colonne `reference` du fichier).
+2. Exportez la banque en CSV (ou en ZIP pour garder les images), puis corrigez le fichier : énoncés, réponses, explications. Ne changez pas les références ; ajoutez des lignes sans référence, ou avec une référence nouvelle, pour de nouvelles questions.
+3. Dans la banque, **Importer des questions** avec le fichier corrigé. Le rapport liste les **questions déjà présentes** avec, pour chacune, « inchangée », « modifiée » ou « réponse attendue modifiée ».
+4. Choisissez **Les mettre à jour** (ou **Les laisser telles quelles** pour n'ajouter que les nouvelles questions), puis **Importer**.
+
+Une question mise à jour garde ses utilisations : questionnaires QCM et suites Leitner. Si sa **réponse attendue** change, c'est une modification de fond : elle revient en boîte 1 dans les suites Leitner, comme le rapport l'annonce. Une cellule `illustration` vide garde l'image de la question : un CSV exporté sans les images se réimporte sans les perdre. Une ligne dont la référence désigne une question d'un autre type est refusée (le type ne change pas).
+
+L'import d'un questionnaire du module QCM crée toujours de nouvelles questions : une référence déjà prise dans la banque d'arrivée n'y est pas reprise.
 
 ## Préparer un fichier dans un tableur
 
@@ -124,20 +136,21 @@ Une ligne en erreur n'empêche pas l'import des autres. Les fichiers exportés p
 | `theme` | non | Thème. La colonne `module` des fichiers QCM est acceptée à sa place. |
 | `difficulte` | non | `1`, `2`, `3`, ou `facile`, `moyen`, `difficile`. Autre valeur : question importée sans difficulté, signalée. |
 | `illustration` | non | Nom du fichier image, rangé dans `images/` de l'archive ZIP. |
+| `reference` | non | Référence de la question, unique dans le fichier (100 caractères au plus). Réimportée dans la même banque, elle désigne la question qui la porte, qui est mise à jour. |
 | `texte_alternatif` | avec une illustration | Description de l'image. Absente, elle est remplacée par « Illustration : » suivi du début de l'énoncé, et le rapport le signale. |
 
 **Colonnes propres à chaque type**
 
 | Type | Colonnes |
 |---|---|
-| `qcm` | `bonne_reponse` (obligatoire) ; `mauvaise_reponse_1`, `mauvaise_reponse_2`… (au moins la 1re) ; `explication_1`, `explication_2`… (pourquoi la mauvaise réponse de même numéro est fausse) ; `melange` (`oui` par défaut). |
+| `qcm` | `bonne_reponse` (obligatoire) ; `mauvaise_reponse_1`, `mauvaise_reponse_2`… (au moins la 1re) ; `explication_1`, `explication_2`… (pourquoi la mauvaise réponse de même numéro est fausse) ; `melange` (`oui` par défaut) ; `ordre` : avec `melange` à `non`, toutes les propositions dans l'ordre d'affichage, séparées par `\|`, chacune écrite comme dans sa colonne (`A \| B \| Partage`). Sans `ordre`, la bonne réponse vient en premier. |
 | `vrai_faux` | `reponse` : `vrai` ou `faux` (obligatoire). |
 | `auto_evaluation` | `reponse` : réponse de référence (obligatoire). |
 | `valeur_numerique` | `valeur` (obligatoire) ; `type_tolerance` : `aucune` (par défaut), `absolue` ou `pourcentage` ; `tolerance` : nombre ≥ 0, obligatoire sauf tolérance `aucune` ; `unite`. |
 
 Une colonne qui ne concerne pas le type de la ligne est ignorée pour cette ligne, et signalée si elle est remplie. Les types énumération, correspondance, réponse courte et question ouverte sont prévus par le format mais pas encore disponibles : une ligne de ces types est refusée avec ce motif.
 
-**Valeurs** — oui / non : `oui`, `non`, `vrai`, `faux`, `1`, `0`. Nombres : virgule ou point décimal, espaces entre les milliers ignorés (`4 806`, `1,225`). L'export écrit le point-virgule, la virgule décimale et seulement les colonnes utiles.
+**Valeurs** — oui / non : `oui`, `non`, `vrai`, `faux`, `1`, `0`. Liste : éléments séparés par `|` ; `\|` désigne le caractère `|` lui-même dans un élément. Nombres : virgule ou point décimal, espaces entre les milliers ignorés (`4 806`, `1,225`). L'export écrit le point-virgule, la virgule décimale et seulement les colonnes utiles.
 
 **ZIP** — à la racine : `questions.csv`, le répertoire `images/` et le fichier de paramètres `banque.json` : `{"format_version": 1, "nom": "…", "description": "…"}`. Une image doit être un fichier image lisible (JPEG, PNG, GIF, WebP…) d'au plus 2 Mo ; sinon la question est importée sans image et le rapport le signale. Les fichiers de questionnaire et d'examen du module QCM s'importent aussi dans une banque : seules leurs questions sont reprises.
 

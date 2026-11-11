@@ -81,6 +81,7 @@ class QuestionsRelationManagerTest extends TestCase
                 ['text' => 'Graz', 'explanation' => null],
             ],
             'shuffle' => false,
+            'correct_position' => 0,
         ], $question->payload);
     }
 
@@ -205,7 +206,7 @@ class QuestionsRelationManagerTest extends TestCase
             ])
             ->assertHasNoActionErrors();
 
-        $this->assertSame(['correct' => 'Berne', 'wrong' => [['text' => 'Zurich', 'explanation' => null]], 'shuffle' => true], $question->fresh()->payload);
+        $this->assertSame(['correct' => 'Berne', 'wrong' => [['text' => 'Zurich', 'explanation' => null]], 'shuffle' => true, 'correct_position' => 0], $question->fresh()->payload);
     }
 
     public function test_delete_question(): void

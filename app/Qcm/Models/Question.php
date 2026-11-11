@@ -80,10 +80,14 @@ class Question extends BankQuestion
                 ]);
             }
 
-            $answers = [new Answer(QcmHandler::CORRECT_KEY, (string) ($this->payload['correct'] ?? ''), true, null, 0)];
+            // Ordre d'affichage sans mélange (PRD Banques §6) : la bonne réponse à sa place.
+            $wrong = array_values($this->payload['wrong'] ?? []);
+            $answers = [];
+            $rank = 0;
 
-            foreach (array_values($this->payload['wrong'] ?? []) as $index => $wrong) {
-                $answers[] = new Answer(QcmHandler::WRONG_KEY_PREFIX.$index, (string) $wrong['text'], false, $wrong['explanation'] ?? null, $index + 1);
+            foreach ((new QcmHandler)->options(['correct' => $this->payload['correct'] ?? '', ...$this->payload, 'wrong' => $wrong]) as $key => $text) {
+                $index = $key === QcmHandler::CORRECT_KEY ? null : (int) substr($key, strlen(QcmHandler::WRONG_KEY_PREFIX));
+                $answers[] = new Answer($key, $text, $index === null, $index === null ? null : ($wrong[$index]['explanation'] ?? null), $rank++);
             }
 
             return new Collection($answers);

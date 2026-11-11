@@ -8,6 +8,7 @@ use App\Banques\Exchange\ImportReport;
 use App\Banques\Exchange\QuestionPersister;
 use App\Banques\Exchange\QuestionRow;
 use App\Banques\Models\Bank;
+use App\Banques\Models\Question as CommonQuestion;
 use App\Qcm\Models\Exam;
 use App\Qcm\Models\Question;
 use App\Qcm\Models\Questionnaire;
@@ -20,6 +21,8 @@ use Throwable;
  * (PRD QCM UC-17). L'import crée toujours de nouveaux objets ; les questions
  * sont rangées dans une banque choisie (la banque par défaut à défaut), dans
  * l'ordre du fichier. Seules les questions QCM et vrai / faux sont reprises.
+ * Une référence déjà portée dans la banque d'arrivée n'est pas reprise (PRD
+ * QCM UC-17) : les questions importées sont toujours nouvelles.
  */
 final class QuestionnaireImporter
 {
@@ -59,7 +62,7 @@ final class QuestionnaireImporter
      * @param  string|null  $questionnaireTitle  titre retenu ; null = titre du fichier
      * @param  string|null  $examTitle  titre retenu pour l'examen ; null = titre du fichier
      * @param  int|null  $bankId  banque où ranger les questions ; null = banque par défaut
-     * @return array{questionnaire: Questionnaire, exam: Exam|null, imported: int, skipped: int, bank: Bank}
+     * @return array{questionnaire: Questionnaire, exam: Exam|null, imported: int, skipped: int, bank: Bank, droppedReferences: int}
      */
     public function import(ExchangeFile $file, ?string $questionnaireTitle, ?string $examTitle, bool $skipDuplicates, ?int $bankId = null): array
     {
@@ -67,15 +70,21 @@ final class QuestionnaireImporter
         $questions = self::usable($analysis['report']->questionsToImport($skipDuplicates));
         $bank = $bankId === null ? Bank::default() : Bank::query()->findOrFail($bankId);
         $persister = new QuestionPersister;
+        $droppedReferences = 0;
 
         try {
-            [$questionnaire, $exam] = DB::transaction(function () use ($analysis, $questions, $persister, $file, $questionnaireTitle, $examTitle, $bank): array {
+            [$questionnaire, $exam] = DB::transaction(function () use ($analysis, $questions, $persister, $file, $questionnaireTitle, $examTitle, $bank, &$droppedReferences): array {
                 $questionnaire = Questionnaire::create([
                     ...$analysis['questionnaire'],
                     'title' => filled($questionnaireTitle) ? $questionnaireTitle : $analysis['questionnaire']['title'],
                 ]);
 
                 foreach ($questions as $row) {
+                    if ($row->reference !== null && CommonQuestion::holdingReference($bank->id, $row->reference) !== null) {
+                        $row = $row->withoutReference();
+                        $droppedReferences++;
+                    }
+
                     $question = $persister->create($row, $bank->id, $file);
                     $questionnaire->questions()->attach($question->id);
                 }
@@ -100,6 +109,7 @@ final class QuestionnaireImporter
             'imported' => count($questions),
             'skipped' => count(self::usable($analysis['report']->questionsToImport(false))) - count($questions),
             'bank' => $bank,
+            'droppedReferences' => $droppedReferences,
         ];
     }
 

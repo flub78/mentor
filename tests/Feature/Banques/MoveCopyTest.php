@@ -44,7 +44,7 @@ class MoveCopyTest extends TestCase
 
         $result = $this->mover()->move($questions, $meteo);
 
-        $this->assertSame(['moved' => 2, 'report' => ''], $result);
+        $this->assertSame(['moved' => 2, 'report' => '', 'droppedReferences' => 0], $result);
         $this->assertSame(0, $default->questions()->count());
         $this->assertSame(2, $meteo->questions()->count());
         $this->assertSame($questions->modelKeys(), $questionnaire->questions()->pluck('banques_questions.id')->all());

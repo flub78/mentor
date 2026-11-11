@@ -6,15 +6,20 @@ use App\Banques\Questions\Evaluation;
 use App\Banques\Questions\InvalidResponse;
 use App\Banques\Questions\QuestionTypeHandler;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 
 /**
  * Question à choix multiples (PRD Banques §6) : une bonne réponse, au moins
  * une mauvaise réponse avec explication facultative.
  *
- * `payload` : `{correct: string, wrong: list<{text: string, explanation: ?string}>, shuffle: bool}`.
+ * `payload` : `{correct: string, wrong: list<{text: string, explanation: ?string}>, shuffle: bool, correct_position: int}`.
+ * Sans mélange, les propositions sont affichées dans un ordre fixe : les
+ * mauvaises réponses dans leur ordre, la bonne réponse au rang
+ * `correct_position` (0 = en premier ; toujours 0 avec mélange).
  * Réponse de l'étudiant : clé d'une proposition (`options()`).
  */
 final class QcmHandler implements QuestionTypeHandler
@@ -53,9 +58,35 @@ final class QcmHandler implements QuestionTypeHandler
                 ->required(),
             Toggle::make('payload.shuffle')
                 ->label('Mélanger les réponses à chaque affichage')
-                ->helperText('À désactiver si les réponses se réfèrent les unes aux autres (« aucune des réponses précédentes »).')
-                ->default(true),
+                ->helperText('À désactiver si les réponses se réfèrent les unes aux autres (« aucune des réponses précédentes ») ou si leur ordre aide à lire (« A · B · Partage »).')
+                ->default(true)
+                ->live(),
+            Select::make('payload.correct_position')
+                ->label('Place de la bonne réponse')
+                ->helperText('Les mauvaises réponses s\'affichent dans l\'ordre de la liste ci-dessus ; la bonne réponse prend la place choisie.')
+                ->options(fn (Get $get): array => self::positionOptions(count((array) $get('payload.wrong')) + 1))
+                ->default(0)
+                ->selectablePlaceholder(false)
+                ->visible(fn (Get $get): bool => ! $get('payload.shuffle')),
         ];
+    }
+
+    /**
+     * Places possibles de la bonne réponse : 0 → « 1re », 1 → « 2e »…
+     *
+     * @return array<int, string>
+     */
+    private static function positionOptions(int $count): array
+    {
+        $options = [];
+
+        for ($rank = 0; $rank < max(1, $count); $rank++) {
+            $options[$rank] = $rank === 0 ? '1re (en premier)' : ($rank + 1).'e';
+        }
+
+        $options[max(1, $count) - 1] .= $count > 1 ? ' (en dernier)' : '';
+
+        return $options;
     }
 
     public function rules(): array
@@ -66,6 +97,7 @@ final class QcmHandler implements QuestionTypeHandler
             'wrong.*.text' => ['required', 'string'],
             'wrong.*.explanation' => ['nullable', 'string'],
             'shuffle' => ['boolean'],
+            'correct_position' => ['integer', 'min:0'],
         ];
     }
 
@@ -81,12 +113,23 @@ final class QcmHandler implements QuestionTypeHandler
             'wrong.*.text.string' => 'Le texte de chaque mauvaise réponse doit être un texte.',
             'wrong.*.explanation.string' => 'L\'explication d\'une mauvaise réponse doit être un texte.',
             'shuffle.boolean' => 'Le mélange des réponses doit valoir oui ou non.',
+            'correct_position.integer' => 'La place de la bonne réponse doit être un nombre entier.',
+            'correct_position.min' => 'La place de la bonne réponse ne peut pas être négative.',
         ];
     }
 
     public function normalize(array $payload): array
     {
         $wrong = is_array($payload['wrong'] ?? null) ? array_values($payload['wrong']) : [];
+        $shuffle = (bool) ($payload['shuffle'] ?? true);
+        $position = $payload['correct_position'] ?? 0;
+
+        if ($shuffle) {
+            $position = 0;
+        } elseif (is_numeric($position) && (int) $position == $position) {
+            // Une mauvaise réponse retirée ne laisse pas la bonne réponse hors de la liste.
+            $position = min((int) $position, count($wrong));
+        }
 
         return [
             'correct' => is_string($payload['correct'] ?? null) ? trim($payload['correct']) : ($payload['correct'] ?? null),
@@ -96,26 +139,32 @@ final class QcmHandler implements QuestionTypeHandler
                     ? trim($answer['explanation'])
                     : null,
             ], $wrong),
-            'shuffle' => (bool) ($payload['shuffle'] ?? true),
+            'shuffle' => $shuffle,
+            'correct_position' => $position,
         ];
     }
 
     /**
-     * Propositions, dans l'ordre de saisie : la bonne réponse puis les
-     * mauvaises. Le mélange éventuel est fait à l'affichage.
+     * Propositions dans l'ordre d'affichage sans mélange : les mauvaises
+     * réponses dans leur ordre, la bonne réponse à sa place. Le mélange
+     * éventuel est fait à l'affichage.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, string> clé → texte
      */
     public function options(array $payload): array
     {
-        $options = [self::CORRECT_KEY => (string) $payload['correct']];
+        $options = [];
 
-        foreach ($payload['wrong'] as $index => $answer) {
+        foreach (array_values($payload['wrong']) as $index => $answer) {
             $options[self::WRONG_KEY_PREFIX.$index] = (string) $answer['text'];
         }
 
-        return $options;
+        $position = max(0, min((int) ($payload['correct_position'] ?? 0), count($options)));
+
+        return array_slice($options, 0, $position, true)
+            + [self::CORRECT_KEY => (string) $payload['correct']]
+            + array_slice($options, $position, null, true);
     }
 
     public function evaluate(array $payload, mixed $response): Evaluation

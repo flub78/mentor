@@ -3,6 +3,7 @@
 namespace App\Banques\Exchange;
 
 use App\Banques\Models\Bank;
+use App\Banques\Usage\UsageRegistry;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -13,12 +14,15 @@ use Throwable;
  */
 final class BankImporter
 {
+    public function __construct(private readonly UsageRegistry $usages) {}
+
     public function analyse(ExchangeFile $file, ?Bank $target): ImportReport
     {
         $report = ImportReport::analyse(
             $file,
             $target === null ? [] : $target->questions()->pluck('statement')->all(),
             $target?->themeNames(),
+            $target === null ? [] : $target->questions()->whereNotNull('reference')->get()->keyBy('reference')->all(),
         );
 
         $kind = $file->kind();
@@ -50,16 +54,39 @@ final class BankImporter
     /**
      * @param  Bank|null  $target  banque cible ; null pour créer la banque `$newBank`
      * @param  array{name?: string|null, description?: string|null}  $newBank
-     * @return array{bank: Bank, imported: int, skipped: int}
+     * @param  bool  $updateExisting  mettre à jour les questions déjà présentes (reconnues par leur référence) ; sinon ces lignes sont ignorées
+     * @return array{bank: Bank, imported: int, skipped: int, updated: int, unchanged: int, ignored: int, report: string}
      */
-    public function import(ExchangeFile $file, ?Bank $target, array $newBank, bool $skipDuplicates): array
+    public function import(ExchangeFile $file, ?Bank $target, array $newBank, bool $skipDuplicates, bool $updateExisting = true): array
     {
         $report = $this->analyse($file, $target);
         $questions = $report->questionsToImport($skipDuplicates);
+        $existing = $report->existingQuestions();
         $persister = new QuestionPersister;
+        $updated = 0;
+        $effects = [];
 
         try {
-            $bank = DB::transaction(function () use ($target, $newBank, $questions, $persister, $file): Bank {
+            $bank = DB::transaction(function () use ($target, $newBank, $questions, $persister, $file, $existing, $updateExisting, &$updated, &$effects): Bank {
+                if ($updateExisting) {
+                    foreach ($existing as $entry) {
+                        if ($entry['difference'] === 'unchanged') {
+                            continue;
+                        }
+
+                        $persister->update($entry['question'], $entry['row'], $file);
+                        $updated++;
+
+                        if ($entry['difference'] === 'answer_changed') {
+                            $effect = $this->usages->applySubstantiveChange($entry['question']);
+
+                            if ($effect !== '') {
+                                $effects[$effect] = ($effects[$effect] ?? 0) + 1;
+                            }
+                        }
+                    }
+                }
+
                 $bank = $target ?? Bank::query()->create([
                     'name' => $newBank['name'] ?? $file->baseName(),
                     'description' => $newBank['description'] ?? null,
@@ -77,6 +104,21 @@ final class BankImporter
             throw $exception;
         }
 
-        return ['bank' => $bank, 'imported' => count($questions), 'skipped' => $report->validCount() - count($questions)];
+        $unchanged = count(array_filter($existing, fn (array $entry): bool => $entry['difference'] === 'unchanged'));
+        $lines = [];
+
+        foreach ($effects as $effect => $count) {
+            $lines[] = $count === 1 ? $effect : "{$effect} (× {$count})";
+        }
+
+        return [
+            'bank' => $bank,
+            'imported' => count($questions),
+            'skipped' => $report->validCount() - count($existing) - count($questions),
+            'updated' => $updated,
+            'unchanged' => $updateExisting ? $unchanged : 0,
+            'ignored' => $updateExisting ? 0 : count($existing),
+            'report' => implode(' ', $lines),
+        ];
     }
 }

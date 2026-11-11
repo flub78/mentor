@@ -1,5 +1,5 @@
 @php
-    /** @var array{file: string, valid: int, byType: array<string, int>, errors: list<array{line: int, message: string}>, warnings: list<array{line: int, message: string}>, unknownColumns: list<string>, duplicates: list<array{line: int, statement: string, reason: string}>, imageProblems: list<array{line: int, image: string, problem: string}>, newThemes: list<string>, notices: list<string>}|null $report */
+    /** @var array{file: string, valid: int, byType: array<string, int>, existing?: list<array{line: int, statement: string, reference: string, difference: string, label: string}>, errors: list<array{line: int, message: string}>, warnings: list<array{line: int, message: string}>, unknownColumns: list<string>, duplicates: list<array{line: int, statement: string, reason: string}>, imageProblems: list<array{line: int, image: string, problem: string}>, newThemes: list<string>, notices: list<string>}|null $report */
     $listStyle = 'margin: .25rem 0 0 1.25rem; list-style: disc;';
 @endphp
 
@@ -41,6 +41,17 @@
                 <ul style="{{ $listStyle }}">
                     @foreach ($report['warnings'] as $warning)
                         <li>Ligne {{ $warning['line'] }} : {{ $warning['message'] }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if (($report['existing'] ?? []) !== [])
+            <div>
+                <strong>Questions déjà présentes, reconnues par leur référence</strong>
+                <ul style="{{ $listStyle }}">
+                    @foreach ($report['existing'] as $existing)
+                        <li>Ligne {{ $existing['line'] }} — {{ $existing['reference'] }} « {{ \Illuminate\Support\Str::limit($existing['statement'], 80) }} » : {{ $existing['label'] }}</li>
                     @endforeach
                 </ul>
             </div>

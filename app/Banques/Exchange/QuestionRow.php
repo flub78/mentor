@@ -16,6 +16,7 @@ final readonly class QuestionRow
      * @param  array<string, mixed>  $payload  réponse attendue, sous la forme propre au type
      * @param  string|null  $image  nom du fichier d'illustration dans l'archive
      * @param  list<string>  $warnings  remarques sans conséquence sur l'import de la ligne
+     * @param  string|null  $reference  référence de la question (PRD Banques §3)
      */
     public function __construct(
         public int $line,
@@ -28,7 +29,16 @@ final readonly class QuestionRow
         public ?string $image = null,
         public ?string $imageAlt = null,
         public array $warnings = [],
+        public ?string $reference = null,
     ) {}
+
+    /**
+     * La même ligne sans référence.
+     */
+    public function withoutReference(): self
+    {
+        return new self($this->line, $this->type, $this->statement, $this->payload, $this->explanation, $this->theme, $this->difficulty, $this->image, $this->imageAlt, $this->warnings);
+    }
 
     /**
      * Données d'une question enregistrée, pour l'export.
@@ -45,6 +55,7 @@ final readonly class QuestionRow
             difficulty: $question->difficulty,
             image: $imageName,
             imageAlt: $imageName === null ? null : $question->image_alt,
+            reference: $question->reference,
         );
     }
 

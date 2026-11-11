@@ -2,6 +2,7 @@
 
 namespace App\Banques\Exchange;
 
+use App\Banques\Questions\Handlers\QcmHandler;
 use App\Banques\Questions\Handlers\ValeurNumeriqueHandler;
 use App\Banques\Questions\QuestionType;
 
@@ -19,6 +20,9 @@ final class QuestionColumns
     public const WRONG_EXPLANATION_PREFIX = 'explication_';
 
     public const SHUFFLE = 'melange';
+
+    /** Propositions d'un QCM non mélangé, dans l'ordre d'affichage. */
+    public const ORDER = 'ordre';
 
     public const ANSWER = 'reponse';
 
@@ -43,7 +47,7 @@ final class QuestionColumns
      */
     public static function fixedColumns(): array
     {
-        return [self::CORRECT_ANSWER, self::SHUFFLE, self::ANSWER, self::VALUE, self::TOLERANCE_KIND, self::TOLERANCE, self::UNIT];
+        return [self::CORRECT_ANSWER, self::SHUFFLE, self::ORDER, self::ANSWER, self::VALUE, self::TOLERANCE_KIND, self::TOLERANCE, self::UNIT];
     }
 
     /**
@@ -54,7 +58,7 @@ final class QuestionColumns
     public static function columnsOf(QuestionType $type): array
     {
         return match ($type) {
-            QuestionType::Qcm => [self::CORRECT_ANSWER, self::SHUFFLE],
+            QuestionType::Qcm => [self::CORRECT_ANSWER, self::SHUFFLE, self::ORDER],
             QuestionType::VraiFaux, QuestionType::AutoEvaluation => [self::ANSWER],
             QuestionType::ValeurNumerique => [self::VALUE, self::TOLERANCE_KIND, self::TOLERANCE, self::UNIT],
         };
@@ -77,7 +81,7 @@ final class QuestionColumns
         $warnings = [];
 
         $payload = match ($type) {
-            QuestionType::Qcm => self::readQcm($cells, $problems),
+            QuestionType::Qcm => self::readQcm($cells, $problems, $warnings),
             QuestionType::VraiFaux => self::readTrueFalse($cells, $problems),
             QuestionType::AutoEvaluation => ['answer' => $cells[self::ANSWER] ?? null],
             QuestionType::ValeurNumerique => self::readNumeric($cells, $problems, $warnings),
@@ -114,9 +118,10 @@ final class QuestionColumns
     /**
      * @param  array<string, string|null>  $cells
      * @param  list<string>  $problems
+     * @param  list<string>  $warnings
      * @return array<string, mixed>
      */
-    private static function readQcm(array $cells, array &$problems): array
+    private static function readQcm(array $cells, array &$problems, array &$warnings): array
     {
         $numbers = [];
 
@@ -160,7 +165,70 @@ final class QuestionColumns
             }
         }
 
-        return ['correct' => $cells[self::CORRECT_ANSWER] ?? null, 'wrong' => $wrong, 'shuffle' => $shuffle];
+        $correct = $cells[self::CORRECT_ANSWER] ?? null;
+        $position = 0;
+        $orderCell = $cells[self::ORDER] ?? null;
+
+        if ($orderCell !== null && $shuffle) {
+            $warnings[] = 'colonne `ordre` ignorée : les réponses sont mélangées (`melange` vaut `oui`)';
+        } elseif ($orderCell !== null && $correct !== null && $wrong !== []) {
+            $ordered = self::readOrder($orderCell, $correct, $wrong, $problems);
+
+            if ($ordered !== null) {
+                ['wrong' => $wrong, 'position' => $position] = $ordered;
+            }
+        }
+
+        return ['correct' => $correct, 'wrong' => $wrong, 'shuffle' => $shuffle, 'correct_position' => $position];
+    }
+
+    /**
+     * Mauvaises réponses rangées dans l'ordre de la colonne `ordre`, et place
+     * de la bonne réponse ; null si l'ordre ne cite pas chaque proposition une fois.
+     *
+     * @param  list<array{text: string, explanation: string|null}>  $wrong
+     * @param  list<string>  $problems
+     * @return array{wrong: list<array{text: string, explanation: string|null}>, position: int}|null
+     */
+    private static function readOrder(string $cell, string $correct, array $wrong, array &$problems): ?array
+    {
+        /** @var list<string|null> $remaining textes des propositions pas encore cités ; 0 = bonne réponse, n = mauvaise réponse n */
+        $remaining = [$correct, ...array_column($wrong, 'text')];
+        $orderedWrong = [];
+        $position = null;
+        $errors = [];
+
+        foreach (CellValues::list($cell) as $rank => $text) {
+            $found = array_search($text, $remaining, true);
+
+            if ($found === false) {
+                $errors[] = in_array($text, [$correct, ...array_column($wrong, 'text')], true)
+                    ? "« {$text} » y figure deux fois"
+                    : "« {$text} » n'est ni la bonne réponse ni une mauvaise réponse de la ligne";
+
+                continue;
+            }
+
+            $remaining[$found] = null;
+
+            if ($found === 0) {
+                $position = $rank;
+            } else {
+                $orderedWrong[] = $wrong[$found - 1];
+            }
+        }
+
+        foreach (array_filter($remaining, fn (?string $text): bool => $text !== null) as $text) {
+            $errors[] = "« {$text} » n'y figure pas";
+        }
+
+        if ($errors !== []) {
+            $problems[] = 'colonne `ordre` (toutes les propositions, chacune une fois, séparées par |) : '.implode(', ', $errors);
+
+            return null;
+        }
+
+        return ['wrong' => $orderedWrong, 'position' => (int) $position];
     }
 
     /**
@@ -252,6 +320,10 @@ final class QuestionColumns
 
         if (! ($payload['shuffle'] ?? true)) {
             $cells[self::SHUFFLE] = CellValues::writeBool(false);
+
+            if ((int) ($payload['correct_position'] ?? 0) !== 0) {
+                $cells[self::ORDER] = CellValues::writeList(array_values((new QcmHandler)->options($payload)));
+            }
         }
 
         foreach (array_values($payload['wrong']) as $index => $answer) {

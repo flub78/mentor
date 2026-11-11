@@ -45,7 +45,7 @@ class ExchangeTest extends TestCase
      */
     private function importFile(string $path, string $name, ?Bank $target = null): array
     {
-        return (new BankImporter)->import(ExchangeFile::open($path, $name), $target, ['name' => pathinfo($name, PATHINFO_FILENAME)], true);
+        return app(BankImporter::class)->import(ExchangeFile::open($path, $name), $target, ['name' => pathinfo($name, PATHINFO_FILENAME)], true);
     }
 
     /**
@@ -53,7 +53,7 @@ class ExchangeTest extends TestCase
      */
     private function report(string $csv): array
     {
-        return (new BankImporter)->analyse(ExchangeFile::open($this->csvFile($csv), 'f.csv'), null)->toArray();
+        return app(BankImporter::class)->analyse(ExchangeFile::open($this->csvFile($csv), 'f.csv'), null)->toArray();
     }
 
     /**
@@ -101,7 +101,7 @@ class ExchangeTest extends TestCase
         $result = $this->importFile($zip, 'export.zip');
 
         $this->assertSame(5, $result['imported']);
-        $this->assertSame('Tous les types', (new BankImporter)->suggestedBank(ExchangeFile::open($zip, 'export.zip'))['name']);
+        $this->assertSame('Tous les types', app(BankImporter::class)->suggestedBank(ExchangeFile::open($zip, 'export.zip'))['name']);
         $this->assertEquals($this->contents($bank), $this->contents($result['bank']));
         @unlink($zip);
     }
@@ -135,16 +135,16 @@ class ExchangeTest extends TestCase
         $expected = ['qcm.csv' => 2, 'vrai-faux.csv' => 2, 'auto-evaluation.csv' => 2, 'valeur-numerique.csv' => 3, 'banque-exemple.csv' => 5, 'banque-exemple.zip' => 5];
 
         foreach ($expected as $file => $count) {
-            $report = (new BankImporter)->analyse(ExchangeFile::open(public_path('exemples/banques/'.$file), $file), null)->toArray();
+            $report = app(BankImporter::class)->analyse(ExchangeFile::open(public_path('exemples/banques/'.$file), $file), null)->toArray();
             $this->assertSame([], $report['errors'], $file);
             $this->assertSame($count, $report['valid'], $file);
         }
 
-        $this->assertSame('Banque exemple', (new BankImporter)->suggestedBank(ExchangeFile::open(public_path('exemples/banques/banque-exemple.zip'), 'banque-exemple.zip'))['name']);
+        $this->assertSame('Banque exemple', app(BankImporter::class)->suggestedBank(ExchangeFile::open(public_path('exemples/banques/banque-exemple.zip'), 'banque-exemple.zip'))['name']);
         $result = $this->importFile(public_path('exemples/banques/banque-exemple.zip'), 'banque-exemple.zip');
         $figure = $result['bank']->questions()->whereNotNull('image_path')->sole();
         $this->assertSame('Un triangle bleu sur fond blanc', $figure->image_alt);
-        $this->assertSame(['QCM' => 2, 'Vrai / faux' => 1, 'Auto-évaluation' => 1, 'Valeur numérique' => 1], (new BankImporter)->analyse(ExchangeFile::open(public_path('exemples/banques/banque-exemple.zip'), 'b.zip'), null)->toArray()['byType']);
+        $this->assertSame(['QCM' => 2, 'Vrai / faux' => 1, 'Auto-évaluation' => 1, 'Valeur numérique' => 1], app(BankImporter::class)->analyse(ExchangeFile::open(public_path('exemples/banques/banque-exemple.zip'), 'b.zip'), null)->toArray()['byType']);
     }
 
     public function test_historical_qcm_files_still_import(): void
@@ -156,7 +156,7 @@ class ExchangeTest extends TestCase
         $this->assertTrue($questions->every(fn (Question $question): bool => $question->type === QuestionType::Qcm));
         $this->assertNotNull($questions->first()->theme, 'La colonne `module` devient le thème.');
 
-        $report = (new BankImporter)->analyse(ExchangeFile::open(public_path('exemples/qcm/banque-exemple.csv'), 'b.csv'), null)->toArray();
+        $report = app(BankImporter::class)->analyse(ExchangeFile::open(public_path('exemples/qcm/banque-exemple.csv'), 'b.csv'), null)->toArray();
         $this->assertSame([], $report['errors']);
     }
 
@@ -167,7 +167,7 @@ class ExchangeTest extends TestCase
             'images/tour.png' => self::PNG,
         ]);
 
-        $report = (new BankImporter)->analyse(ExchangeFile::open($path, 'f.zip'), null)->toArray();
+        $report = app(BankImporter::class)->analyse(ExchangeFile::open($path, 'f.zip'), null)->toArray();
         $this->assertStringContainsString('Illustration sans description', $report['warnings'][0]['message']);
 
         $question = $this->importFile($path, 'f.zip')['bank']->questions()->sole();
@@ -268,7 +268,7 @@ class ExchangeTest extends TestCase
         Question::factory()->for($bank)->qcm()->create(['statement' => 'Capitale de la Suisse ?', 'theme' => 'Europe']);
         $before = Question::count();
 
-        $report = (new BankImporter)->analyse(ExchangeFile::open($this->csvFile("enonce;bonne_reponse;mauvaise_reponse_1;theme\nCapitale de la suisse;Berne;Zurich;Europe\nAutre ?;Oui;Non;Asie\n"), 'f.csv'), $bank)->toArray();
+        $report = app(BankImporter::class)->analyse(ExchangeFile::open($this->csvFile("enonce;bonne_reponse;mauvaise_reponse_1;theme\nCapitale de la suisse;Berne;Zurich;Europe\nAutre ?;Oui;Non;Asie\n"), 'f.csv'), $bank)->toArray();
 
         $this->assertSame(Question::count(), $before);
         $this->assertSame('même énoncé qu\'une question déjà présente', $report['duplicates'][0]['reason']);
@@ -289,7 +289,7 @@ class ExchangeTest extends TestCase
         });
 
         try {
-            (new BankImporter)->import($file, null, ['name' => 'Échec'], true);
+            app(BankImporter::class)->import($file, null, ['name' => 'Échec'], true);
             $this->fail('L\'import aurait dû échouer.');
         } catch (RuntimeException) {
         }

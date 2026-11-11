@@ -57,7 +57,7 @@ class QuestionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                ...QuestionFormSchema::components(fn (): array => $this->bank()->themeNames()),
+                ...QuestionFormSchema::components(fn (): array => $this->bank()->themeNames(), bankId: fn (): int => $this->bank()->id),
                 Radio::make('change_kind')
                     ->label('Nature de la modification')
                     ->helperText(fn (?Question $record): string => $record === null ? '' : self::usages()->substantiveChangeNotice($record))
@@ -193,7 +193,7 @@ class QuestionsRelationManager extends RelationManager
                     Notification::make()
                         ->success()
                         ->title(($result['moved'] === 1 ? '1 question déplacée' : "{$result['moved']} questions déplacées")." vers « {$target->name} »")
-                        ->body($result['report'] === '' ? null : $result['report'])
+                        ->body(implode(' ', array_filter([$result['report'], QuestionMover::droppedReferencesNotice($result['droppedReferences'])])) ?: null)
                         ->send();
                 },
             )
@@ -215,11 +215,12 @@ class QuestionsRelationManager extends RelationManager
             ->action(
                 function (Collection $records, array $data): void {
                     $target = Bank::query()->findOrFail($data['target_bank_id']);
-                    $count = app(QuestionMover::class)->copy(self::fresh($records), $target)->count();
+                    $count = app(QuestionMover::class)->copy(self::fresh($records), $target, $droppedReferences)->count();
 
                     Notification::make()
                         ->success()
                         ->title(($count === 1 ? '1 question copiée' : "{$count} questions copiées")." dans « {$target->name} »")
+                        ->body(QuestionMover::droppedReferencesNotice($droppedReferences))
                         ->send();
                 },
             )

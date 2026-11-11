@@ -166,7 +166,7 @@ class QuestionnaireExchangeTest extends TestCase
         $this->assertSame('Météo', (new QuestionnaireImporter)->import($bankFile, null, null, true)['questionnaire']->title);
 
         $questionnaireFile = $this->open((new QuestionnaireExporter)->zip($this->questionnaire()), 'q.zip');
-        $bank = (new BankImporter)->import($questionnaireFile, null, ['name' => 'Depuis un questionnaire'], true)['bank'];
+        $bank = app(BankImporter::class)->import($questionnaireFile, null, ['name' => 'Depuis un questionnaire'], true)['bank'];
         $this->assertSame(3, $bank->questions()->count());
     }
 

@@ -120,7 +120,7 @@ class SuiteResource extends Resource
             ->modalDescription('La question est rangée dans votre banque personnelle de la suite, créée au besoin.')
             ->modalWidth(Width::ThreeExtraLarge)
             ->schema(fn (Suite $record): array => [
-                ...QuestionFormSchema::components(fn (): array => $record->personalBank?->themeNames() ?? []),
+                ...QuestionFormSchema::components(fn (): array => $record->personalBank?->themeNames() ?? [], bankId: fn (): ?int => $record->personalBank?->id),
                 Radio::make('placement')
                     ->label('Placement')
                     ->options([

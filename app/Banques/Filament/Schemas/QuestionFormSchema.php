@@ -25,9 +25,10 @@ final class QuestionFormSchema
     /**
      * @param  Closure(): list<string>  $themeNames  thèmes proposés à la saisie
      * @param  list<QuestionType>|null  $types  types proposés ; null = tous (un module qui n'en pose que certains les restreint)
+     * @param  (Closure(): ?int)|null  $bankId  banque de la question, pour l'unicité de la référence, quand le formulaire n'a pas de champ `bank_id` ni de question enregistrée
      * @return list<Component|Field>
      */
-    public static function components(Closure $themeNames, ?array $types = null): array
+    public static function components(Closure $themeNames, ?array $types = null, ?Closure $bankId = null): array
     {
         $types ??= QuestionType::cases();
         $typeSections = array_map(
@@ -95,6 +96,26 @@ final class QuestionFormSchema
                         ->helperText('Reprenez un thème déjà utilisé dans la banque pour regrouper les questions.')
                         ->maxLength(255)
                         ->datalist($themeNames),
+                    TextInput::make('reference')
+                        ->label('Référence (facultative)')
+                        ->helperText('Identifiant que vous donnez à la question (« meteo-042 ») : un fichier corrigé puis réimporté retrouve ainsi la question, même si son énoncé a changé. Non montrée à l\'étudiant.')
+                        ->maxLength(100)
+                        ->rule(fn (Get $get, mixed $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record, $bankId): void {
+                            // Hors d'une banque (action d'une suite Leitner), `$record` n'est pas la question.
+                            $record = $record instanceof Question ? $record : null;
+                            $reference = is_string($value) ? trim($value) : '';
+                            $bank = $get('bank_id') ?? $record->bank_id ?? ($bankId === null ? null : $bankId());
+
+                            if ($reference === '' || $bank === null) {
+                                return;
+                            }
+
+                            $holder = Question::holdingReference((int) $bank, $reference, $record?->id);
+
+                            if ($holder !== null) {
+                                $fail(Question::referenceTakenMessage($reference, $holder));
+                            }
+                        }),
                 ]),
         ];
     }

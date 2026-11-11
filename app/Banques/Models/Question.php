@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laraskel\Users\Models\Concerns\TracksAuthor;
 
 /**
@@ -23,6 +24,7 @@ use Laraskel\Users\Models\Concerns\TracksAuthor;
  *
  * @property int $id
  * @property int $bank_id
+ * @property string|null $reference identifiant stable donné par l'auteur, unique dans la banque
  * @property QuestionType $type
  * @property string $statement
  * @property array<string, mixed> $payload
@@ -47,7 +49,7 @@ class Question extends Model
     protected $table = 'banques_questions';
 
     protected $fillable = [
-        'bank_id', 'type', 'statement', 'payload', 'explanation',
+        'bank_id', 'reference', 'type', 'statement', 'payload', 'explanation',
         'difficulty', 'theme', 'image_path', 'image_alt',
     ];
 
@@ -86,6 +88,10 @@ class Question extends Model
 
             $question->payload = $payload;
 
+            if ($question->reference !== null && ($holder = self::holdingReference($question->bank_id, $question->reference, $question->id)) !== null) {
+                throw new InvalidQuestion(self::referenceTakenMessage($question->reference, $holder));
+            }
+
             if ($question->image_path === null) {
                 $question->image_alt = null;
             }
@@ -110,6 +116,33 @@ class Question extends Model
     protected function theme(): Attribute
     {
         return Attribute::make(set: fn (?string $value): ?string => self::blankToNull($value));
+    }
+
+    /**
+     * Référence : espaces de bord retirés, vide ramené à nul.
+     *
+     * @return Attribute<string|null, string|null>
+     */
+    protected function reference(): Attribute
+    {
+        return Attribute::make(set: fn (?string $value): ?string => self::blankToNull($value));
+    }
+
+    /**
+     * Question de la banque qui porte déjà cette référence, hors la question `$exceptId`.
+     */
+    public static function holdingReference(int $bankId, string $reference, ?int $exceptId = null): ?self
+    {
+        return self::query()
+            ->where('bank_id', $bankId)
+            ->where('reference', $reference)
+            ->when($exceptId !== null, fn ($query) => $query->whereKeyNot($exceptId))
+            ->first();
+    }
+
+    public static function referenceTakenMessage(string $reference, self $holder): string
+    {
+        return "La référence « {$reference} » est déjà portée par la question « ".Str::limit($holder->statement, 60).' » de cette banque : choisissez-en une autre, ou laissez le champ vide.';
     }
 
     /**

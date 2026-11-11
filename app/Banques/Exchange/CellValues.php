@@ -6,7 +6,7 @@ use App\Banques\Questions\AnswerNormalizer;
 
 /**
  * Valeurs d'une cellule du fichier d'échange (PRD Banques §8.3) : oui / non,
- * nombres, à la lecture comme à l'écriture.
+ * nombres, listes, à la lecture comme à l'écriture.
  */
 final class CellValues
 {
@@ -54,5 +54,47 @@ final class CellValues
     public static function typeCode(string $value): string
     {
         return trim((string) preg_replace('/[\s\-]+/u', '_', AnswerNormalizer::normalize($value)), '_');
+    }
+
+    /**
+     * Liste : éléments séparés par `|`, espaces de bord retirés, éléments
+     * vides ignorés ; `\|`, `\=` et `\\` désignent `|`, `=` et `\`.
+     *
+     * @return list<string>
+     */
+    public static function list(string $value): array
+    {
+        $items = [];
+        $current = '';
+        $length = mb_strlen($value);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = mb_substr($value, $i, 1);
+            $next = $i + 1 < $length ? mb_substr($value, $i + 1, 1) : '';
+
+            if ($char === '\\' && in_array($next, ['|', '=', '\\'], true)) {
+                $current .= $next;
+                $i++;
+            } elseif ($char === '|') {
+                $items[] = $current;
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+
+        $items[] = $current;
+
+        return array_values(array_filter(array_map(trim(...), $items), fn (string $item): bool => $item !== ''));
+    }
+
+    /**
+     * Liste écrite avec ` | ` entre les éléments, `|` et `\` protégés.
+     *
+     * @param  list<string>  $items
+     */
+    public static function writeList(array $items): string
+    {
+        return implode(' | ', array_map(fn (string $item): string => str_replace(['\\', '|'], ['\\\\', '\\|'], $item), $items));
     }
 }

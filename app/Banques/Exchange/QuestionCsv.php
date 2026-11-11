@@ -35,12 +35,14 @@ final class QuestionCsv
 
     public const IMAGE_ALT = 'texte_alternatif';
 
+    public const REFERENCE = 'reference';
+
     /** Séparateur écrit à l'export (celui des tableurs en français). */
     public const SEPARATOR = ';';
 
     private const BOM = "\u{FEFF}";
 
-    private const COMMON_COLUMNS = [self::TYPE, self::STATEMENT, self::EXPLANATION, self::THEME, self::MODULE, self::DIFFICULTY, self::IMAGE, self::IMAGE_ALT];
+    private const COMMON_COLUMNS = [self::REFERENCE, self::TYPE, self::STATEMENT, self::EXPLANATION, self::THEME, self::MODULE, self::DIFFICULTY, self::IMAGE, self::IMAGE_ALT];
 
     public function parse(string $contents): CsvParseResult
     {
@@ -61,6 +63,8 @@ final class QuestionCsv
 
         $questions = [];
         $errors = [];
+        /** @var array<string, int> $references  référence → ligne qui la porte */
+        $references = [];
 
         foreach ($records as $index => $record) {
             $line = $index + 2;
@@ -71,6 +75,14 @@ final class QuestionCsv
             }
 
             $result = $this->question($line, $header['columns'], $header['width'], $values);
+
+            if ($result instanceof QuestionRow && $result->reference !== null) {
+                if (isset($references[$result->reference])) {
+                    $result = "Colonne `reference` : « {$result->reference} » est déjà la référence de la ligne {$references[$result->reference]} ; chaque question doit avoir sa propre référence.";
+                } else {
+                    $references[$result->reference] = $line;
+                }
+            }
 
             if (is_string($result)) {
                 $errors[] = ['line' => $line, 'message' => $result];
@@ -129,6 +141,7 @@ final class QuestionCsv
     private function cells(QuestionRow $question): array
     {
         return array_filter([
+            self::REFERENCE => (string) $question->reference,
             self::TYPE => $question->type->value,
             self::STATEMENT => $question->statement,
             self::EXPLANATION => (string) $question->explanation,
@@ -164,7 +177,7 @@ final class QuestionCsv
             }
         }
 
-        $header = [self::TYPE, self::STATEMENT];
+        $header = isset($used[self::REFERENCE]) ? [self::REFERENCE, self::TYPE, self::STATEMENT] : [self::TYPE, self::STATEMENT];
 
         foreach ([self::EXPLANATION, self::THEME, self::DIFFICULTY, self::IMAGE, self::IMAGE_ALT, ...QuestionColumns::fixedColumns()] as $column) {
             if (isset($used[$column])) {
@@ -290,6 +303,11 @@ final class QuestionCsv
         }
 
         $image = $this->image($cells[self::IMAGE] ?? null, $problems);
+        $reference = $cells[self::REFERENCE] ?? null;
+
+        if ($reference !== null && mb_strlen($reference) > 100) {
+            $problems[] = 'colonne `reference` : 100 caractères au plus';
+        }
         $difficulty = $this->difficulty($cells[self::DIFFICULTY] ?? null, $warnings);
         $payload = [];
 
@@ -326,6 +344,7 @@ final class QuestionCsv
             image: $image,
             imageAlt: $image === null ? null : ($cells[self::IMAGE_ALT] ?? null),
             warnings: $warnings,
+            reference: $reference,
         );
     }
 

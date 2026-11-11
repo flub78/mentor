@@ -109,6 +109,7 @@ final class ImportQuestionnaireAction
                         "Questions rangées dans la banque « {$result['bank']->name} ».",
                         $result['exam'] === null ? null : "Examen « {$result['exam']->title} » créé.",
                         $result['skipped'] > 0 ? "{$result['skipped']} doublon(s) non importé(s)." : null,
+                        $result['droppedReferences'] > 0 ? "{$result['droppedReferences']} question(s) créée(s) sans leur référence, déjà portée dans cette banque." : null,
                     ])->filter()->implode(' ') ?: null)
                     ->send();
 
