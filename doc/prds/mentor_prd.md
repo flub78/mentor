@@ -45,7 +45,7 @@ Mentor est construit comme un ensemble de **modules indépendants qui s'utilisen
 | Module | Rôle | Utilise | PRD | Cas d'utilisation du présent PRD |
 |---|---|---|---|---|
 | **QCM** | Gérer des banques de questions et des questionnaires ; définir des examens (dont les examens blancs) ; importer et exporter banques, questionnaires et examens ; faire passer les examens à des candidats identifiés et leur délivrer un certificat de résultat. | — | [qcm_prd.md](qcm_prd.md) | UC-11, 12, 13, 19, 20, 21 (import QCM) |
-| **Leitner** | Étude par répétition espacée avec des questions / réponses. Utilise les questions QCM et des questions textuelles (réponse libre). | QCM | `doc/prds/leitner_prd.md` *(à rédiger)* | UC-10, 10b, 10c |
+| **Leitner** | Étude par répétition espacée avec des questions / réponses. Utilise les questions QCM et des questions textuelles (réponse libre). | QCM | [leitner_prd.md](leitner_prd.md) | UC-10, 10b, 10c |
 | **Présentation** | Créer et afficher des présentations, équivalent PowerPoint. Pour commencer, les pages sont des pages Markdown ; l'usage d'une bibliothèque existante (reveal.js, Marp…) reste possible (Q7). | — | `doc/prds/presentation_prd.md` *(à rédiger)* | UC-18 (présentations) |
 | **Déroulement de support** | Dérouler des présentations, des PDF, des vidéos, en enregistrant les temps de lecture. | Présentation | `doc/prds/deroulement_prd.md` *(à rédiger)* | UC-04, 04b |
 | **Coach IA** | Connaît les autres modules ; définit et adapte un programme adapté à l'étudiant ; répond aux questions, rédige synthèses et bilans. | Tous | `doc/prds/coach_prd.md` *(à rédiger)* | UC-02, 03, 04c, 07, 09, 15 ; exigences IA-* (§6) |
@@ -270,7 +270,7 @@ Formation
 
 - **Déclencheur** : l'étudiant se connecte ou reprend une formation après la fin de la séance précédente.
 - **Scénario nominal**
-  1. L'agent présente un **rappel de progression** court : où en est l'étudiant dans son plan (avance, retard), pourcentage de leçons abordées / assimilées / à revoir, cartes Leitner dues aujourd'hui, prochaine échéance.
+  1. L'agent présente un **rappel de progression** court : où en est l'étudiant dans son plan (avance, retard), pourcentage de leçons abordées / assimilées / à revoir, cartes Leitner dues à la prochaine séance de révision, prochaine échéance.
   2. Il présente une **synthèse des notions abordées lors de la séance précédente** : notions vues, points restés fragiles (questions de contrôle ou cartes échouées, questions posées à l'agent), notes prises.
   3. Il propose la suite : reprendre la leçon en cours là où elle s'est arrêtée, faire d'abord les révisions dues, ou traiter un point fragile.
   4. L'étudiant choisit ; la séance démarre.
@@ -341,12 +341,12 @@ Formation
 
 - **Préconditions** : au moins une carte activée.
 - **Scénario nominal**
-  1. Le système calcule les cartes dues aujourd'hui selon leur boîte.
+  1. Le système calcule les cartes dues à cette séance selon leur boîte et le numéro de la séance.
   2. L'étudiant lance une session ; les cartes sont présentées une à une.
   3. Pour chaque carte :
      - **carte QCM** : l'étudiant choisit une réponse, la correction est automatique et l'explication de la réponse choisie s'affiche ;
      - **carte question / réponse** : l'étudiant saisit sa réponse en texte libre ; l'agent IA la compare à la réponse de référence et rend un verdict (*correcte* / *incorrecte*, avec éventuellement *partiellement correcte*) accompagné d'une courte justification ; le verso est ensuite affiché.
-  4. Bonne réponse → boîte suivante ; mauvaise réponse → retour en boîte 1.
+  4. Bonne réponse → boîte suivante ; mauvaise réponse → recul d'une boîte, et retour en boîte 1 au second échec consécutif. Une carte échouée est reposée en fin de séance jusqu'à être réussie une fois, sans changer sa boîte ([PRD Leitner](leitner_prd.md), §7.2).
   5. En fin de session : bilan (nombre de cartes, réussite, cartes difficiles) et proposition de revoir la leçon concernée.
 - **Variantes**
   - 3a. L'étudiant conteste le verdict de l'IA : il peut le corriger lui-même *(dernier mot à l'étudiant ? Q17)* ; la contestation est journalisée pour améliorer la réponse de référence.
@@ -355,7 +355,7 @@ Formation
   - L'IA juge le fond (notion, valeurs, unités), pas l'orthographe ni la formulation.
   - Le concepteur peut ajouter à la réponse de référence des **critères attendus** (éléments obligatoires, tolérance numérique, réponses acceptables) qui guident le jugement.
   - Une réponse *partiellement correcte* est traitée comme *(à décider, Q18)*.
-- **Paramètres proposés** (configurables par formation) : 5 boîtes, intervalles 1 / 2 / 4 / 8 / 16 jours ; une carte sortie de la boîte 5 est considérée maîtrisée.
+- **Rythme** : compté en **séances de révision**, pas en jours : la boîte *k* est posée une séance sur 2<sup>k−1</sup>. L'idéal est une séance par jour, ou par jour ouvré, mais l'étudiant choisit librement quand il travaille ; en dessous de **trois séances par semaine**, un avertissement s'affiche. **5 boîtes par défaut** (environ 2 à 3 mois pour terminer une banque), modifiable : c'est un paramètre du programme de révision, pas de la banque de questions. Une suite dont toutes les cartes sont maîtrisées est **acquise**, puis vérifiée par des **contrôles d'entretien** sur un échantillon aléatoire. Détail des règles : [PRD Leitner](leitner_prd.md), §7 et UC-14.
 - **Règles** : la proportion de cartes en boîtes hautes alimente le statut *assimilé* de la leçon ; des échecs répétés repassent la leçon en *à revoir*.
 
 #### UC-10b — Créer une carte Leitner pendant l'étude
@@ -414,7 +414,7 @@ Indicateurs affichés pour chaque formation :
 - **% de leçons abordées**, **% assimilées**, **% à revoir** (global et par chapitre) ;
 - supports obligatoires consultés / total ;
 - avancement par rapport au plan (en avance / à jour / en retard, en jours) ;
-- état Leitner : cartes par boîte, cartes dues aujourd'hui ;
+- état Leitner : cartes par boîte, cartes dues à la prochaine séance, nombre de séances sur les 7 derniers jours (avertissement en dessous de trois) ;
 - historique des scores (évaluations, examens blancs) avec tendance ;
 - temps passé (par semaine, par chapitre) ;
 - prochaines échéances.
@@ -570,10 +570,10 @@ Les lots ci-dessous décrivent le parcours intégré. Chaque module (§1.4) a en
 - Q12. Le formateur peut-il lire les questions posées à l'agent et les notes de l'étudiant ?
 
 **Évaluation et mémorisation**
-- Q13. Paramètres Leitner (5 boîtes, 1/2/4/8/16 j) et définition de « leçon assimilée » (ex. évaluation de chapitre ≥ 75 % **et** 80 % des cartes en boîte ≥ 3) : à valider ou à ajuster ?
+- Q13. Définition de « leçon assimilée » (ex. évaluation de chapitre ≥ 75 % **et** 80 % des cartes en boîte ≥ 3) et de « notion acquise » (piste : cartes de la notion toutes maîtrisées et dernier contrôle d'entretien réussi depuis moins de X mois, [PRD Leitner](leitner_prd.md) §7.6) : à valider ou à ajuster ? Le rythme (en séances) et le nombre de boîtes (5 par défaut) sont tranchés, voir [PRD Leitner](leitner_prd.md) §7.
 - Q14. Besoin d'un usage hors ligne (révisions sur téléphone sans réseau) ?
 - Q17. Si l'étudiant conteste le verdict de l'IA sur une carte question / réponse, a-t-il le dernier mot ?
-- Q18. Une réponse « partiellement correcte » : la carte avance, reste dans sa boîte, ou recule en boîte 1 ?
+- Q18. Une réponse « partiellement correcte » : la carte avance, reste dans sa boîte, ou recule (d'une boîte, comme une erreur) ? Voir la Q9 du [PRD Leitner](leitner_prd.md).
 - Q19. Les cartes créées par un étudiant restent-elles privées, ou peut-il les proposer au concepteur pour enrichir la banque commune ?
 - Q20. Les cartes générées par l'IA pour combler un manque sont-elles mises en circulation immédiatement, ou seulement après validation du concepteur ?
 
