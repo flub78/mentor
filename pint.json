@@ -1,0 +1,3 @@
+{
+    "extend": "vendor/flub78/laraskel-dev/config/pint.json"
+}

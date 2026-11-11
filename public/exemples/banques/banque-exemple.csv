@@ -1,0 +1,6 @@
+﻿reference;type;enonce;explication;theme;difficulte;illustration;texte_alternatif;bonne_reponse;reponse;valeur;type_tolerance;tolerance;unite;mauvaise_reponse_1;explication_1;mauvaise_reponse_2;explication_2
+meteo-001;qcm;Quel nuage annonce un orage ?;Nuage à fort développement vertical.;Météorologie;facile;;;Le cumulonimbus;;;;;;Le cirrus;Nuage de haute altitude.;Le stratus;
+geo-001;vrai_faux;Le Danube traverse Vienne.;;Géographie;facile;;;;vrai;;;;;;;;
+geom-001;auto_evaluation;Comment démontrer le théorème de Pythagore ?;;Géométrie;difficile;;;;Par les aires de quatre triangles rectangles.;;;;;;;;
+relief-001;valeur_numerique;Altitude du mont Blanc ?;;Relief;moyen;;;;;4806;absolue;10;m;;;;
+geom-002;qcm;Quelle figure est représentée ?;;Géométrie;facile;figure.png;Un triangle bleu sur fond blanc;Un triangle;;;;;;Un carré;;Un cercle;
