@@ -1,0 +1,4 @@
+﻿type;enonce;explication;theme;difficulte;valeur;type_tolerance;tolerance;unite
+valeur_numerique;Altitude du mont Blanc ?;Mesure de 2021.;Relief;moyen;4806;absolue;10;m
+valeur_numerique;Masse volumique de l'air au niveau de la mer (atmosphère type) ?;;Météorologie;difficile;1,225;pourcentage;1;kg/m³
+valeur_numerique;Combien de jours compte une année bissextile ?;;Calendrier;facile;366;aucune;;
