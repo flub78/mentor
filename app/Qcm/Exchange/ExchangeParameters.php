@@ -2,6 +2,8 @@
 
 namespace App\Qcm\Exchange;
 
+use App\Banques\Exchange\ExchangeFile;
+use App\Banques\Exchange\ExchangeKind;
 use App\Qcm\Models\Exam;
 use App\Qcm\Models\FieldRequirement;
 use App\Qcm\Models\IdentificationField;

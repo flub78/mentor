@@ -1,18 +1,20 @@
 <?php
 
-namespace Tests\Feature\Qcm;
+namespace Tests\Feature\Banques;
 
-use App\Qcm\Exchange\ExchangeException;
-use App\Qcm\Exchange\ExchangeFile;
-use App\Qcm\Exchange\QuestionCsv;
-use App\Qcm\Exchange\QuestionData;
-use Tests\Feature\Qcm\Concerns\BuildsExchangeFiles;
+use App\Banques\Exchange\ExchangeException;
+use App\Banques\Exchange\ExchangeFile;
+use App\Banques\Exchange\QuestionCsv;
+use App\Banques\Exchange\QuestionRow;
+use App\Banques\Questions\QuestionType;
+use Tests\Feature\Banques\Concerns\BuildsExchangeFiles;
 use Tests\TestCase;
 
 /**
- * Étape 4 du plan QCM : lecture et écriture du fichier d'échange (PRD QCM §6.1).
+ * Fichier d'échange des banques (PRD Banques §8) : lecture compatible avec les
+ * fichiers historiques du module QCM, archive ZIP (repris du plan QCM, étape 4).
  */
-class ExchangeFormatTest extends TestCase
+class ArchiveFormatTest extends TestCase
 {
     use BuildsExchangeFiles;
 
@@ -28,11 +30,12 @@ class ExchangeFormatTest extends TestCase
         $this->assertCount(2, $result->questions);
         [$first, $second] = $result->questions;
         $this->assertSame(2, $first->line);
-        $this->assertSame('Cumulonimbus', $first->correctAnswer);
-        $this->assertSame([['text' => 'Cirrus', 'explanation' => 'Trop haut.'], ['text' => 'Stratus', 'explanation' => null]], $first->wrongAnswers);
-        $this->assertSame('Météo', $first->module);
-        $this->assertNull($second->module);
-        $this->assertCount(1, $second->wrongAnswers);
+        $this->assertSame(QuestionType::Qcm, $first->type);
+        $this->assertSame('Cumulonimbus', $first->payload['correct']);
+        $this->assertSame([['text' => 'Cirrus', 'explanation' => 'Trop haut.'], ['text' => 'Stratus', 'explanation' => null]], $first->payload['wrong']);
+        $this->assertSame('Météo', $first->theme);
+        $this->assertNull($second->theme);
+        $this->assertCount(1, $second->payload['wrong']);
     }
 
     public function test_csv_with_commas_and_spreadsheet_header_is_read(): void
@@ -72,16 +75,16 @@ A ?;Oui;Non;de trop
         $this->assertSame([2, 3, 4, 5], array_column($result->errors, 'line'));
         $this->assertStringContainsString('énoncé est vide', $result->errors[0]['message']);
         $this->assertStringContainsString('bonne réponse est vide', $result->errors[1]['message']);
-        $this->assertStringContainsString('Aucune mauvaise réponse', $result->errors[2]['message']);
-        $this->assertStringContainsString("explication 2 n'a pas de mauvaise réponse 2", $result->errors[3]['message']);
+        $this->assertStringContainsString('aucune mauvaise réponse', $result->errors[2]['message']);
+        $this->assertStringContainsString("`explication_2` : elle n'a pas de mauvaise réponse 2", $result->errors[3]['message']);
     }
 
     public function test_missing_required_columns_reject_the_file_with_the_expected_columns(): void
     {
         $this->expectException(ExchangeException::class);
-        $this->expectExceptionMessage('Colonnes obligatoires absentes de la première ligne : mauvaise_reponse_1');
+        $this->expectExceptionMessage('Colonne obligatoire absente de la première ligne : enonce');
 
-        (new QuestionCsv)->parse("enonce;bonne_reponse\nA ?;B\n");
+        (new QuestionCsv)->parse("bonne_reponse;mauvaise_reponse_1\nA;B\n");
     }
 
     public function test_non_utf8_csv_is_rejected_with_advice(): void
@@ -94,16 +97,16 @@ A ?;Oui;Non;de trop
 
     public function test_written_csv_reads_back_identically(): void
     {
-        $question = new QuestionData(0, "Énoncé avec ; et \"guillemets\"\nsur deux lignes ?", 'Bonne', [
+        $question = new QuestionRow(0, QuestionType::Qcm, "Énoncé avec ; et \"guillemets\"\nsur deux lignes ?", ['correct' => 'Bonne', 'wrong' => [
             ['text' => 'Fausse 1', 'explanation' => 'Parce que.'],
             ['text' => 'Fausse 2', 'explanation' => null],
-        ], 'Explication', 'Météo', 'carte.png');
+        ], 'shuffle' => true], 'Explication', 'Météo', null, 'carte.png', 'Une carte');
 
         $read = (new QuestionCsv)->parse((new QuestionCsv)->write([$question]))->questions[0];
 
         $this->assertSame($question->statement, $read->statement);
-        $this->assertSame($question->wrongAnswers, $read->wrongAnswers);
-        $this->assertSame(['Explication', 'Météo', 'carte.png'], [$read->explanation, $read->module, $read->image]);
+        $this->assertSame($question->payload, $read->payload);
+        $this->assertSame(['Explication', 'Météo', 'carte.png', 'Une carte'], [$read->explanation, $read->theme, $read->image, $read->imageAlt]);
     }
 
     public function test_zip_gives_questions_parameters_and_images(): void

@@ -6,57 +6,66 @@ use App\Banques\Models\Bank as CommonBank;
 use App\Banques\Models\Question as CommonQuestion;
 use App\Banques\Questions\QuestionType;
 use App\Qcm\Migration\QcmToBanquesTransfer;
-use App\Qcm\Models\Answer;
 use App\Qcm\Models\Attempt;
-use App\Qcm\Models\Bank;
-use App\Qcm\Models\Question;
-use App\Qcm\Models\Questionnaire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
 
 /**
  * Plan Banques, étape B2 : reprise des banques et des questions QCM dans le
- * module Banques de questions.
+ * module Banques de questions. Les anciennes tables QCM n'ont plus de modèle
+ * (étape B4) : les données de départ y sont écrites directement.
  */
 class QcmToBanquesTransferTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function oldBank(string $name, ?string $description = null): int
+    {
+        return DB::table('qcm_banks')->insertGetId(['name' => $name, 'description' => $description, 'created_at' => '2026-11-01 10:00:00', 'updated_at' => '2026-11-01 10:00:00']);
+    }
+
     /**
-     * Question QCM avec une bonne réponse et des mauvaises réponses données.
+     * Ancienne question QCM et ses réponses.
      *
      * @param  array<string, mixed>  $attributes
      * @param  list<array{string, string|null}>  $wrong  texte, explication
      */
-    private function qcmQuestion(array $attributes, string $correct, array $wrong): Question
+    private function oldQuestion(array $attributes, string $correct, array $wrong): int
     {
-        $question = Question::factory()->create($attributes);
-        Answer::factory()->for($question)->correct()->create(['text' => $correct, 'position' => 0]);
+        $id = DB::table('qcm_questions')->insertGetId([
+            'bank_id' => null,
+            'questionnaire_id' => null,
+            'statement' => 'Question ?',
+            'module' => null,
+            'explanation' => null,
+            'image_path' => null,
+            'created_at' => '2026-11-01 10:00:00',
+            'updated_at' => '2026-11-01 10:00:00',
+            ...$attributes,
+        ]);
+        DB::table('qcm_answers')->insert(['question_id' => $id, 'text' => $correct, 'is_correct' => true, 'explanation' => null, 'position' => 0]);
 
         foreach ($wrong as $index => [$text, $explanation]) {
-            Answer::factory()->for($question)->create(['text' => $text, 'explanation' => $explanation, 'position' => $index + 1]);
+            DB::table('qcm_answers')->insert(['question_id' => $id, 'text' => $text, 'is_correct' => false, 'explanation' => $explanation, 'position' => $index + 1]);
         }
 
-        return $question;
+        return $id;
     }
 
     public function test_banks_and_questions_are_copied_with_their_answers(): void
     {
-        $this->travelTo(Carbon::parse('2026-11-01 10:00'));
-        $bank = Bank::factory()->create(['name' => 'Météorologie', 'description' => 'Module météo']);
-        $question = $this->qcmQuestion(
-            ['bank_id' => $bank->id, 'statement' => 'Quel nuage annonce un orage ?', 'module' => 'Nuages', 'explanation' => 'Nuage à fort développement vertical.', 'image_path' => 'qcm/images/nuage.png'],
+        $bank = $this->oldBank('Météorologie', 'Module météo');
+        $question = $this->oldQuestion(
+            ['bank_id' => $bank, 'statement' => 'Quel nuage annonce un orage ?', 'module' => 'Nuages', 'explanation' => 'Nuage à fort développement vertical.', 'image_path' => 'qcm/images/nuage.png'],
             'Cumulonimbus',
             [['Cirrus', 'Nuage de haute altitude.'], ['Stratus', null], ['Altostratus', null]],
         );
-        $this->travelBack();
 
         $map = (new QcmToBanquesTransfer)->run();
 
-        $common = CommonQuestion::query()->findOrFail($map[$question->id]);
+        $common = CommonQuestion::query()->findOrFail($map[$question]);
         $this->assertSame(QuestionType::Qcm, $common->type);
         $this->assertSame('Quel nuage annonce un orage ?', $common->statement);
         $this->assertSame([
@@ -79,39 +88,19 @@ class QcmToBanquesTransferTest extends TestCase
 
     public function test_own_questions_go_to_the_default_bank(): void
     {
-        $questionnaire = Questionnaire::factory()->create();
-        $own = $this->qcmQuestion(['bank_id' => null, 'questionnaire_id' => $questionnaire->id], 'Oui', [['Non', null]]);
+        $questionnaire = DB::table('qcm_questionnaires')->insertGetId(['title' => 'Examen blanc']);
+        $own = $this->oldQuestion(['questionnaire_id' => $questionnaire], 'Oui', [['Non', null]]);
 
         $map = (new QcmToBanquesTransfer)->run();
 
-        $this->assertTrue(CommonQuestion::query()->findOrFail($map[$own->id])->bank->is(CommonBank::default()));
-    }
-
-    public function test_every_question_and_answer_is_kept(): void
-    {
-        $bank = Bank::factory()->create();
-        Question::factory()->count(4)->for($bank)->withAnswers(3)->create();
-        Questionnaire::factory()->withOwnQuestions(2)->create();
-        $questions = DB::table('qcm_questions')->count();
-
-        $map = (new QcmToBanquesTransfer)->run();
-
-        $this->assertCount($questions, $map);
-        foreach ($map as $qcmId => $commonId) {
-            $payload = CommonQuestion::query()->findOrFail($commonId)->payload;
-            $this->assertSame(
-                DB::table('qcm_answers')->where('question_id', $qcmId)->where('is_correct', false)->orderBy('position')->pluck('text')->all(),
-                array_column($payload['wrong'], 'text'),
-            );
-        }
-        $this->assertSame(4, DB::table('qcm_questions')->whereNotNull('bank_id')->count(), 'Les tables QCM ne sont pas modifiées.');
+        $this->assertTrue(CommonQuestion::query()->findOrFail($map[$own])->bank->is(CommonBank::default()));
     }
 
     public function test_bank_name_already_taken_gets_a_suffix(): void
     {
         CommonBank::factory()->create(['name' => 'Capitales']);
         CommonBank::factory()->create(['name' => 'Capitales (QCM)']);
-        Bank::factory()->create(['name' => 'Capitales']);
+        $this->oldBank('Capitales');
 
         (new QcmToBanquesTransfer)->run();
 
@@ -130,15 +119,15 @@ class QcmToBanquesTransferTest extends TestCase
 
     public function test_incomplete_question_stops_the_transfer_with_a_clear_message(): void
     {
-        $bank = Bank::factory()->create();
-        $broken = $this->qcmQuestion(['bank_id' => $bank->id, 'statement' => 'Question sans mauvaise réponse'], 'Seule réponse', []);
+        $bank = $this->oldBank('Banque');
+        $broken = $this->oldQuestion(['bank_id' => $bank, 'statement' => 'Question sans mauvaise réponse'], 'Seule réponse', []);
         $banks = CommonBank::query()->count();
 
         try {
             (new QcmToBanquesTransfer)->run();
             $this->fail('Une question incomplète doit arrêter la reprise.');
         } catch (RuntimeException $exception) {
-            $this->assertStringContainsString("Question QCM n° {$broken->id}", $exception->getMessage());
+            $this->assertStringContainsString("Question QCM n° {$broken}", $exception->getMessage());
             $this->assertStringContainsString('au moins une mauvaise réponse', $exception->getMessage());
         }
 

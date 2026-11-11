@@ -2,8 +2,8 @@
 
 namespace App\Qcm\Filament\Actions;
 
-use App\Qcm\Exchange\ExchangeException;
-use App\Qcm\Exchange\ExchangeFile;
+use App\Banques\Exchange\ExchangeException;
+use App\Banques\Exchange\ExchangeFile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Arr;

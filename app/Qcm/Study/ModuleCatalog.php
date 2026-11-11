@@ -76,13 +76,13 @@ final class ModuleCatalog
         $groups = [];
 
         $rows = $questions
-            ->selectRaw('module, count(*) as total')
-            ->groupBy('module')
+            ->selectRaw('theme, count(*) as total')
+            ->groupBy('theme')
             ->get();
 
         foreach ($rows as $row) {
             /** @var string|null $module */
-            $module = $row->getAttribute('module');
+            $module = $row->getAttribute('theme');
             $total = (int) $row->getAttribute('total');
             $key = self::key($module);
 

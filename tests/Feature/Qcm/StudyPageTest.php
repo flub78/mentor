@@ -39,8 +39,10 @@ class StudyPageTest extends TestCase
         $bank = Bank::factory()->create();
         $good = Question::factory()->for($bank)->withAnswers()->create(['module' => 'Météo', 'explanation' => 'Le cumulonimbus est le nuage d\'orage.']);
         $bad = Question::factory()->for($bank)->withAnswers()->create(['module' => 'Réglementation']);
-        $wrong = $bad->wrongAnswers->first();
-        $wrong->update(['explanation' => 'Cette règle concerne le vol de nuit.']);
+        $payload = $bad->payload;
+        $payload['wrong'][0]['explanation'] = 'Cette règle concerne le vol de nuit.';
+        $bad->update(['payload' => $payload]);
+        $wrong = $bad->refresh()->wrongAnswers->first();
 
         $page = Livewire::test(Study::class)
             ->set('selectedBanks', [(string) $bank->id])
@@ -51,7 +53,7 @@ class StudyPageTest extends TestCase
             $currentId = $page->get('session')->currentQuestionId();
             $answer = $currentId === $good->id ? $good->correctAnswer : $wrong;
 
-            $page->set('choice', (string) $answer->id)->call('validateAnswer');
+            $page->set('choice', $answer->key)->call('validateAnswer');
 
             if ($currentId === $good->id) {
                 $page->assertSee('Bonne réponse !')->assertSee('Le cumulonimbus est le nuage d\'orage.');
@@ -82,7 +84,7 @@ class StudyPageTest extends TestCase
 
         $current = $questions->firstWhere('id', $page->get('session')->currentQuestionId());
 
-        $page->set('choice', (string) $current->correctAnswer->id)
+        $page->set('choice', (string) $current->correctAnswer->key)
             ->call('validateAnswer')
             ->assertSee('100 % de bonnes réponses (1 / 1)')
             ->assertSee('1 restante(s)');

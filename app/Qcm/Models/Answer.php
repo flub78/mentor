@@ -2,46 +2,19 @@
 
 namespace App\Qcm\Models;
 
-use Database\Factories\Qcm\AnswerFactory;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Laraskel\Users\Models\Concerns\TracksAuthor;
-
 /**
- * Réponse proposée pour une question (PRD QCM §3).
- *
- * @property int $id
- * @property int $question_id
- * @property string $text
- * @property bool $is_correct
- * @property string|null $explanation
- * @property int $position
+ * Réponse proposée pour une question QCM (PRD QCM §3), calculée depuis la
+ * réponse attendue de la question dans le module Banques. Elle n'est pas
+ * enregistrée : une clé stable l'identifie (`bonne`, `fausse-0`… pour un QCM,
+ * `vrai` et `faux` pour un vrai / faux).
  */
-#[UseFactory(AnswerFactory::class)]
-class Answer extends Model
+final readonly class Answer
 {
-    /** @use HasFactory<AnswerFactory> */
-    use HasFactory, TracksAuthor;
-
-    protected $table = 'qcm_answers';
-
-    protected $fillable = ['question_id', 'text', 'is_correct', 'explanation', 'position'];
-
-    protected function casts(): array
-    {
-        return [
-            'is_correct' => 'boolean',
-            'position' => 'integer',
-        ];
-    }
-
-    /**
-     * @return BelongsTo<Question, $this>
-     */
-    public function question(): BelongsTo
-    {
-        return $this->belongsTo(Question::class);
-    }
+    public function __construct(
+        public string $key,
+        public string $text,
+        public bool $is_correct,
+        public ?string $explanation,
+        public int $position,
+    ) {}
 }

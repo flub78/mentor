@@ -60,7 +60,7 @@ class Bank extends Model
     }
 
     /**
-     * @return HasMany<Question, $this>
+     * @return HasMany<covariant Question, $this>
      */
     public function questions(): HasMany
     {

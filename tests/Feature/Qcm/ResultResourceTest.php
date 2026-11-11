@@ -210,7 +210,7 @@ class ResultResourceTest extends TestCase
 
         if ($correct) {
             foreach ($attempt->items as $item) {
-                $item->update(['chosen_answer_id' => $item->question->answers()->where('is_correct', true)->value('id')]);
+                $item->update(['chosen_key' => $item->question->correctAnswer?->key]);
             }
         }
 

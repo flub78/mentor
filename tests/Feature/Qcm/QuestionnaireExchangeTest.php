@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Qcm;
 
-use App\Qcm\Exchange\BankImporter;
-use App\Qcm\Exchange\ExchangeFile;
+use App\Banques\Exchange\BankImporter;
+use App\Banques\Exchange\ExchangeFile;
+use App\Banques\Models\Bank as CommonBank;
 use App\Qcm\Exchange\QuestionnaireExporter;
 use App\Qcm\Exchange\QuestionnaireImporter;
 use App\Qcm\Filament\Resources\Exams\Pages\EditExam;
@@ -46,7 +47,7 @@ class QuestionnaireExchangeTest extends TestCase
             'title' => 'Blanc planeur', 'description' => 'Entraînement', 'version' => '2026-1',
         ]);
         Storage::disk(Question::IMAGE_DISK)->put('qcm/images/carte.png', self::PNG);
-        $questionnaire->ownQuestions()->first()->update(['image_path' => 'qcm/images/carte.png']);
+        $questionnaire->questions()->first()->update(['image_path' => 'qcm/images/carte.png', 'image_alt' => 'Carte']);
 
         return $questionnaire;
     }
@@ -56,7 +57,7 @@ class QuestionnaireExchangeTest extends TestCase
      */
     private function contents(Questionnaire $questionnaire): array
     {
-        return $questionnaire->questions()->with('answers')->get()->map(fn (Question $question): array => [
+        return $questionnaire->questions()->get()->map(fn (Question $question): array => [
             $question->statement,
             $question->module,
             $question->explanation,
@@ -83,7 +84,7 @@ class QuestionnaireExchangeTest extends TestCase
         $this->assertNull($result['exam']);
         $this->assertSame(['Blanc planeur', 'Entraînement', '2026-1'], [$copy->title, $copy->description, $copy->version]);
         $this->assertSame($this->contents($questionnaire), $this->contents($copy));
-        $this->assertSame(3, $copy->ownQuestions()->count(), 'Toutes les questions importées sont des questions propres.');
+        $this->assertSame(3, $copy->questions()->where('bank_id', CommonBank::default()->id)->count(), 'Les questions importées sont rangées dans la banque par défaut.');
     }
 
     public function test_exam_zip_round_trip(): void
@@ -247,5 +248,20 @@ class QuestionnaireExchangeTest extends TestCase
 
         $this->assertStringContainsString('Question de banque ?', $csv);
         $this->assertStringContainsString($question->correctAnswer->text, $csv);
+    }
+
+    public function test_import_puts_questions_in_the_chosen_bank_and_ignores_other_types(): void
+    {
+        $bank = Bank::factory()->create(['name' => 'Météo']);
+        $file = $this->open($this->csvFile("type;enonce;reponse;bonne_reponse;mauvaise_reponse_1\nqcm;A ?;;Oui;Non\nvrai_faux;B.;vrai;;\nauto_evaluation;C ?;Réponse;;\n"), 'mixte.csv');
+
+        $analysis = (new QuestionnaireImporter)->analyse($file);
+        $result = (new QuestionnaireImporter)->import($file, null, null, true, $bank->id);
+
+        $this->assertContains('1 question n\'était pas de type QCM ou vrai / faux et n\'a pas été utilisée.', $analysis['report']->toArray()['notices']);
+        $this->assertSame(2, $result['imported']);
+        $this->assertTrue($result['bank']->is($bank));
+        $this->assertSame(['A ?', 'B.'], $result['questionnaire']->questions()->pluck('statement')->all());
+        $this->assertSame(2, $bank->questions()->count());
     }
 }

@@ -20,15 +20,15 @@ final class AttemptRecorder
      *
      * @throws AttemptException passage terminé ou échu, réponse non proposée
      */
-    public function answer(AttemptItem $item, int $answerId): void
+    public function answer(AttemptItem $item, string $answerKey): void
     {
         $this->ensureOpen($item->attempt);
 
-        if (! in_array($answerId, array_map(intval(...), $item->answer_order), true)) {
+        if (! in_array($answerKey, $item->answer_order, true)) {
             throw AttemptException::unknownAnswer($item->position);
         }
 
-        $item->update(['chosen_answer_id' => $answerId, 'answered_at' => now()]);
+        $item->update(['chosen_key' => $answerKey, 'answered_at' => now()]);
     }
 
     /**

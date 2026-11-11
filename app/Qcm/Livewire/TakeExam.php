@@ -67,7 +67,7 @@ class TakeExam extends Component
     /**
      * État du passage en prévisualisation, jamais enregistré.
      *
-     * @var list<array{question_id: int, answer_order: list<int>, chosen_answer_id: int|null, bookmarked: bool}>
+     * @var list<array{question_id: int, answer_order: list<string>, chosen_key: string|null, bookmarked: bool}>
      */
     #[Locked]
     public array $previewItems = [];
@@ -142,7 +142,7 @@ class TakeExam extends Component
             if ($this->preview) {
                 $this->previewIdentity = $starter->validateIdentity($this->exam, $this->identity);
                 $this->previewItems = array_map(
-                    fn (array $item): array => [...$item, 'chosen_answer_id' => null, 'bookmarked' => false],
+                    fn (array $item): array => [...$item, 'chosen_key' => null, 'bookmarked' => false],
                     $starter->compose($this->exam),
                 );
                 $this->previewStartedAt = now()->toIso8601String();
@@ -165,22 +165,22 @@ class TakeExam extends Component
         $this->step = self::STEP_QUESTION;
     }
 
-    public function choose(int $answerId): void
+    public function choose(string $answerKey): void
     {
         if (! $this->isAnswering()) {
             return;
         }
 
         if ($this->preview) {
-            if (in_array($answerId, $this->previewItems[$this->position]['answer_order'], true)) {
-                $this->previewItems[$this->position]['chosen_answer_id'] = $answerId;
+            if (in_array($answerKey, $this->previewItems[$this->position]['answer_order'], true)) {
+                $this->previewItems[$this->position]['chosen_key'] = $answerKey;
                 unset($this->items);
             }
 
             return;
         }
 
-        $this->record(fn (AttemptRecorder $recorder, AttemptItem $item) => $recorder->answer($item, $answerId));
+        $this->record(fn (AttemptRecorder $recorder, AttemptItem $item) => $recorder->answer($item, $answerKey));
     }
 
     public function toggleBookmark(): void
@@ -287,7 +287,7 @@ class TakeExam extends Component
     /**
      * Questions du passage, dans l'ordre, avec ce qu'il faut pour les afficher.
      *
-     * @return list<array{position: int, question: Question|null, answers: list<Answer>, chosen: int|null, bookmarked: bool}>
+     * @return list<array{position: int, question: Question|null, answers: list<Answer>, chosen: string|null, bookmarked: bool}>
      */
     #[Computed]
     public function items(): array
@@ -299,27 +299,26 @@ class TakeExam extends Component
             $rows = $attempt === null ? [] : $attempt->items()->get()->map(fn (AttemptItem $item): array => [
                 'position' => $item->position,
                 'question_id' => $item->question_id,
-                'answer_order' => array_map(intval(...), $item->answer_order),
-                'chosen_answer_id' => $item->chosen_answer_id,
+                'answer_order' => $item->answer_order,
+                'chosen_key' => $item->chosen_key,
                 'bookmarked' => $item->bookmarked,
             ])->all();
         }
 
         $questions = Question::query()
-            ->with('answers')
             ->findMany(array_filter(array_column($rows, 'question_id')))
             ->keyBy('id');
 
         return array_values(array_map(function (array $row) use ($questions): array {
             /** @var Question|null $question */
             $question = $row['question_id'] === null ? null : $questions->get($row['question_id']);
-            $answers = $question === null ? new Collection : $question->answers->keyBy('id');
+            $answers = $question === null ? new Collection : $question->answers->keyBy('key');
 
             return [
                 'position' => (int) $row['position'],
                 'question' => $question,
-                'answers' => array_values(array_filter(array_map(fn (int $id): ?Answer => $answers->get($id), $row['answer_order']))),
-                'chosen' => $row['chosen_answer_id'],
+                'answers' => array_values(array_filter(array_map(fn (string $key): ?Answer => $answers->get($key), $row['answer_order']))),
+                'chosen' => $row['chosen_key'],
                 'bookmarked' => (bool) $row['bookmarked'],
             ];
         }, $rows));
@@ -341,9 +340,8 @@ class TakeExam extends Component
         }
 
         $items = array_map(function (array $item): AttemptItem {
-            $line = new AttemptItem(['question_id' => $item['question']?->id, 'chosen_answer_id' => $item['chosen']]);
+            $line = new AttemptItem(['question_id' => $item['question']?->id, 'chosen_key' => $item['chosen']]);
             $line->setRelation('question', $item['question']);
-            $line->setRelation('chosenAnswer', collect($item['answers'])->firstWhere('id', $item['chosen']));
 
             return $line;
         }, $this->items());
@@ -361,7 +359,7 @@ class TakeExam extends Component
     /**
      * Correction détaillée, filtrée (UC-13) ; vide si l'examen ne la prévoit pas.
      *
-     * @return list<array{position: int, question: Question|null, answers: list<Answer>, chosen: int|null, bookmarked: bool}>
+     * @return list<array{position: int, question: Question|null, answers: list<Answer>, chosen: string|null, bookmarked: bool}>
      */
     #[Computed]
     public function correction(): array
@@ -405,12 +403,12 @@ class TakeExam extends Component
     }
 
     /**
-     * @param  array{chosen: int|null, answers: list<Answer>}  $item
+     * @param  array{chosen: string|null, answers: list<Answer>}  $item
      */
     public static function isCorrect(array $item): bool
     {
         return $item['chosen'] !== null
-            && collect($item['answers'])->contains(fn (Answer $answer): bool => $answer->id === $item['chosen'] && $answer->is_correct);
+            && collect($item['answers'])->contains(fn (Answer $answer): bool => $answer->key === $item['chosen'] && $answer->is_correct);
     }
 
     private function attempt(): ?Attempt
@@ -433,7 +431,7 @@ class TakeExam extends Component
         }
 
         // Reprise sur la première question sans réponse (UC-12, 3b).
-        $this->position = (int) ($attempt->items()->whereNull('chosen_answer_id')->min('position') ?? 0);
+        $this->position = (int) ($attempt->items()->whereNull('chosen_key')->min('position') ?? 0);
         $this->step = self::STEP_QUESTION;
     }
 

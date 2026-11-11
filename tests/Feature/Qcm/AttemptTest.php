@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Qcm;
 
+use App\Banques\Models\Bank as CommonBank;
 use App\Qcm\Exams\AttemptException;
 use App\Qcm\Exams\AttemptFinisher;
 use App\Qcm\Exams\AttemptRecorder;
 use App\Qcm\Exams\AttemptStarter;
-use App\Qcm\Models\Answer;
 use App\Qcm\Models\Attempt;
 use App\Qcm\Models\AttemptItem;
 use App\Qcm\Models\AttemptStatus;
@@ -75,7 +75,7 @@ class AttemptTest extends TestCase
     public function test_an_attempt_asks_every_question_in_the_questionnaire_order(): void
     {
         $exam = $this->exam(questions: 5, attributes: ['shuffle_questions' => false, 'duration_minutes' => null]);
-        $expected = $exam->questionnaire->questions()->pluck('qcm_questions.id')->all();
+        $expected = $exam->questionnaire->questions()->pluck('banques_questions.id')->all();
 
         $attempt = $this->starter()->start($exam, self::CANDIDATE);
 
@@ -86,7 +86,7 @@ class AttemptTest extends TestCase
         $this->assertNull($attempt->remainingSeconds());
 
         foreach ($attempt->items as $item) {
-            $answers = Answer::where('question_id', $item->question_id)->pluck('id')->all();
+            $answers = Question::query()->findOrFail($item->question_id)->answers->pluck('key')->all();
             $this->assertEqualsCanonicalizing($answers, $item->answer_order);
         }
     }
@@ -95,7 +95,7 @@ class AttemptTest extends TestCase
     {
         $this->freezeSecond();
         $exam = $this->exam(questions: 8, attributes: ['shuffle_questions' => true, 'duration_minutes' => 30]);
-        $expected = $exam->questionnaire->questions()->pluck('qcm_questions.id')->all();
+        $expected = $exam->questionnaire->questions()->pluck('banques_questions.id')->all();
 
         $attempt = $this->starter()->start($exam, self::CANDIDATE);
         $asked = $attempt->items()->pluck('question_id')->all();
@@ -103,7 +103,7 @@ class AttemptTest extends TestCase
         $this->assertEqualsCanonicalizing($expected, $asked);
         $this->assertNotSame($expected, $asked);
         $this->assertNotSame(
-            $attempt->items->map(fn (AttemptItem $item): array => Answer::where('question_id', $item->question_id)->orderBy('position')->pluck('id')->all())->all(),
+            $attempt->items->map(fn (AttemptItem $item): array => Question::query()->findOrFail($item->question_id)->answers->pluck('key')->all())->all(),
             $attempt->items->pluck('answer_order')->all(),
         );
         $this->assertTrue($attempt->deadline_at->equalTo(now()->addMinutes(30)));
@@ -132,7 +132,7 @@ class AttemptTest extends TestCase
         $recorder->bookmark($item, true);
 
         $item->refresh();
-        $this->assertSame($second, $item->chosen_answer_id);
+        $this->assertSame($second, $item->chosen_key);
         $this->assertNotNull($item->answered_at);
         $this->assertTrue($item->bookmarked);
 
@@ -143,12 +143,12 @@ class AttemptTest extends TestCase
     public function test_an_answer_not_offered_for_the_question_is_refused(): void
     {
         $attempt = $this->starter()->start($this->exam(questions: 2, attributes: ['shuffle_questions' => false]), self::CANDIDATE);
-        [$item, $other] = $attempt->items->all();
+        $item = $attempt->items->first();
 
         $this->expectException(AttemptException::class);
         $this->expectExceptionMessage('question 1');
 
-        (new AttemptRecorder)->answer($item, $other->answer_order[0]);
+        (new AttemptRecorder)->answer($item, 'fausse-99');
     }
 
     public function test_answering_or_bookmarking_after_the_end_is_refused(): void
@@ -166,7 +166,7 @@ class AttemptTest extends TestCase
             }
         }
 
-        $this->assertNull($item->refresh()->chosen_answer_id);
+        $this->assertNull($item->refresh()->chosen_key);
         $this->assertFalse($item->bookmarked);
     }
 
@@ -175,7 +175,7 @@ class AttemptTest extends TestCase
         $questionnaire = Questionnaire::factory()->create(['title' => 'QCM pilote', 'version' => 'v3']);
         $modules = ['Météorologie', 'Météorologie', 'météorologie ', 'Réglementation', null];
         foreach ($modules as $module) {
-            $question = Question::factory()->withAnswers()->create(['bank_id' => null, 'questionnaire_id' => $questionnaire->id, 'module' => $module]);
+            $question = Question::factory()->withAnswers()->create(['bank_id' => CommonBank::default()->id, 'module' => $module]);
             $questionnaire->questions()->attach($question->id);
         }
         $exam = Exam::factory()->for($questionnaire)->create(['title' => 'Blanc n° 1', 'pass_rate' => 60, 'shuffle_questions' => false]);
@@ -248,13 +248,14 @@ class AttemptTest extends TestCase
         $snapshot = $result->refresh()->attributesToArray();
 
         $questionnaire->questions()->each(function (Question $question): void {
-            $question->update(['module' => 'Autre']);
-            $question->answers()->update(['is_correct' => false]);
+            $question->update(['module' => 'Autre', 'payload' => ['correct' => 'Nouvelle réponse', 'wrong' => [['text' => 'Ancienne bonne réponse', 'explanation' => null]], 'shuffle' => true]]);
         });
         $questionnaire->update(['title' => 'Renommé', 'version' => 'v99']);
         $exam->update(['title' => 'Renommé', 'pass_rate' => 100]);
+        $questions = $questionnaire->questions()->get();
         $exam->delete();
         $questionnaire->delete();
+        $questions->each(fn (Question $question) => $question->delete());
 
         $this->assertSame($snapshot, $result->refresh()->attributesToArray());
         $this->assertNull($attempt->refresh()->exam_id);
@@ -376,11 +377,11 @@ class AttemptTest extends TestCase
 
     private function answerCorrectly(AttemptItem $item): void
     {
-        (new AttemptRecorder)->answer($item, (int) Answer::where('question_id', $item->question_id)->where('is_correct', true)->value('id'));
+        (new AttemptRecorder)->answer($item, (string) Question::query()->findOrFail($item->question_id)->correctAnswer?->key);
     }
 
     private function answerWrongly(AttemptItem $item): void
     {
-        (new AttemptRecorder)->answer($item, (int) Answer::where('question_id', $item->question_id)->where('is_correct', false)->value('id'));
+        (new AttemptRecorder)->answer($item, (string) Question::query()->findOrFail($item->question_id)->wrongAnswers->first()?->key);
     }
 }

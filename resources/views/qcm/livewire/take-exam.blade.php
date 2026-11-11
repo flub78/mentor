@@ -136,9 +136,9 @@
 
                     <div class="space-y-2" role="radiogroup" aria-label="Réponses">
                         @foreach ($current['answers'] as $answer)
-                            @php($selected = $current['chosen'] === $answer->id)
+                            @php($selected = $current['chosen'] === $answer->key)
                             <button type="button" role="radio" aria-checked="{{ $selected ? 'true' : 'false' }}"
-                                    wire:click="choose({{ $answer->id }})" wire:key="answer-{{ $answer->id }}"
+                                    wire:click="choose('{{ $answer->key }}')" wire:key="answer-{{ $answer->key }}"
                                     @class([
                                         'flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left',
                                         'border-amber-500 bg-amber-50 ring-1 ring-amber-500' => $selected,
@@ -253,7 +253,7 @@
                             @endif
                             <ul class="space-y-2">
                                 @foreach ($item['answers'] as $answer)
-                                    @php($chosen = $item['chosen'] === $answer->id)
+                                    @php($chosen = $item['chosen'] === $answer->key)
                                     <li @class([
                                         'rounded-lg border px-4 py-2',
                                         'border-green-500 bg-green-50' => $answer->is_correct,

@@ -4,6 +4,7 @@ namespace Tests\Feature\Qcm;
 
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
+use App\Qcm\Questionnaires\UsableQuestions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +24,8 @@ class ModelsTest extends TestCase
     {
         $question = Question::factory()->withAnswers(3)->create();
 
-        $this->assertSame(4, $question->answers()->count());
+        $this->assertSame(4, $question->answers->count());
+        $this->assertSame(['bonne', 'fausse-0', 'fausse-1', 'fausse-2'], $question->answers->pluck('key')->all());
         $this->assertTrue($question->correctAnswer->is_correct);
         $this->assertSame(0, $question->correctAnswer->position);
         $this->assertSame([1, 2, 3], $question->wrongAnswers->pluck('position')->all());
@@ -77,8 +79,28 @@ class ModelsTest extends TestCase
         $bank->delete();
 
         $this->assertModelMissing($question);
-        $this->assertDatabaseMissing('qcm_answers', ['question_id' => $question->id]);
         Storage::disk(Question::IMAGE_DISK)->assertMissing($image);
         $this->assertModelExists($other);
+    }
+
+    public function test_true_false_is_a_two_answer_question_kept_in_order(): void
+    {
+        $question = Question::factory()->trueFalse(false)->create();
+
+        $this->assertSame(['vrai', 'faux'], $question->answers->pluck('key')->all());
+        $this->assertSame('faux', $question->correctAnswer->key);
+        $this->assertFalse($question->shufflesAnswers());
+    }
+
+    public function test_other_types_are_invisible_to_the_qcm_module_and_counted(): void
+    {
+        $bank = Bank::factory()->create();
+        $qcm = Question::factory()->for($bank)->create();
+        \App\Banques\Models\Question::factory()->autoEvaluation()->create(['bank_id' => $bank->id]);
+        \App\Banques\Models\Question::factory()->valeurNumerique()->create(['bank_id' => $bank->id]);
+
+        $this->assertSame([$qcm->id], $bank->questions()->pluck('id')->all());
+        $this->assertSame(2, $bank->ignoredQuestionsCount());
+        $this->assertSame('2 questions n\'étaient pas de type QCM ou vrai / faux et n\'ont pas été utilisées.', UsableQuestions::notice([$bank->id]));
     }
 }

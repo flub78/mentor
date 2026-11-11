@@ -2,7 +2,6 @@
 
 namespace App\Qcm\Exams;
 
-use App\Qcm\Models\Answer;
 use App\Qcm\Models\Attempt;
 use App\Qcm\Models\AttemptItem;
 use App\Qcm\Models\AttemptStatus;
@@ -90,7 +89,7 @@ final class AttemptFinisher
 
     private function writeResult(Attempt $attempt): Result
     {
-        $attempt->load(['items.question', 'items.chosenAnswer', 'exam.questionnaire']);
+        $attempt->load(['items.question', 'exam.questionnaire']);
 
         return $attempt->result()->create([
             ...$this->resultAttributes($attempt->items, $attempt->exam, $attempt->identity, $attempt->started_at),
@@ -101,7 +100,7 @@ final class AttemptFinisher
     /**
      * Contenu du résultat, sans numéro de certificat ni enregistrement (la
      * prévisualisation s'en sert aussi). Les lignes du passage doivent porter
-     * leurs relations `question` et `chosenAnswer`.
+     * leur relation `question`.
      *
      * @param  iterable<AttemptItem>  $items
      * @param  array<string, string>  $identity
@@ -166,12 +165,7 @@ final class AttemptFinisher
 
     private function isCorrect(AttemptItem $item): bool
     {
-        $answer = $item->chosenAnswer;
-
-        return $item->question !== null
-            && $answer instanceof Answer
-            && $answer->question_id === $item->question_id
-            && $answer->is_correct;
+        return $item->question !== null && $item->chosenAnswer()?->is_correct === true;
     }
 
     private static function rate(int $correct, int $total): float

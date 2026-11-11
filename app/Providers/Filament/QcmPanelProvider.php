@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Banques\Filament\BanquesPlugin;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationItem;
@@ -44,6 +45,7 @@ class QcmPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Qcm/Filament/Widgets'), for: 'App\Qcm\Filament\Widgets')
+            ->plugin(BanquesPlugin::make())
             ->navigationItems([
                 NavigationItem::make('leitner')
                     ->label('Module Leitner')

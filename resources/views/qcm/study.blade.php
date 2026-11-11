@@ -19,10 +19,14 @@
             @else
                 <div style="{{ $stack }} gap: .5rem;">
                     @foreach ($banks as $bankItem)
-                        <label style="{{ $row }}" wire:key="bank-{{ $bankItem->id }}">
-                            <x-filament::input.checkbox wire:model.live="selectedBanks" value="{{ $bankItem->id }}" />
+                        @php($ignored = $bankItem->ignoredQuestionsCount())
+                        <label style="{{ $row }} {{ $bankItem->questions_count === 0 ? 'opacity: .5;' : '' }}" wire:key="bank-{{ $bankItem->id }}">
+                            <x-filament::input.checkbox wire:model.live="selectedBanks" value="{{ $bankItem->id }}" :disabled="$bankItem->questions_count === 0" />
                             <span>{{ $bankItem->name }}</span>
                             <x-filament::badge color="gray">{{ $bankItem->questions_count }} question(s)</x-filament::badge>
+                            @if ($ignored > 0)
+                                <x-filament::badge color="warning">{{ $ignored }} d'un autre type, non utilisée(s)</x-filament::badge>
+                            @endif
                         </label>
                     @endforeach
                 </div>
@@ -100,12 +104,12 @@
 
                     <div style="{{ $stack }} gap: .6rem;" role="radiogroup" aria-label="Réponses">
                         @foreach ($this->currentAnswers($question) as $answer)
-                            @php($isChosen = $answered && $session->responses[$question->id] === $answer->id)
-                            <div wire:key="answer-{{ $answer->id }}" style="{{ $stack }} gap: .25rem;">
+                            @php($isChosen = $answered && $session->responses[$question->id] === $answer->key)
+                            <div wire:key="answer-{{ $answer->key }}" style="{{ $stack }} gap: .25rem;">
                                 <label style="{{ $row }} gap: .5rem; cursor: {{ $answered ? 'default' : 'pointer' }};">
                                     <x-filament::input.radio
                                         name="choice"
-                                        value="{{ $answer->id }}"
+                                        value="{{ $answer->key }}"
                                         wire:model="choice"
                                         :disabled="$answered"
                                     />

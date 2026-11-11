@@ -73,16 +73,7 @@ class QuestionnaireResource extends Resource
     {
         return DeleteAction::make()
             ->modalHeading(fn (Questionnaire $record): string => "Supprimer le questionnaire « {$record->title} » ?")
-            ->modalDescription(function (Questionnaire $record): string {
-                $own = $record->ownQuestions()->count();
-                $total = $record->questions()->count();
-
-                return match ($own) {
-                    0 => 'Aucune question propre ne sera supprimée.',
-                    1 => 'Sa question propre sera définitivement supprimée.',
-                    default => "Ses {$own} questions propres seront définitivement supprimées.",
-                }.($total > $own ? ' Les questions prises dans des banques y restent.' : '');
-            })
+            ->modalDescription('Ses questions restent dans leurs banques ; seule la liste du questionnaire est supprimée.')
             ->before(function (DeleteAction $action, Questionnaire $record): void {
                 $exams = $record->exams()->pluck('title')->all();
 

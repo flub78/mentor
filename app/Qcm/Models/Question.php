@@ -2,82 +2,125 @@
 
 namespace App\Qcm\Models;
 
+use App\Banques\Models\Question as BankQuestion;
+use App\Banques\Questions\Handlers\QcmHandler;
+use App\Banques\Questions\QuestionType;
 use Database\Factories\Qcm\QuestionFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Laraskel\Users\Models\Concerns\TracksAuthor;
-use LogicException;
+use Illuminate\Support\Collection;
 
 /**
- * Question à choix multiples : une bonne réponse, au moins une mauvaise
- * (PRD QCM §3, UC-04). Elle appartient soit à une banque, soit, question
- * propre, à un questionnaire : exactement l'un des deux.
+ * Question posée par le module QCM (PRD QCM §3, §6) : question du module
+ * Banques de type QCM, ou vrai / faux présenté comme un QCM à deux réponses.
+ * Les autres types ne sont pas visibles par ce modèle.
  *
- * @property int $id
- * @property int|null $bank_id
- * @property int|null $questionnaire_id
- * @property string $statement
- * @property string|null $module
- * @property string|null $explanation
- * @property string|null $image_path
+ * @property string|null $module thème de la question
+ * @property-read Collection<int, Answer> $answers bonne réponse puis mauvaises, dans l'ordre
+ * @property-read Answer|null $correctAnswer
+ * @property-read Collection<int, Answer> $wrongAnswers
  */
 #[UseFactory(QuestionFactory::class)]
-class Question extends Model
+class Question extends BankQuestion
 {
-    /** @use HasFactory<QuestionFactory> */
-    use HasFactory, TracksAuthor;
+    /**
+     * `module` en plus des champs du module Banques : nom historique du thème.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'bank_id', 'type', 'statement', 'payload', 'explanation',
+        'difficulty', 'theme', 'module', 'image_path', 'image_alt',
+    ];
 
-    /** Disque de stockage des images des questions. */
-    public const IMAGE_DISK = 'public';
-
-    /** Répertoire des images sur le disque. */
-    public const IMAGE_DIRECTORY = 'qcm/images';
-
-    protected $table = 'qcm_questions';
-
-    protected $fillable = ['bank_id', 'questionnaire_id', 'statement', 'module', 'explanation', 'image_path'];
+    /** Types posés par le module QCM. */
+    public const USABLE_TYPES = [QuestionType::Qcm, QuestionType::VraiFaux];
 
     protected static function booted(): void
     {
-        static::saving(function (Question $question): void {
-            if (($question->bank_id === null) === ($question->questionnaire_id === null)) {
-                throw new LogicException('Une question appartient soit à une banque, soit à un questionnaire (question propre) : exactement l\'un des deux doit être renseigné.');
-            }
-        });
+        parent::booted();
 
-        static::updated(function (Question $question): void {
-            if ($question->wasChanged('image_path')) {
-                self::deleteImage($question->getOriginal('image_path'));
-            }
-        });
-
-        static::deleted(function (Question $question): void {
-            self::deleteImage($question->image_path);
+        static::addGlobalScope('qcm-types', function (Builder $query): void {
+            $query->whereIn($query->qualifyColumn('type'), array_map(fn (QuestionType $type): string => $type->value, self::USABLE_TYPES));
         });
     }
 
     /**
-     * Module en texte libre : espaces de bord retirés, vide ramené à « sans module ».
+     * Le module d'une question QCM est son thème dans le module Banques.
      *
      * @return Attribute<string|null, string|null>
      */
     protected function module(): Attribute
     {
         return Attribute::make(
-            set: function (?string $value): ?string {
+            get: fn (): ?string => $this->theme,
+            set: function (?string $value): array {
                 $value = $value === null ? null : trim($value);
 
-                return $value === '' ? null : $value;
+                return ['theme' => $value === '' ? null : $value];
             },
         );
+    }
+
+    /**
+     * @return Attribute<Collection<int, Answer>, never>
+     */
+    protected function answers(): Attribute
+    {
+        return Attribute::make(get: function (): Collection {
+            if ($this->type === QuestionType::VraiFaux) {
+                $value = (bool) ($this->payload['value'] ?? false);
+
+                return new Collection([
+                    new Answer('vrai', 'Vrai', $value, null, 0),
+                    new Answer('faux', 'Faux', ! $value, null, 1),
+                ]);
+            }
+
+            $answers = [new Answer(QcmHandler::CORRECT_KEY, (string) ($this->payload['correct'] ?? ''), true, null, 0)];
+
+            foreach (array_values($this->payload['wrong'] ?? []) as $index => $wrong) {
+                $answers[] = new Answer(QcmHandler::WRONG_KEY_PREFIX.$index, (string) $wrong['text'], false, $wrong['explanation'] ?? null, $index + 1);
+            }
+
+            return new Collection($answers);
+        });
+    }
+
+    /**
+     * @return Attribute<Answer|null, never>
+     */
+    protected function correctAnswer(): Attribute
+    {
+        return Attribute::make(get: fn (): ?Answer => $this->answers->firstWhere('is_correct', true));
+    }
+
+    /**
+     * @return Attribute<Collection<int, Answer>, never>
+     */
+    protected function wrongAnswers(): Attribute
+    {
+        return Attribute::make(get: fn (): Collection => $this->answers->where('is_correct', false)->values());
+    }
+
+    /**
+     * Réponse proposée de clé donnée, ou null.
+     */
+    public function answer(?string $key): ?Answer
+    {
+        return $key === null ? null : $this->answers->firstWhere('key', $key);
+    }
+
+    /**
+     * Les réponses peuvent-elles être mélangées à l'affichage ? « Vrai » et
+     * « Faux » gardent leur ordre (PRD QCM §6).
+     */
+    public function shufflesAnswers(): bool
+    {
+        return $this->type === QuestionType::Qcm && (bool) ($this->payload['shuffle'] ?? true);
     }
 
     /**
@@ -89,89 +132,15 @@ class Question extends Model
     }
 
     /**
-     * Questionnaire propriétaire d'une question propre.
-     *
-     * @return BelongsTo<Questionnaire, $this>
-     */
-    public function questionnaire(): BelongsTo
-    {
-        return $this->belongsTo(Questionnaire::class);
-    }
-
-    /**
      * Questionnaires dont la liste contient la question.
      *
      * @return BelongsToMany<Questionnaire, $this, QuestionnaireQuestion, 'pivot'>
      */
     public function questionnaires(): BelongsToMany
     {
-        return $this->belongsToMany(Questionnaire::class, 'qcm_questionnaire_questions')
+        return $this->belongsToMany(Questionnaire::class, 'qcm_questionnaire_questions', 'question_id')
             ->using(QuestionnaireQuestion::class)
             ->withPivot('id', 'position')
             ->withTimestamps();
-    }
-
-    /**
-     * Question propre à un questionnaire, hors de toute banque.
-     */
-    public function isOwn(): bool
-    {
-        return $this->questionnaire_id !== null;
-    }
-
-    /**
-     * Copie indépendante de la question, réponses et image comprises
-     * (PRD QCM UC-05, UC-08 3a).
-     *
-     * @param  array{bank_id?: int|null, questionnaire_id?: int|null}  $owner
-     */
-    public function duplicate(array $owner): self
-    {
-        $copy = $this->replicate(['bank_id', 'questionnaire_id', 'image_path', 'created_by', 'updated_by']);
-        $copy->fill(['bank_id' => null, 'questionnaire_id' => null, ...$owner]);
-
-        if ($this->image_path !== null && Storage::disk(self::IMAGE_DISK)->exists($this->image_path)) {
-            $copy->image_path = self::IMAGE_DIRECTORY.'/'.Str::ulid()->toBase32().'.'.pathinfo($this->image_path, PATHINFO_EXTENSION);
-            Storage::disk(self::IMAGE_DISK)->copy($this->image_path, $copy->image_path);
-        }
-
-        $copy->save();
-
-        foreach ($this->answers as $answer) {
-            $copy->answers()->create($answer->only(['text', 'is_correct', 'explanation', 'position']));
-        }
-
-        return $copy;
-    }
-
-    /**
-     * @return HasMany<Answer, $this>
-     */
-    public function answers(): HasMany
-    {
-        return $this->hasMany(Answer::class)->orderBy('position');
-    }
-
-    /**
-     * @return HasOne<Answer, $this>
-     */
-    public function correctAnswer(): HasOne
-    {
-        return $this->hasOne(Answer::class)->where('is_correct', true);
-    }
-
-    /**
-     * @return HasMany<Answer, $this>
-     */
-    public function wrongAnswers(): HasMany
-    {
-        return $this->hasMany(Answer::class)->where('is_correct', false)->orderBy('position');
-    }
-
-    private static function deleteImage(mixed $path): void
-    {
-        if (is_string($path) && $path !== '') {
-            Storage::disk(self::IMAGE_DISK)->delete($path);
-        }
     }
 }

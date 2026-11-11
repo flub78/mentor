@@ -2,18 +2,18 @@
 
 namespace App\Qcm\Filament\Resources\Questionnaires\RelationManagers;
 
-use App\Qcm\Filament\Resources\Banks\BankResource;
+use App\Banques\Filament\Resources\Banks\BankResource;
+use App\Banques\Filament\Schemas\QuestionFormSchema;
+use App\Banques\Models\Bank as CommonBank;
 use App\Qcm\Filament\Schemas\DrawQuestionsForm;
-use App\Qcm\Filament\Schemas\QuestionFormSchema;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
 use App\Qcm\Models\Questionnaire;
 use App\Qcm\Questionnaires\QuestionnaireComposer;
+use App\Qcm\Questionnaires\UsableQuestions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DetachAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -28,8 +28,10 @@ use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
 /**
- * Questions d'un questionnaire (PRD QCM UC-08) : questions propres, saisies
- * ici, et questions de banque, choisies ou tirées au hasard ; liste ordonnée.
+ * Questions d'un questionnaire (PRD QCM UC-08) : questions des banques,
+ * nouvelles (rangées dans une banque, par défaut la banque par défaut),
+ * choisies ou tirées au hasard ; liste ordonnée. Une question se modifie dans
+ * sa banque.
  */
 class QuestionsRelationManager extends RelationManager
 {
@@ -44,10 +46,16 @@ class QuestionsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components(QuestionFormSchema::components(
-                fn (): array => $this->questionnaire()->moduleNames(),
-                'Thème de la question. Reprenez un nom déjà utilisé dans le questionnaire pour regrouper les questions.',
-            ))
+            ->components([
+                Select::make('bank_id')
+                    ->label('Banque où ranger la question')
+                    ->helperText('Toute question vit dans une banque ; à défaut, la banque par défaut, d\'où vous pourrez la déplacer.')
+                    ->options(fn (): array => CommonBank::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->default(fn (): int => CommonBank::default()->id)
+                    ->required()
+                    ->validationMessages(['required' => 'Choisissez la banque où ranger la question.']),
+                ...QuestionFormSchema::components(fn (): array => $this->questionnaire()->moduleNames(), Question::USABLE_TYPES),
+            ])
             ->columns(1);
     }
 
@@ -61,50 +69,43 @@ class QuestionsRelationManager extends RelationManager
                     ->label('Énoncé')
                     ->limit(80)
                     ->wrap(),
+                TextColumn::make('type')
+                    ->label('Type')
+                    ->badge(),
                 TextColumn::make('module')
                     ->label('Module')
                     ->placeholder('Sans module')
                     ->badge(),
-                TextColumn::make('origin')
-                    ->label('Origine')
-                    ->state(fn (Question $record): string => $record->isOwn() ? 'Question propre' : 'Banque « '.$record->bank?->name.' »')
-                    ->color(fn (Question $record): string => $record->isOwn() ? 'gray' : 'info')
+                TextColumn::make('bank.name')
+                    ->label('Banque')
+                    ->color('info')
                     ->badge(),
             ])
             ->modifyQueryUsing(fn ($query) => $query->with('bank'))
             ->headerActions([
                 CreateAction::make()
                     ->label('Nouvelle question')
-                    ->modalHeading('Nouvelle question propre')
+                    ->modalHeading('Nouvelle question')
                     ->modalWidth(Width::ThreeExtraLarge)
-                    ->mutateDataUsing(fn (array $data): array => [
-                        ...$data,
-                        'bank_id' => null,
-                        'questionnaire_id' => $this->questionnaire()->id,
-                    ]),
+                    ->successNotification(fn (Question $record): Notification => Notification::make()
+                        ->success()
+                        ->title('Question créée')
+                        ->body('Elle est rangée dans la banque « '.$record->bank?->name.' ».')),
                 $this->addFromBankAction(),
                 $this->drawAction(),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->modalWidth(Width::ThreeExtraLarge)
-                    ->visible(fn (Question $record): bool => $record->isOwn()),
                 Action::make('openBank')
                     ->label('Modifier dans la banque')
                     ->icon(Heroicon::OutlinedPencilSquare)
-                    ->url(fn (Question $record): ?string => $record->bank_id === null ? null : BankResource::getUrl('edit', ['record' => $record->bank_id]))
-                    ->visible(fn (Question $record): bool => ! $record->isOwn()),
+                    ->url(fn (Question $record): string => BankResource::getUrl('edit', ['record' => $record->bank_id])),
                 DetachAction::make()
                     ->label('Retirer')
                     ->modalHeading('Retirer la question du questionnaire ?')
-                    ->modalDescription(fn (Question $record): string => 'La question reste dans la banque « '.$record->bank?->name.' ».')
-                    ->visible(fn (Question $record): bool => ! $record->isOwn()),
-                DeleteAction::make()
-                    ->modalDescription('Cette question propre et ses réponses seront définitivement supprimées.')
-                    ->visible(fn (Question $record): bool => $record->isOwn()),
+                    ->modalDescription(fn (Question $record): string => 'La question reste dans la banque « '.$record->bank?->name.' ».'),
             ])
             ->emptyStateHeading('Aucune question')
-            ->emptyStateDescription('Saisissez une question propre, ajoutez des questions d\'une banque, ou tirez-en au hasard.');
+            ->emptyStateDescription('Saisissez une nouvelle question, ajoutez des questions d\'une banque, ou tirez-en au hasard.');
     }
 
     private function addFromBankAction(): Action
@@ -118,6 +119,7 @@ class QuestionsRelationManager extends RelationManager
                 Select::make('bank_id')
                     ->label('Banque')
                     ->options(fn (): array => Bank::query()->has('questions')->orderBy('name')->pluck('name', 'id')->all())
+                    ->helperText(fn (Get $get): ?string => is_numeric($get('bank_id')) ? UsableQuestions::notice([(int) $get('bank_id')]) : null)
                     ->required()
                     ->live()
                     ->afterStateUpdated(function (Set $set): void {
@@ -146,7 +148,11 @@ class QuestionsRelationManager extends RelationManager
                     array_map('intval', (array) $data['question_ids']),
                 );
 
-                Notification::make()->success()->title("{$added} question(s) ajoutée(s)")->send();
+                Notification::make()
+                    ->success()
+                    ->title("{$added} question(s) ajoutée(s)")
+                    ->body(UsableQuestions::notice([(int) $data['bank_id']]))
+                    ->send();
             });
     }
 
@@ -161,11 +167,12 @@ class QuestionsRelationManager extends RelationManager
             ->action(function (array $data): void {
                 $request = DrawQuestionsForm::request($data);
                 $result = (new QuestionnaireComposer)->addDrawnQuestions($this->questionnaire(), $request['bankIds'], $request['requested']);
+                $body = trim(DrawQuestionsForm::reducedMessage($request['bankIds'], $result['reduced']).' '.UsableQuestions::notice($request['bankIds']));
 
                 Notification::make()
                     ->success()
                     ->title("{$result['added']} question(s) tirée(s) et ajoutée(s)")
-                    ->body(DrawQuestionsForm::reducedMessage($request['bankIds'], $result['reduced']))
+                    ->body($body === '' ? null : $body)
                     ->send();
             });
     }
@@ -179,14 +186,14 @@ class QuestionsRelationManager extends RelationManager
             return [];
         }
 
-        $present = $this->questionnaire()->questions()->pluck('qcm_questions.id')->all();
+        $present = $this->questionnaire()->questions()->pluck('banques_questions.id')->all();
 
         return Question::query()
             ->where('bank_id', (int) $bankId)
-            ->when(filled($module), fn ($query) => $query->where('module', $module))
+            ->when(filled($module), fn ($query) => $query->where('theme', $module))
             ->whereKeyNot($present)
             ->orderBy('id')
-            ->get(['id', 'statement', 'module'])
+            ->get(['id', 'type', 'statement', 'theme'])
             ->mapWithKeys(fn (Question $question): array => [
                 $question->id => Str::limit($question->statement, 100).($question->module === null ? '' : " ({$question->module})"),
             ])

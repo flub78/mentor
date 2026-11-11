@@ -19,13 +19,12 @@ use Laraskel\Users\Models\Concerns\TracksAuthor;
  * @property int $attempt_id
  * @property int $position
  * @property int|null $question_id null si la question a été supprimée depuis
- * @property list<int> $answer_order identifiants des réponses dans l'ordre affiché
- * @property int|null $chosen_answer_id
+ * @property list<string> $answer_order clés des réponses dans l'ordre affiché
+ * @property string|null $chosen_key clé de la réponse choisie
  * @property bool $bookmarked
  * @property CarbonInterface|null $answered_at
  * @property-read Attempt $attempt
  * @property-read Question|null $question
- * @property-read Answer|null $chosenAnswer
  */
 #[UseFactory(AttemptItemFactory::class)]
 class AttemptItem extends Model
@@ -35,7 +34,7 @@ class AttemptItem extends Model
 
     protected $table = 'qcm_attempt_items';
 
-    protected $fillable = ['attempt_id', 'position', 'question_id', 'answer_order', 'chosen_answer_id', 'bookmarked', 'answered_at'];
+    protected $fillable = ['attempt_id', 'position', 'question_id', 'answer_order', 'chosen_key', 'bookmarked', 'answered_at'];
 
     protected function casts(): array
     {
@@ -43,7 +42,6 @@ class AttemptItem extends Model
             'position' => 'integer',
             'question_id' => 'integer',
             'answer_order' => 'array',
-            'chosen_answer_id' => 'integer',
             'bookmarked' => 'boolean',
             'answered_at' => 'datetime',
         ];
@@ -66,15 +64,15 @@ class AttemptItem extends Model
     }
 
     /**
-     * @return BelongsTo<Answer, $this>
+     * Réponse choisie par le candidat, ou null.
      */
-    public function chosenAnswer(): BelongsTo
+    public function chosenAnswer(): ?Answer
     {
-        return $this->belongsTo(Answer::class, 'chosen_answer_id');
+        return $this->question?->answer($this->chosen_key);
     }
 
     public function isAnswered(): bool
     {
-        return $this->chosen_answer_id !== null;
+        return $this->chosen_key !== null;
     }
 }

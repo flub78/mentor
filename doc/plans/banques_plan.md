@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 à B3 livrées
+- **Statut** : lot B1 en cours — étapes B1 à B4 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -114,20 +114,24 @@ Avant la bascule du module QCM, pour que l'import et l'export des banques ne dis
 
 ### Étape B4 — Bascule du module QCM sur les banques communes
 
-- [ ] Approche retenue pour limiter la réécriture : `App\Qcm\Models\Question` et `Bank` deviennent des sous-classes des modèles du module Banques (mêmes tables, portée limitée aux types QCM et vrai / faux, accesseurs `module` → `theme`, `answers`, `correctAnswer`, `wrongAnswers` calculés depuis la réponse attendue) ; `Answer` devient un objet sans table, identifié par une clé stable (`bonne`, `fausse-0`, `vrai`, `faux`) ; seuls les usages d'identifiants de réponse (étude, passages, correction), la création des questions de questionnaire et les échanges de questionnaires sont réécrits.
-- [ ] **Sauvegarde** de `database/database.sqlite` avant de migrer ; procédure notée dans le README.
-- [ ] Migration de bascule : clés étrangères de `qcm_questionnaire_questions.question_id` et `qcm_attempt_items.question_id` vers `banques_questions` ; reprise par `QcmToBanquesTransfer` ; liens des questionnaires réécrits avec la correspondance ; détail des passages terminés supprimé ; `qcm_attempt_items.chosen_key` ajouté (remplace `chosen_answer_id`, supprimé à l'étape B5).
-- [ ] Étude libre (`ModuleCatalog`, `StudyDraw`, page d'étude) : questions des banques communes, thème comme module, filtre `UsableQuestions` et avertissement.
-- [ ] Questionnaires : plus de questions propres ; « Nouvelle question » crée dans la banque choisie (par défaut la banque par défaut) et le message le dit ; ajout et tirage avec avertissement ; duplication et suppression sans questions propres.
-- [ ] Passages et correction (`AttemptStarter`, `AttemptRecorder`, `AttemptFinisher`, `TakeExam`) : propositions par clés, vrai / faux comme QCM à deux réponses non mélangé.
-- [ ] Export et import des questionnaires et des examens sur l'interface d'échange du module Banques ; l'import crée ses questions dans la banque choisie.
-- [ ] Implémentation QCM de `QuestionUsage` (questionnaires qui utilisent une question ou une banque) ; `BanquesPlugin` enregistré dans le panel `qcm` ; ressource des banques et gestionnaire de questions du module QCM retirés.
-- [ ] Tests QCM existants adaptés ; nouveaux tests : migration de bascule sur un jeu de données (liens des questionnaires conservés) ; vrai / faux en étude, en questionnaire et en passage ; avertissement avec le nombre de questions écartées ; banque sans question utilisable grisée.
-- [ ] `composer qa` vert ; commit.
+Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes des modèles du module Banques (portée QCM et vrai / faux, accesseurs `module`, `answers`, `correctAnswer`, `wrongAnswers`) ; `Answer` est un objet sans table, identifié par une clé ; les passages et l'étude enregistrent des clés de réponse.
+
+
+- [x] Approche retenue pour limiter la réécriture : `App\Qcm\Models\Question` et `Bank` deviennent des sous-classes des modèles du module Banques (mêmes tables, portée limitée aux types QCM et vrai / faux, accesseurs `module` → `theme`, `answers`, `correctAnswer`, `wrongAnswers` calculés depuis la réponse attendue) ; `Answer` devient un objet sans table, identifié par une clé stable (`bonne`, `fausse-0`, `vrai`, `faux`) ; seuls les usages d'identifiants de réponse (étude, passages, correction), la création des questions de questionnaire et les échanges de questionnaires sont réécrits.
+- [x] **Sauvegarde** de `database/database.sqlite` avant de migrer ; procédure notée dans le README.
+- [x] Migration de bascule : clés étrangères de `qcm_questionnaire_questions.question_id` et `qcm_attempt_items.question_id` vers `banques_questions` ; reprise par `QcmToBanquesTransfer` ; liens des questionnaires réécrits avec la correspondance ; détail des passages terminés supprimé ; `qcm_attempt_items.chosen_key` ajouté (remplace `chosen_answer_id`, supprimé à l'étape B5).
+- [x] Étude libre (`ModuleCatalog`, `StudyDraw`, page d'étude) : questions des banques communes, thème comme module, filtre `UsableQuestions` et avertissement.
+- [x] Questionnaires : plus de questions propres ; « Nouvelle question » crée dans la banque choisie (par défaut la banque par défaut) et le message le dit ; ajout et tirage avec avertissement ; duplication et suppression sans questions propres.
+- [x] Passages et correction (`AttemptStarter`, `AttemptRecorder`, `AttemptFinisher`, `TakeExam`) : propositions par clés, vrai / faux comme QCM à deux réponses non mélangé.
+- [x] Export et import des questionnaires et des examens sur l'interface d'échange du module Banques ; l'import crée ses questions dans la banque choisie et écarte les autres types avec l'avertissement. Le code d'échange des banques du module QCM (`QuestionCsv`, `ExchangeFile`, `ExchangeWriter`, `ImportReport`, `QuestionPersister`, import et export des banques) est supprimé dès cette étape, ses tests de format déplacés dans `tests/Feature/Banques/ArchiveFormatTest.php`.
+- [x] Implémentation QCM de `QuestionUsage` (`QcmQuestionUsage` : questionnaires qui utilisent une question ou une banque) ; `BanquesPlugin` enregistré dans le panel `qcm` ; ressource des banques et gestionnaire de questions du module QCM retirés.
+- [x] Tests QCM existants adaptés ; nouveaux tests : migration de bascule sur un jeu de données (liens des questionnaires conservés) ; vrai / faux en étude, en questionnaire et en passage ; avertissement avec le nombre de questions écartées ; banque sans question utilisable grisée.
+- [x] Migration appliquée à la base de développement après sauvegarde (`database/database.sqlite.avant-b4`) : 37 questions reprises, les 36 liens des 3 questionnaires conservés dans le même ordre, examens et résultat intacts ; pages principales des deux panels vérifiées.
+- [x] `composer qa` vert ; commit.
 
 ### Étape B5 — Suppression des anciennes tables QCM
 
-- [ ] Migration qui supprime `qcm_answers`, `qcm_questions`, `qcm_banks` et `qcm_attempt_items.chosen_answer_id`, après vérification que plus aucun code ne les lit (recherche dans `app/` et `tests/`) ; suppression de `App\Qcm\Exchange` et des modèles QCM devenus inutiles.
+- [ ] Migration qui supprime `qcm_answers`, `qcm_questions` et `qcm_banks` (`qcm_attempt_items.chosen_answer_id` l'est déjà à l'étape B4), après vérification que plus aucun code ne les lit (recherche dans `app/` et `tests/`) (le code d'échange QCM des banques est déjà supprimé à l'étape B4) ; suppression du test `QcmToBanquesTransferTest`, qui écrit dans ces tables ; le service `QcmToBanquesTransfer` reste, appelé par la migration de bascule sur une base neuve.
 - [ ] `composer qa` vert ; commit.
 
 ### Étape B6 — Déplacer et copier des questions (UC-03)

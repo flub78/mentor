@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laraskel\Users\Models\Concerns\TracksAuthor;
 
 /**
- * Questionnaire : liste ordonnée de questions, propres ou prises dans une
- * banque (PRD QCM §3, UC-08).
+ * Questionnaire : liste ordonnée de questions prises dans les banques du
+ * module Banques (PRD QCM §3, UC-08).
  *
  * @property int $id
  * @property string $title
@@ -33,42 +33,30 @@ class Questionnaire extends Model
     protected static function booted(): void
     {
         // Un questionnaire utilisé par un examen ne se supprime pas (PRD QCM
-        // UC-08, 3b). Sinon, ses questions propres sont supprimées une à une
-        // pour effacer leurs images ; la liste suit par la cascade de la base.
+        // UC-08, 3b). Ses questions restent dans leurs banques ; la liste suit
+        // par la cascade de la base.
         static::deleting(function (Questionnaire $questionnaire): void {
             $exams = $questionnaire->exams()->pluck('title')->all();
 
             if ($exams !== []) {
                 throw QuestionnaireInUseException::usedBy($questionnaire, $exams);
             }
-
-            $questionnaire->ownQuestions()->each(fn (Question $question) => $question->delete());
         });
     }
 
     /**
-     * Toutes les questions, propres et de banque, dans l'ordre du questionnaire.
+     * Questions dans l'ordre du questionnaire.
      *
      * @return BelongsToMany<Question, $this, QuestionnaireQuestion, 'pivot'>
      */
     public function questions(): BelongsToMany
     {
-        return $this->belongsToMany(Question::class, 'qcm_questionnaire_questions')
+        return $this->belongsToMany(Question::class, 'qcm_questionnaire_questions', 'questionnaire_id', 'question_id')
             ->using(QuestionnaireQuestion::class)
             ->withPivot('id', 'position')
             ->withTimestamps()
             ->orderByPivot('position')
             ->orderByPivot('id');
-    }
-
-    /**
-     * Questions propres : saisies dans le questionnaire, hors de toute banque.
-     *
-     * @return HasMany<Question, $this>
-     */
-    public function ownQuestions(): HasMany
-    {
-        return $this->hasMany(Question::class);
     }
 
     /**
@@ -80,8 +68,8 @@ class Questionnaire extends Model
     }
 
     /**
-     * Noms de module utilisés par les questions du questionnaire, sans doublon
-     * et triés, proposés à la saisie d'une question propre (PRD QCM UC-04).
+     * Noms de module (thèmes) utilisés par les questions du questionnaire,
+     * sans doublon et triés, proposés à la saisie d'une question (PRD QCM UC-08).
      *
      * @return list<string>
      */
@@ -89,10 +77,10 @@ class Questionnaire extends Model
     {
         return $this->questions()
             ->reorder()
-            ->whereNotNull('module')
+            ->whereNotNull('theme')
             ->distinct()
-            ->orderBy('module')
-            ->pluck('module')
+            ->orderBy('theme')
+            ->pluck('theme')
             ->values()
             ->all();
     }

@@ -4,7 +4,6 @@ namespace Tests\Feature\Qcm;
 
 use App\Qcm\Filament\Resources\Exams\Pages\EditExam;
 use App\Qcm\Livewire\TakeExam;
-use App\Qcm\Models\Answer;
 use App\Qcm\Models\Attempt;
 use App\Qcm\Models\AttemptStatus;
 use App\Qcm\Models\Exam;
@@ -87,8 +86,8 @@ class TakeExamTest extends TestCase
 
         // Les réponses ne peuvent plus changer.
         $component->call('choose', $this->wrongAnswer($first));
-        $this->assertSame($this->correctAnswer($first), $attempt->items()->where('position', 0)->value('chosen_answer_id'));
-        $this->assertNull($attempt->items()->where('question_id', $third->id)->value('chosen_answer_id'));
+        $this->assertSame($this->correctAnswer($first), $attempt->items()->where('position', 0)->value('chosen_key'));
+        $this->assertNull($attempt->items()->where('question_id', $third->id)->value('chosen_key'));
     }
 
     public function test_identification_refuses_missing_or_malformed_fields(): void
@@ -112,8 +111,11 @@ class TakeExamTest extends TestCase
     {
         $exam = $this->exam(['shuffle_questions' => false]);
         foreach ($exam->questionnaire->questions()->get() as $index => $question) {
-            $question->update(['explanation' => "EXPLICATION-GENERALE-$index"]);
-            $question->answers()->each(fn (Answer $answer) => $answer->update(['explanation' => "EXPLICATION-REPONSE-{$answer->id}"]));
+            $payload = $question->payload;
+            foreach (array_keys($payload['wrong']) as $wrong) {
+                $payload['wrong'][$wrong]['explanation'] = "EXPLICATION-REPONSE-{$index}-{$wrong}";
+            }
+            $question->update(['explanation' => "EXPLICATION-GENERALE-$index", 'payload' => $payload]);
         }
 
         $component = $this->identified($exam);
@@ -320,13 +322,13 @@ class TakeExamTest extends TestCase
             ->call('start');
     }
 
-    private function correctAnswer(Question $question): int
+    private function correctAnswer(Question $question): string
     {
-        return (int) $question->answers()->where('is_correct', true)->value('id');
+        return (string) $question->correctAnswer?->key;
     }
 
-    private function wrongAnswer(Question $question): int
+    private function wrongAnswer(Question $question): string
     {
-        return (int) $question->answers()->where('is_correct', false)->value('id');
+        return (string) $question->wrongAnswers->first()?->key;
     }
 }

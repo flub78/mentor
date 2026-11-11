@@ -28,7 +28,7 @@ final class StudyDraw
         $questions = Question::query()
             ->whereIn('bank_id', $bankIds)
             ->when($excludedQuestionIds !== [], fn ($query) => $query->whereKeyNot($excludedQuestionIds))
-            ->get(['id', 'module']);
+            ->get(['id', 'type', 'theme']);
 
         foreach ($questions as $question) {
             $byModule[ModuleCatalog::key($question->module)][] = $question->id;
@@ -70,11 +70,11 @@ final class StudyDraw
     /**
      * Ordre d'affichage mélangé des réponses d'une question.
      *
-     * @param  list<int>  $answerIds
-     * @return list<int>
+     * @param  list<string>  $answerKeys
+     * @return list<string>
      */
-    public function shuffleAnswers(array $answerIds): array
+    public function shuffleAnswers(array $answerKeys): array
     {
-        return $this->randomizer->shuffleArray($answerIds);
+        return $this->randomizer->shuffleArray($answerKeys);
     }
 }

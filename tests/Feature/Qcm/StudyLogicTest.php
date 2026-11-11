@@ -107,13 +107,13 @@ class StudyLogicTest extends TestCase
 
         $session = StudySession::start([$q1->id, $q2->id, $q3->id], ['météo' => 'Météo', 'réglementation' => 'Réglementation'], new StudyDraw);
 
-        $this->assertTrue($session->answer($q1->correctAnswer->id));
+        $this->assertTrue($session->answer($q1->correctAnswer->key));
         $session->next();
-        $this->assertFalse($session->answer($q2->wrongAnswers->first()->id));
+        $this->assertFalse($session->answer($q2->wrongAnswers->first()->key));
         $session->next();
         $this->assertSame(50, $session->percentage());
         $this->assertSame(1, $session->remaining());
-        $this->assertTrue($session->answer($q3->correctAnswer->id));
+        $this->assertTrue($session->answer($q3->correctAnswer->key));
         $session->next();
 
         $this->assertTrue($session->isFinished());
@@ -125,29 +125,28 @@ class StudyLogicTest extends TestCase
         $this->assertSame([$q2->id], $session->failedQuestionIds());
     }
 
-    public function test_session_refuses_an_answer_of_another_question_and_double_answers(): void
+    public function test_session_refuses_an_answer_not_offered_and_double_answers(): void
     {
         $q1 = Question::factory()->withAnswers()->create();
-        $q2 = Question::factory()->withAnswers()->create();
         $session = StudySession::start([$q1->id], ['' => 'Sans module'], new StudyDraw);
 
         try {
-            $session->answer($q2->correctAnswer->id);
-            $this->fail('Une réponse d\'une autre question doit être refusée.');
+            $session->answer('fausse-99');
+            $this->fail('Une réponse non proposée doit être refusée.');
         } catch (\InvalidArgumentException) {
             $this->assertSame(0, $session->answeredCount());
         }
 
-        $session->answer($q1->correctAnswer->id);
+        $session->answer($q1->correctAnswer->key);
         $this->expectException(\InvalidArgumentException::class);
-        $session->answer($q1->correctAnswer->id);
+        $session->answer($q1->correctAnswer->key);
     }
 
     public function test_session_survives_livewire_serialization(): void
     {
         $q = Question::factory()->withAnswers()->create(['module' => 'Météo']);
         $session = StudySession::start([$q->id], ['météo' => 'Météo'], new StudyDraw);
-        $session->answer($q->correctAnswer->id);
+        $session->answer($q->correctAnswer->key);
 
         $copy = StudySession::fromLivewire(json_decode(json_encode($session->toLivewire()), true));
 

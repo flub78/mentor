@@ -8,8 +8,9 @@ use App\Qcm\Study\StudyDraw;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Composition d'un questionnaire (PRD QCM UC-08) : ajout de questions de
- * banque, choisies ou tirées au hasard, et duplication.
+ * Composition d'un questionnaire (PRD QCM UC-08) : ajout de questions des
+ * banques, choisies ou tirées au hasard, et duplication. Seules les questions
+ * QCM et vrai / faux sont utilisées (UsableQuestions).
  */
 final class QuestionnaireComposer
 {
@@ -24,10 +25,9 @@ final class QuestionnaireComposer
      */
     public function addBankQuestions(Questionnaire $questionnaire, array $questionIds): int
     {
-        $present = $questionnaire->questions()->pluck('qcm_questions.id')->all();
+        $present = $questionnaire->questions()->pluck('banques_questions.id')->all();
         $ids = Question::query()
             ->whereKey($questionIds)
-            ->whereNotNull('bank_id')
             ->whereKeyNot($present)
             ->pluck('id')
             ->all();
@@ -55,7 +55,7 @@ final class QuestionnaireComposer
      */
     public function addDrawnQuestions(Questionnaire $questionnaire, array $bankIds, array $requested): array
     {
-        $present = $questionnaire->questions()->pluck('qcm_questions.id')->all();
+        $present = $questionnaire->questions()->pluck('banques_questions.id')->all();
         $result = $this->draw->draw($bankIds, $requested, $present);
 
         return [
@@ -65,8 +65,8 @@ final class QuestionnaireComposer
     }
 
     /**
-     * Copie du questionnaire : questions propres copiées, questions de banque
-     * partagées, même ordre (PRD QCM UC-08, 3a).
+     * Copie du questionnaire : mêmes questions, partagées avec leurs banques,
+     * même ordre (PRD QCM UC-08, 3a).
      */
     public function duplicate(Questionnaire $questionnaire): Questionnaire
     {
@@ -78,8 +78,7 @@ final class QuestionnaireComposer
                 'title' => $questionnaire->title.' (copie)',
             ]);
 
-            foreach ($questionnaire->questions()->with('answers')->get() as $question) {
-                $id = $question->isOwn() ? $question->duplicate(['questionnaire_id' => $copy->id])->id : $question->id;
+            foreach ($questionnaire->questions()->pluck('banques_questions.id') as $id) {
                 $copy->questions()->attach($id);
             }
 

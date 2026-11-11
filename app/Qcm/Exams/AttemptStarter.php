@@ -74,13 +74,13 @@ final class AttemptStarter
      * mélangées selon l'examen, avec leurs réponses toujours mélangées.
      * Rien n'est enregistré (la prévisualisation s'en sert aussi).
      *
-     * @return list<array{question_id: int, answer_order: list<int>}>
+     * @return list<array{question_id: int, answer_order: list<string>}>
      *
      * @throws AttemptException questionnaire vide
      */
     public function compose(Exam $exam): array
     {
-        $questions = $exam->questionnaire->questions()->with('answers')->get()->all();
+        $questions = $exam->questionnaire->questions()->get()->all();
 
         if ($questions === []) {
             throw AttemptException::emptyQuestionnaire($exam);
@@ -92,7 +92,9 @@ final class AttemptStarter
 
         return array_map(fn (Question $question): array => [
             'question_id' => $question->id,
-            'answer_order' => array_map(intval(...), $this->randomizer->shuffleArray($question->answers->modelKeys())),
+            'answer_order' => $question->shufflesAnswers()
+                ? $this->randomizer->shuffleArray($question->answers->pluck('key')->all())
+                : $question->answers->pluck('key')->all(),
         ], array_values($questions));
     }
 

@@ -17,7 +17,7 @@ final class ExchangeWriter
     /**
      * CSV des questions, sans illustration.
      *
-     * @param  Collection<int, Question>  $questions
+     * @param  Collection<int, covariant Question>  $questions
      */
     public function csv(Collection $questions): string
     {
@@ -27,7 +27,7 @@ final class ExchangeWriter
     /**
      * Archive ZIP dans un fichier temporaire ; l'appelant le supprime après envoi.
      *
-     * @param  Collection<int, Question>  $questions
+     * @param  Collection<int, covariant Question>  $questions
      * @param  array<string, mixed>|null  $parameters  contenu du fichier de paramètres, sans la version du format
      * @return string chemin du fichier temporaire
      */

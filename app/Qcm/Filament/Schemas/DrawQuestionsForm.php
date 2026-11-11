@@ -3,6 +3,7 @@
 namespace App\Qcm\Filament\Schemas;
 
 use App\Qcm\Models\Bank;
+use App\Qcm\Questionnaires\UsableQuestions;
 use App\Qcm\Study\ModuleCatalog;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Field;
@@ -125,6 +126,11 @@ final class DrawQuestionsForm
         }
 
         $fields = [Text::make('Pour chaque module, indiquez le nombre de questions à tirer, ou cochez « Toutes ». Les questions déjà présentes dans le questionnaire ne sont pas tirées de nouveau.')];
+        $notice = UsableQuestions::notice($bankIds);
+
+        if ($notice !== null) {
+            $fields[] = Text::make($notice)->color('warning');
+        }
 
         foreach ($modules as $index => $module) {
             $fields[] = Grid::make(2)->schema([

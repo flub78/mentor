@@ -2,6 +2,7 @@
 
 namespace Database\Factories\Qcm;
 
+use App\Banques\Models\Bank as CommonBank;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
 use App\Qcm\Models\Questionnaire;
@@ -24,14 +25,14 @@ class QuestionnaireFactory extends Factory
     }
 
     /**
-     * Ajoute `$count` questions propres complètes (une bonne réponse, trois mauvaises).
+     * Ajoute `$count` questions complètes créées depuis le questionnaire,
+     * donc rangées dans la banque par défaut (PRD QCM UC-08).
      */
     public function withOwnQuestions(int $count = 3): static
     {
         return $this->afterCreating(function (Questionnaire $questionnaire) use ($count): void {
             $questions = Question::factory()->count($count)->withAnswers()->create([
-                'bank_id' => null,
-                'questionnaire_id' => $questionnaire->id,
+                'bank_id' => CommonBank::default()->id,
             ]);
             $questionnaire->questions()->attach($questions->modelKeys());
         });

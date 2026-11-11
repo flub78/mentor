@@ -2,7 +2,7 @@
 
 namespace App\Qcm\Exams;
 
-use App\Qcm\Exchange\QuestionCsv;
+use App\Banques\Exchange\QuestionCsv;
 use App\Qcm\Models\Result;
 use App\Qcm\Study\ModuleCatalog;
 

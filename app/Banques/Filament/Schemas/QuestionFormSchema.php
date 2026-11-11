@@ -24,20 +24,22 @@ final class QuestionFormSchema
 {
     /**
      * @param  Closure(): list<string>  $themeNames  thèmes proposés à la saisie
+     * @param  list<QuestionType>|null  $types  types proposés ; null = tous (un module qui n'en pose que certains les restreint)
      * @return list<Component|Field>
      */
-    public static function components(Closure $themeNames): array
+    public static function components(Closure $themeNames, ?array $types = null): array
     {
+        $types ??= QuestionType::cases();
         $typeSections = array_map(
             fn (QuestionType $type): Group => Group::make($type->handler()->formSchema())
                 ->visible(fn (Get $get): bool => self::selectedType($get) === $type),
-            QuestionType::cases(),
+            $types,
         );
 
         return [
             Select::make('type')
                 ->label('Type de question')
-                ->options(QuestionType::class)
+                ->options(collect($types)->mapWithKeys(fn (QuestionType $type): array => [$type->value => $type->getLabel()])->all())
                 ->default(QuestionType::Qcm->value)
                 ->selectablePlaceholder(false)
                 ->required()

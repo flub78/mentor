@@ -19,6 +19,15 @@ php artisan serve
 
 L'application s'ouvre sur le module QCM (`/qcm`). Le MVP n'a pas de connexion : ne pas l'exposer sur Internet.
 
+### Mettre à jour une base existante
+
+Sauvegardez la base avant `php artisan migrate`. C'est indispensable pour la migration qui bascule le module QCM sur le module Banques de questions (`switch_qcm_to_banques_questions`) : elle reprend les banques et questions QCM et ne s'annule pas. Elle refuse de s'exécuter tant qu'un passage d'examen est en cours.
+
+```bash
+cp database/database.sqlite database/database.sqlite.sauvegarde   # base SQLite par défaut
+php artisan migrate
+```
+
 ## Architecture modulaire
 
 Mentor s'architecture sur des modules indépendants qui s'utilisent les uns les autres. Chaque module peut être utilisé seul ou regroupé dans Mentor ; un module est utilisable dès qu'il est disponible (le module QCM en premier).

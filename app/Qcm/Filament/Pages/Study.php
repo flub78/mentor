@@ -5,6 +5,7 @@ namespace App\Qcm\Filament\Pages;
 use App\Qcm\Models\Answer;
 use App\Qcm\Models\Bank;
 use App\Qcm\Models\Question;
+use App\Qcm\Questionnaires\UsableQuestions;
 use App\Qcm\Study\ModuleCatalog;
 use App\Qcm\Study\StudyDraw;
 use App\Qcm\Study\StudySession;
@@ -127,6 +128,12 @@ class Study extends Page
                 ->send();
         }
 
+        $ignored = UsableQuestions::notice($bankIds);
+
+        if ($ignored !== null) {
+            Notification::make()->warning()->title($ignored)->send();
+        }
+
         $this->session = StudySession::start($result['questionIds'], $labels, $draw);
         $this->choice = null;
         $this->step = self::STEP_QUESTION;
@@ -145,7 +152,7 @@ class Study extends Page
         }
 
         try {
-            $this->session->answer((int) $this->choice);
+            $this->session->answer($this->choice);
         } catch (\InvalidArgumentException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
         }
@@ -187,7 +194,7 @@ class Study extends Page
     {
         $id = $this->session?->currentQuestionId();
 
-        return $id === null ? null : Question::query()->with('answers')->find($id);
+        return $id === null ? null : Question::query()->find($id);
     }
 
     /**
@@ -197,12 +204,12 @@ class Study extends Page
      */
     public function currentAnswers(Question $question): array
     {
-        $answers = $question->answers->keyBy('id');
+        $answers = $question->answers->keyBy('key');
         $ordered = [];
 
-        foreach ($this->session->answerOrders[$question->id] ?? [] as $id) {
-            if (isset($answers[$id])) {
-                $ordered[] = $answers[$id];
+        foreach ($this->session->answerOrders[$question->id] ?? [] as $key) {
+            if (isset($answers[$key])) {
+                $ordered[] = $answers[$key];
             }
         }
 
@@ -216,7 +223,7 @@ class Study extends Page
     {
         $ids = $this->session?->failedQuestionIds() ?? [];
 
-        return Question::query()->with('correctAnswer')->findMany($ids)->sortBy(fn (Question $q): int|false => array_search($q->id, $ids, true))->values();
+        return Question::query()->findMany($ids)->sortBy(fn (Question $q): int|false => array_search($q->id, $ids, true))->values();
     }
 
     /**

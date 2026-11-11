@@ -2,60 +2,50 @@
 
 namespace App\Qcm\Models;
 
+use App\Banques\Models\Bank as CommonBank;
+use App\Banques\Models\Question as BankQuestion;
 use Database\Factories\Qcm\BankFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Laraskel\Users\Models\Concerns\TracksAuthor;
 
 /**
- * Banque de questions (PRD QCM §3, UC-03).
- *
- * @property int $id
- * @property string $name
- * @property string|null $description
+ * Banque vue par le module QCM (PRD QCM §3) : banque du module Banques, dont
+ * seules les questions QCM et vrai / faux sont visibles.
  */
 #[UseFactory(BankFactory::class)]
-class Bank extends Model
+class Bank extends CommonBank
 {
-    /** @use HasFactory<BankFactory> */
-    use HasFactory, TracksAuthor;
-
-    protected $table = 'qcm_banks';
-
-    protected $fillable = ['name', 'description'];
-
-    protected static function booted(): void
-    {
-        // Suppression question par question pour que chacune efface son image ;
-        // les réponses suivent par la cascade de la base.
-        static::deleting(function (Bank $bank): void {
-            $bank->questions()->each(fn (Question $question) => $question->delete());
-        });
-    }
-
     /**
+     * Questions utilisables par le module QCM.
+     *
      * @return HasMany<Question, $this>
      */
     public function questions(): HasMany
     {
-        return $this->hasMany(Question::class);
+        return $this->hasMany(Question::class, 'bank_id');
     }
 
     /**
-     * Noms de module déjà utilisés dans la banque, sans doublon et triés,
-     * proposés à la saisie d'une question (PRD QCM UC-04).
+     * Nombre de questions de la banque que le module QCM ne pose pas (PRD
+     * Banques §7).
+     */
+    public function ignoredQuestionsCount(): int
+    {
+        return BankQuestion::query()->where('bank_id', $this->id)->count() - $this->questions()->count();
+    }
+
+    /**
+     * Modules (thèmes) des questions QCM de la banque, sans doublon et triés.
      *
      * @return list<string>
      */
     public function moduleNames(): array
     {
         return $this->questions()
-            ->whereNotNull('module')
+            ->whereNotNull('theme')
             ->distinct()
-            ->orderBy('module')
-            ->pluck('module')
+            ->orderBy('theme')
+            ->pluck('theme')
             ->values()
             ->all();
     }

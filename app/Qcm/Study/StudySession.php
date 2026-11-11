@@ -13,11 +13,11 @@ final class StudySession implements Wireable
 {
     /**
      * @param  list<int>  $questionIds  ordre de passage
-     * @param  array<int, list<int>>  $answerOrders  ordre mélangé des réponses, par question
-     * @param  array<int, int>  $correctAnswers  bonne réponse, par question
+     * @param  array<int, list<string>>  $answerOrders  clés des réponses dans l'ordre affiché, par question
+     * @param  array<int, string>  $correctAnswers  clé de la bonne réponse, par question
      * @param  array<int, string>  $moduleKeys  clé de module, par question
      * @param  array<string, string>  $moduleLabels  libellé, par clé de module
-     * @param  array<int, int>  $responses  réponse choisie, par question déjà validée
+     * @param  array<int, string>  $responses  clé de la réponse choisie, par question déjà validée
      */
     public function __construct(
         public array $questionIds,
@@ -37,14 +37,15 @@ final class StudySession implements Wireable
      */
     public static function start(array $questionIds, array $moduleLabels, StudyDraw $draw): self
     {
-        $questions = Question::query()->with('answers')->findMany($questionIds)->keyBy('id');
+        $questions = Question::query()->findMany($questionIds)->keyBy('id');
         $answerOrders = $correctAnswers = $moduleKeys = [];
 
         foreach ($questionIds as $id) {
             /** @var Question $question */
             $question = $questions[$id];
-            $answerOrders[$id] = $draw->shuffleAnswers($question->answers->pluck('id')->map(fn (mixed $v): int => (int) $v)->all());
-            $correctAnswers[$id] = (int) $question->answers->firstWhere('is_correct', true)?->id;
+            $keys = $question->answers->pluck('key')->all();
+            $answerOrders[$id] = $question->shufflesAnswers() ? $draw->shuffleAnswers($keys) : $keys;
+            $correctAnswers[$id] = (string) $question->correctAnswer?->key;
             $moduleKeys[$id] = ModuleCatalog::key($question->module);
         }
 
@@ -76,15 +77,15 @@ final class StudySession implements Wireable
     /**
      * Enregistre la réponse à la question courante ; renvoie vrai si elle est bonne.
      */
-    public function answer(int $answerId): bool
+    public function answer(string $answerKey): bool
     {
         $id = $this->currentQuestionId();
 
-        if ($id === null || $this->isCurrentAnswered() || ! in_array($answerId, $this->answerOrders[$id], true)) {
+        if ($id === null || $this->isCurrentAnswered() || ! in_array($answerKey, $this->answerOrders[$id], true)) {
             throw new \InvalidArgumentException('Réponse impossible : la question est déjà corrigée ou la réponse ne lui appartient pas.');
         }
 
-        $this->responses[$id] = $answerId;
+        $this->responses[$id] = $answerKey;
 
         return $this->isCorrect($id);
     }
@@ -186,11 +187,11 @@ final class StudySession implements Wireable
 
         return new self(
             questionIds: $int(array_values($value['questionIds'])),
-            answerOrders: array_map(fn (array $ids): array => $int(array_values($ids)), $value['answerOrders']),
-            correctAnswers: $int($value['correctAnswers']),
+            answerOrders: array_map(fn (array $keys): array => array_map('strval', array_values($keys)), $value['answerOrders']),
+            correctAnswers: array_map('strval', $value['correctAnswers']),
             moduleKeys: array_map('strval', $value['moduleKeys']),
             moduleLabels: array_map('strval', $value['moduleLabels']),
-            responses: $int($value['responses']),
+            responses: array_map('strval', $value['responses']),
             position: (int) $value['position'],
         );
     }

@@ -121,7 +121,7 @@ class Question extends Model
     }
 
     /**
-     * @return BelongsTo<Bank, $this>
+     * @return BelongsTo<covariant Bank, $this>
      */
     public function bank(): BelongsTo
     {
