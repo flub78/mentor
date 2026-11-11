@@ -2,6 +2,8 @@
 
 namespace App\Banques\Filament\Resources\Banks\RelationManagers;
 
+use App\Banques\Filament\Actions\ExportBankActions;
+use App\Banques\Filament\Actions\ImportBankAction;
 use App\Banques\Filament\Schemas\QuestionFormSchema;
 use App\Banques\Models\Bank;
 use App\Banques\Models\Question;
@@ -111,6 +113,11 @@ class QuestionsRelationManager extends RelationManager
                 CreateAction::make()
                     ->modalWidth(Width::ThreeExtraLarge)
                     ->successNotificationTitle('Question créée'),
+                ImportBankAction::make('importQuestions', 'Importer des questions', fn (): Bank => $this->bank()),
+                ExportBankActions::group(fn (): Bank => $this->bank()),
+            ])
+            ->toolbarActions([
+                ExportBankActions::bulkGroup(fn (): Bank => $this->bank()),
             ])
             ->recordActions([
                 EditAction::make()

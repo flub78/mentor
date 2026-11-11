@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 et B2 livrées
+- **Statut** : lot B1 en cours — étapes B1 à B3 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -65,7 +65,7 @@ Critère de sortie (PRD §9.2) : une banque créée une seule fois sert à une �
 | Reprise des données QCM | Service `App\Qcm\Migration\QcmToBanquesTransfer`, appelé par la **migration de bascule** du module QCM (étape B4), dans une transaction : `qcm_banks` → banques communes (nom suffixé « (QCM) » en cas de conflit) ; `qcm_questions` + `qcm_answers` → questions de type QCM (ordre des mauvaises réponses, explications, dates et auteurs conservés, `module` → `theme`, description d'image « Illustration : … ») ; questions propres → banque par défaut ; renvoie la correspondance des identifiants, qui sert à réécrire `qcm_questionnaire_questions`. **Allègement** (données de développement seulement : 37 questions, aucun passage en cours) : les passages en cours ne sont pas convertis, la reprise est refusée tant qu'il en existe ; le détail des réponses des passages terminés (`qcm_attempt_items`) est supprimé, il ne sert qu'à la correction de fin de passage, qui n'est pas conservée ; les résultats ne référencent aucune question et ne changent pas. Images : chemins conservés. | Reprise complète des passages en cours : coût élevé pour aucune donnée réelle. Régénérer les questionnaires : obligerait à ressaisir les 36 questions propres. Migration de données livrée seule avant la bascule : le code QCM lirait des liens réécrits vers des tables qu'il ne connaît pas encore. |
 | Utilisations par les modules | Contrat `App\Banques\Usage\QuestionUsage` que chaque module implémente et enregistre avec le tag `UsageRegistry::TAG` : phrases des confirmations de suppression, effet d'une modification de fond. Le module Banques réunit ces réponses par `UsageRegistry` sans connaître les modules ; un test d'architecture vérifie qu'il n'importe aucune classe de `App\Leitner` ni de `App\Qcm`. | Appels directs aux modules : dépendance de Banques vers QCM et Leitner, donc cycle. Événements Laravel : ne renvoient pas les phrases à afficher dans les confirmations. |
 | Avertissement des types | Service QCM `UsableQuestions` : filtre une requête de questions sur les types QCM et vrai / faux et renvoie le nombre de questions écartées ; chaque point d'entrée (étude, tirage, ajout, import de questionnaire) affiche l'avertissement du PRD Banques §7. | Filtrer en silence : contraire à la règle « jamais d'échec silencieux ». |
-| Échanges | Le code d'échange du module QCM (`App\Qcm\Exchange`) est généralisé et déplacé dans `App\Banques\Exchange` pour les banques ; la lecture et l'écriture des lignes de questions passent par les handlers (`toCsv()` / `fromCsv()`) ; le module QCM garde l'export et l'import des questionnaires et des examens, en appelant l'interface du module Banques pour les questions. | Deux lecteurs CSV : formats qui divergent. |
+| Échanges | Le code d'échange du module QCM (`App\Qcm\Exchange`) est repris et généralisé dans `App\Banques\Exchange` pour les banques ; la traduction entre colonnes et réponse attendue de chaque type est réunie dans `QuestionColumns` (lecture avec messages par colonne, écriture), la cohérence finale restant vérifiée par le type ; le module QCM garde l'export et l'import des questionnaires et des examens, en appelant l'interface du module Banques pour les questions (étape B4) ; son ancien code d'échange des banques est supprimé à l'étape B5. | Deux lecteurs CSV : formats qui divergent. Méthodes `toCsv()` / `fromCsv()` dans chaque type : mêle le format de fichier et la correction des réponses dans la même classe. |
 | Sauvegarde | La reprise des données modifie la base en profondeur : sauvegarde de la base avant `php artisan migrate`, documentée dans le README. | — |
 
 ### Modèle de données (après B1)
@@ -106,10 +106,11 @@ supprimées : qcm_banks, qcm_questions, qcm_answers ; colonne qcm_questions.ques
 
 Avant la bascule du module QCM, pour que l'import et l'export des banques ne disparaissent jamais.
 
-- [ ] `App\Banques\Exchange` à partir de `App\Qcm\Exchange` : format du PRD Banques §8 pour les types du lot B1 ; colonnes communes, colonnes par type via les handlers (`toCsv()` / `fromCsv()`), listes et caractères réservés, valeurs, rapport avant import, doublons, images, transaction.
-- [ ] Actions d'import et d'export dans la ressource des banques ; fichiers exemples `public/exemples/banques/` (un par type) ; les exemples historiques du module QCM s'importent.
-- [ ] Tests : aller-retour de chaque type ; import des fichiers exemples QCM historiques ; erreurs par type (message avec ligne, colonne et valeurs admises) ; aucune écriture à l'analyse ; échec en cours d'import sans trace.
-- [ ] `composer qa` vert ; commit.
+- [x] `App\Banques\Exchange` à partir de `App\Qcm\Exchange` : format du PRD Banques §8 pour les types du lot B1 ; colonnes communes, colonnes par type via `QuestionColumns`, listes et caractères réservés, valeurs, rapport avant import, doublons, images, transaction.
+- [x] Actions d'import et d'export dans la ressource des banques ; fichiers exemples `public/exemples/banques/` (un par type) ; les exemples historiques du module QCM s'importent.
+- [x] Tests : aller-retour de chaque type ; import des fichiers exemples QCM historiques ; erreurs par type (message avec ligne, colonne et valeurs admises) ; aucune écriture à l'analyse ; échec en cours d'import sans trace.
+- [x] Les messages d'erreur renvoient au guide d'utilisation des banques, écrit à l'étape B7 (le format est d'ici là décrit au PRD Banques §8).
+- [x] `composer qa` vert ; commit.
 
 ### Étape B4 — Bascule du module QCM sur les banques communes
 
