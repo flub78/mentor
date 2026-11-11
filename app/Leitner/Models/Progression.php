@@ -2,6 +2,7 @@
 
 namespace App\Leitner\Models;
 
+use App\Leitner\Sessions\SessionStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -60,6 +61,22 @@ class Progression extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ProgressItem::class);
+    }
+
+    /**
+     * @return HasMany<Session, $this>
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    /**
+     * Séance en cours, s'il y en a une.
+     */
+    public function currentSession(): ?Session
+    {
+        return $this->sessions()->where('status', SessionStatus::EnCours)->latest('id')->first();
     }
 
     /**

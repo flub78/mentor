@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Leitner
 
-- **Statut** : MVP en cours — étapes 0 à 2 livrées
+- **Statut** : MVP en cours — étapes 0 à 3 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [leitner_prd.md](../prds/leitner_prd.md), §9.2 « Découpage en lots »
@@ -101,10 +101,13 @@ leitner_progress_items   id, progression_id (cascade), question_id → leitner_q
                          box? , mastered_at?, suspended_at?, consecutive_failures (0),
                          introduced_at, auditColumns ; unique(progression_id, question_id)
 leitner_sessions         id, progression_id (cascade), kind (seance), number?, status (en_cours,
-                         terminee, abandonnee), started_at, finished_at?, auditColumns
+                         terminee, abandonnee), presentation_order, undo_available (bool),
+                         started_at, finished_at?, auditColumns
 leitner_session_entries  id, session_id (cascade), question_id? → leitner_questions (nullOnDelete),
-                         position, is_retry, box_before?, response (json)?, verdict?, detail (json)?,
-                         box_after?, answered_at?, duration_ms?, auditColumns
+                         retry_of_id? → leitner_session_entries (cascade), position, is_retry, is_new,
+                         box_before?, failures_before?, response (json)?, verdict?, detail?,
+                         box_after?, mastered (bool), answered_at?, skipped_at?, duration_ms?,
+                         auditColumns
 ```
 
 `created_by` / `updated_by` restent nuls tant qu'il n'y a pas de connexion. `kind` prendra les
@@ -203,39 +206,40 @@ valeurs `controle` et `placement` au lot 2.
 
 **Logique pure (`App\Leitner\Engine\`)**
 
-- [ ] `BoxSchedule::boxesDue(int $sessionNumber, int $boxCount): list<int>` : la boîte *k* est posée si *n* est multiple de 2<sup>k−1</sup>.
-- [ ] `BoxMover::move(box, consecutiveFailures, verdict, boxCount): Move` : juste → boîte suivante, ou maîtrisée depuis la dernière boîte, échecs remis à zéro ; fausse → recul d'une boîte (boîte 1 reste en boîte 1), ou boîte 1 si l'échec précédent était déjà un échec ; échecs incrémentés.
-- [ ] `Introducer::pick(candidates, count, ?seed)` : difficulté effective croissante, hasard au sein d'un niveau (Q8, choix provisoire).
-- [ ] `SessionComposer::compose(progression, number, order, ?seed)` : questions de la boîte 1 et des boîtes dues, hors suspendues ; ordre de présentation (mélangé, boîte 1 d'abord, boîtes hautes d'abord, mélange à l'intérieur d'une boîte).
-- [ ] `Regularity::evaluate(sessionDates, firstSessionDate, now)` : nombre de séances sur 7 jours glissants ; avertissement si moins de 3 et première séance vieille d'au moins 7 jours.
+- [x] `BoxSchedule::boxesDue(int $sessionNumber, int $boxCount): list<int>` : la boîte *k* est posée si *n* est multiple de 2<sup>k−1</sup>.
+- [x] `BoxMover::move(box, consecutiveFailures, verdict, boxCount): Move` : juste → boîte suivante, ou maîtrisée depuis la dernière boîte, échecs remis à zéro ; fausse → recul d'une boîte (boîte 1 reste en boîte 1), ou boîte 1 si l'échec précédent était déjà un échec ; échecs incrémentés.
+- [x] `Introducer::pick(candidates, count, ?seed)` : difficulté effective croissante, hasard au sein d'un niveau (Q8, choix provisoire).
+- [x] `SessionComposer::compose(progression, number, order, ?seed)` : questions de la boîte 1 et des boîtes dues, hors suspendues ; ordre de présentation (mélangé, boîte 1 d'abord, boîtes hautes d'abord, mélange à l'intérieur d'une boîte).
+- [x] `Regularity::evaluate(sessionDates, firstSessionDate, now)` : nombre de séances sur 7 jours glissants ; avertissement si moins de 3 et première séance vieille d'au moins 7 jours.
 
 **Services (persistance)**
 
-- [ ] Migrations `leitner_sessions`, `leitner_session_entries` ; modèles `Session` (énumération `SessionStatus`), `SessionEntry`.
-- [ ] `SessionStarter` : refuse si une séance est en cours (renvoie celle-ci) ; complète la boîte 1 jusqu'au minimum avec l'`Introducer` et annonce le nombre introduit ; signale « plus de questions à introduire » (2a) et « rien à poser » (3a) ; crée la séance et ses entrées avec `box_before`.
-- [ ] `AnswerRecorder` :
-  - [ ] enregistre la réponse, le verdict (handler), le détail et le temps mis à répondre (`duration_ms`, mesuré par la page, PRD §7.7) ;
-  - [ ] à la première réponse de la séance, attribue le numéro (`last_session_number + 1`) ;
-  - [ ] pour une entrée qui n'est pas une reprise : applique le `BoxMover` à la ligne de progression et écrit `box_after` ;
-  - [ ] si la réponse est fausse et que la reprise des erreurs est active : ajoute une entrée de reprise en fin de séance ; une reprise fausse en ajoute une autre ; une reprise juste n'en ajoute pas ;
-  - [ ] refus avec message : entrée déjà répondue, séance terminée, entrée d'une autre séance.
-- [ ] `AnswerUndoer` (4b) : annule la dernière réponse de la séance (restaure boîte et échecs consécutifs, retire la reprise ajoutée) ; une seule annulation, et seulement tant que la question suivante n'a pas reçu de réponse.
-- [ ] `EntrySkipper` (4a) : entrée marquée passée, question inchangée.
-- [ ] `SessionFinisher` : termine la séance quand toutes les entrées sont traitées, ou sur demande ; abandon d'une séance sans réponse → suppression ; produit le bilan (`SessionSummary` : posées, réussies, échouées, mouvements entre boîtes, introduites, maîtrisées, questions échouées, composition de la prochaine séance).
-- [ ] Question supprimée en cours de séance : l'entrée est sautée avec un message.
+- [x] Migrations `leitner_sessions`, `leitner_session_entries` ; modèles `Session` (énumération `SessionStatus`), `SessionEntry`.
+- [x] `SessionStarter` : refuse si une séance est en cours (renvoie celle-ci) ; complète la boîte 1 jusqu'au minimum avec l'`Introducer` et annonce le nombre introduit ; signale « plus de questions à introduire » (2a) et « rien à poser » (3a) ; crée la séance et ses entrées avec `box_before`.
+- [x] `AnswerRecorder` :
+  - [x] enregistre la réponse, le verdict (handler), le détail et le temps mis à répondre (`duration_ms`, mesuré par la page, PRD §7.7) ;
+  - [x] à la première réponse de la séance, attribue le numéro (`last_session_number + 1`) ;
+  - [x] pour une entrée qui n'est pas une reprise : applique le `BoxMover` à la ligne de progression et écrit `box_after` ;
+  - [x] si la réponse est fausse et que la reprise des erreurs est active : ajoute une entrée de reprise en fin de séance ; une reprise fausse en ajoute une autre ; une reprise juste n'en ajoute pas ;
+  - [x] refus avec message : entrée déjà répondue, séance terminée, entrée d'une autre séance.
+- [x] `AnswerUndoer` (4b) : annule la dernière réponse de la séance (restaure boîte et échecs consécutifs, retire la reprise ajoutée) ; une seule annulation, et seulement tant que la question suivante n'a pas reçu de réponse.
+- [x] `EntrySkipper` (4a) : entrée marquée passée, question inchangée.
+- [x] `SessionFinisher` : termine la séance quand toutes les entrées sont traitées, ou sur demande ; abandon d'une séance sans réponse → suppression ; produit le bilan (`SessionSummary` : posées, réussies, échouées, mouvements entre boîtes, introduites, maîtrisées, questions échouées, composition de la prochaine séance).
+- [x] Question supprimée en cours de séance : l'entrée est sautée avec un message.
+- [x] Réalisé en plus : `NextSession` (composition prévue de la prochaine séance, reprise par l'état de la suite à l'étape 4) ; `Shuffler` (mélange à graine facultative, `Collection::shuffle()` n'acceptant plus de graine) ; colonnes de séance nécessaires à l'annulation et au bilan (`undo_available`, `retry_of_id`, `failures_before`, `is_new`, `mastered`, `skipped_at`).
 
 **Tests**
 
-- [ ] `BoxSchedule` : tableau du PRD §7.1 pour les séances 1 à 16, avec 5 et 7 boîtes.
-- [ ] `BoxMover` : toutes les combinaisons boîte / échecs / verdict, dernière boîte, boîte 1.
-- [ ] `Introducer` : ordre des difficultés, nul compté moyen, graine reproductible, moins de candidats que demandé.
-- [ ] `SessionComposer` : boîtes dues, suspendues exclues, trois ordres de présentation.
-- [ ] `Regularity` : fenêtre glissante, seuil exact, première semaine sans avertissement.
-- [ ] Scénario sur 8 séances (horloge et graine contrôlées) : répartition dans les boîtes conforme au calcul attendu, écrit à la main dans le test.
-- [ ] Reprise des erreurs : seule la première réponse change la boîte ; reprises successives ; reprise désactivée.
-- [ ] Numérotation : séance abandonnée sans réponse non comptée ; séance interrompue après une réponse comptée.
-- [ ] Annulation de la dernière réponse ; question passée ; refus des réponses invalides.
-- [ ] `composer qa` vert ; commit.
+- [x] `BoxSchedule` : tableau du PRD §7.1 pour les séances 1 à 16, avec 5 et 7 boîtes.
+- [x] `BoxMover` : toutes les combinaisons boîte / échecs / verdict, dernière boîte, boîte 1.
+- [x] `Introducer` : ordre des difficultés, nul compté moyen, graine reproductible, moins de candidats que demandé.
+- [x] `SessionComposer` : boîtes dues, suspendues exclues, trois ordres de présentation.
+- [x] `Regularity` : fenêtre glissante, seuil exact, première semaine sans avertissement.
+- [x] Scénario sur 8 séances (horloge et graine contrôlées) : répartition dans les boîtes conforme au calcul attendu, écrit à la main dans le test.
+- [x] Reprise des erreurs : seule la première réponse change la boîte ; reprises successives ; reprise désactivée.
+- [x] Numérotation : séance abandonnée sans réponse non comptée ; séance interrompue après une réponse comptée.
+- [x] Annulation de la dernière réponse ; question passée ; refus des réponses invalides.
+- [x] `composer qa` vert ; commit.
 
 ### Étape 4 — Écran de séance et état de la suite (UC-08, UC-11)
 
