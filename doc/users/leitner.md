@@ -30,7 +30,7 @@ Vous pouvez modifier une suite à tout moment. Si la modification fait perdre ou
 
 ## Choisir le nombre de boîtes
 
-Une question bien répondue monte d'une boîte, et chaque boîte est posée deux fois moins souvent que la précédente. Plus il y a de boîtes, plus la mémorisation est durable, mais plus il faut de temps pour maîtriser une banque. Sous le choix du nombre de boîtes, le formulaire affiche la durée estimée : avec 5 boîtes (valeur par défaut), une question réussie à chaque fois est maîtrisée en 16 séances environ, soit à peu près 3 semaines à raison de 5 séances par semaine.
+Une question bien répondue monte d'une boîte, et chaque boîte est posée deux fois moins souvent que la précédente. Plus il y a de boîtes, plus la mémorisation est durable, mais plus il faut de temps pour maîtriser une banque. Sous le choix du nombre de boîtes, le formulaire affiche la durée estimée : avec 5 boîtes (valeur par défaut), une question réussie à chaque fois est maîtrisée en 16 séances en moyenne, soit à peu près 3 semaines à raison de 5 séances par semaine. La durée exacte dépend de la séance où la question entre dans la boîte 1 : de 9 à 24 séances. Les questions de la toute première séance d'une suite sont les plus longues à maîtriser (24 séances), ne vous en étonnez pas.
 
 ## Ajouter mes propres questions
 

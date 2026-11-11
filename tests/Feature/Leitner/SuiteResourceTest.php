@@ -72,7 +72,7 @@ class SuiteResourceTest extends TestCase
 
         Livewire::test(CreateSuite::class)
             ->assertSchemaStateSet(['box_count' => 5, 'min_box_one' => 10, 'presentation_order' => PresentationOrder::Melange, 'retry_errors' => true])
-            ->assertSee('16 séances environ')
+            ->assertSee('16 séances en moyenne (de 9 à 24 selon la séance où elle est introduite)')
             ->fillForm(['name' => 'Théorie ULM', 'bank_ids' => [$meteo->id, $regl->id]])
             ->call('create')
             ->assertHasNoFormErrors();

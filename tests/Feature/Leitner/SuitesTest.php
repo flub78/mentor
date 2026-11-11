@@ -4,6 +4,7 @@ namespace Tests\Feature\Leitner;
 
 use App\Banques\Models\Bank;
 use App\Banques\Models\Question;
+use App\Leitner\Engine\BoxSchedule;
 use App\Leitner\Models\ProgressItem;
 use App\Leitner\Models\Suite;
 use App\Leitner\Suites\MasteryEstimate;
@@ -268,8 +269,44 @@ class SuitesTest extends TestCase
     public function test_mastery_estimate(): void
     {
         $this->assertSame(16, MasteryEstimate::sessions(5));
-        $this->assertStringContainsString('16 séances environ, soit environ 3 semaines', MasteryEstimate::describe(5));
-        $this->assertStringContainsString('4 séances environ, soit moins d\'une semaine', MasteryEstimate::describe(3));
-        $this->assertStringContainsString('64 séances environ, soit environ 3 mois', MasteryEstimate::describe(7));
+        $this->assertSame(['fastest' => 9, 'slowest' => 24], MasteryEstimate::range(5));
+        $this->assertStringContainsString('16 séances en moyenne (de 9 à 24 selon la séance où elle est introduite), soit environ 3 semaines', MasteryEstimate::describe(5));
+        $this->assertStringContainsString('4 séances en moyenne (de 3 à 6 selon la séance où elle est introduite), soit moins d\'une semaine', MasteryEstimate::describe(3));
+        $this->assertStringContainsString('64 séances en moyenne (de 33 à 96 selon la séance où elle est introduite), soit environ 3 mois', MasteryEstimate::describe(7));
+    }
+
+    /**
+     * L'estimation affichée suit la règle des séances : on rejoue
+     * `BoxSchedule` pour une question introduite à chaque séance possible
+     * d'un cycle, sans erreur.
+     */
+    public function test_mastery_estimate_matches_the_session_schedule(): void
+    {
+        for ($boxes = Suite::MIN_BOXES; $boxes <= Suite::MAX_BOXES; $boxes++) {
+            $cycle = 2 ** ($boxes - 1);
+            $durations = [];
+
+            for ($introduced = 1; $introduced <= $cycle; $introduced++) {
+                $box = 1;
+                $session = $introduced;
+
+                while (true) {
+                    if (in_array($box, BoxSchedule::boxesDue($session, $boxes), true)) {
+                        if ($box === $boxes) {
+                            break;
+                        }
+
+                        $box++;
+                    }
+
+                    $session++;
+                }
+
+                $durations[] = $session - $introduced + 1;
+            }
+
+            $this->assertSame(['fastest' => min($durations), 'slowest' => max($durations)], MasteryEstimate::range($boxes), "{$boxes} boîtes");
+            $this->assertSame(MasteryEstimate::sessions($boxes), (int) floor(array_sum($durations) / $cycle), "{$boxes} boîtes");
+        }
     }
 }

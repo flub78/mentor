@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.10 (brouillon) |
+| **Version** | 0.11 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.11** : durée pour maîtriser une question donnée en moyenne et en plage, selon la séance d'introduction (§7.2).
 
 **Évolutions de la version 0.10** : au-delà de 6 propositions, un QCM se répond dans une liste déroulante avec recherche ([PRD Banques](banques_prd.md), §6 ; lot 2).
 
@@ -342,14 +344,14 @@ Le rythme est compté en **séances**, pas en jours : l'étudiant choisit quand 
 - **Réponse juste dans la dernière boîte** : la question est **maîtrisée** et ne sera plus posée (Q3).
 - **Question passée** ou non posée : elle reste dans sa boîte.
 
-**Durée pour maîtriser une question** (sans erreur, à 5 séances par semaine) : environ 2<sup>N−1</sup> séances pour N boîtes. C'est la durée estimée affichée lors du choix du nombre de boîtes (UC-05).
+**Durée pour maîtriser une question** (sans erreur, à 5 séances par semaine) : **2<sup>N−1</sup> séances en moyenne** pour N boîtes. Avec la rotation des boîtes hautes (§7.1), elle dépend de la séance où la question est introduite : de 2<sup>N−2</sup> + 1 à 3 × 2<sup>N−2</sup> séances. Une question introduite à la première séance d'une suite est dans le cas le plus lent : avec 5 boîtes, elle monte aux séances 1, 3, 6 et 12 et est maîtrisée à la séance 24. La durée moyenne et sa plage sont affichées lors du choix du nombre de boîtes (UC-05).
 
-| Boîtes | Séances | Durée | Dernier écart avant la maîtrise |
-|---|---|---|---|
-| 4 | 8 | ≈ 2 semaines | 4 séances |
-| **5 (défaut)** | 16 | ≈ 3 semaines | 8 séances (≈ 1,5 semaine) |
-| 6 | 32 | ≈ 6 semaines | 16 séances (≈ 3 semaines) |
-| 7 | 64 | ≈ 13 semaines | 32 séances (≈ 6 semaines) |
+| Boîtes | Séances (moyenne) | De … à … | Durée moyenne | Attente dans la dernière boîte (moyenne, plage) |
+|---|---|---|---|---|
+| 4 | 8 | 5 à 12 | ≈ 2 semaines | 4 séances (2 à 6) |
+| **5 (défaut)** | 16 | 9 à 24 | ≈ 3 semaines | 8 séances, ≈ 1,5 semaine (4 à 12) |
+| 6 | 32 | 17 à 48 | ≈ 6 semaines | 16 séances, ≈ 3 semaines (8 à 24) |
+| 7 | 64 | 33 à 96 | ≈ 13 semaines | 32 séances, ≈ 6 semaines (16 à 48) |
 
 Chaque erreur fait reculer la question et allonge la durée : avec les introductions successives, une banque se termine en **2 à 3 mois** environ avec 5 boîtes. La durée de rétention au-delà de la maîtrise est assurée par les contrôles d'entretien (§7.6), plutôt que par des boîtes supplémentaires.
 
