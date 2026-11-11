@@ -35,4 +35,16 @@ interface QuestionUsage
      * compte, ou null si rien n'a changé.
      */
     public function applySubstantiveChange(Question $question): ?string;
+
+    /**
+     * Phrase qui dit ce qu'un déplacement de la question vers la banque
+     * `$target` changerait dans ce module, ou null (PRD Banques UC-03).
+     */
+    public function moveNotice(Question $question, Bank $target): ?string;
+
+    /**
+     * Tire les conséquences du déplacement de la question, déjà rangée dans
+     * sa nouvelle banque ; renvoie la phrase qui en rend compte, ou null.
+     */
+    public function applyMove(Question $question): ?string;
 }

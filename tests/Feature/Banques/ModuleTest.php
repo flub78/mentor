@@ -120,6 +120,16 @@ class ModuleTest extends TestCase
 
                 return 'Appliqué dans le module témoin.';
             }
+
+            public function moveNotice(Question $question, Bank $target): ?string
+            {
+                return null;
+            }
+
+            public function applyMove(Question $question): ?string
+            {
+                return null;
+            }
         };
         $this->app->instance('usage-temoin', $usage);
         $this->app->tag(['usage-temoin'], UsageRegistry::TAG);

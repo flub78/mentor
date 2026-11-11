@@ -1,6 +1,6 @@
 # Plan d'implémentation — Module Banques de questions
 
-- **Statut** : lot B1 en cours — étapes B1 à B5 livrées
+- **Statut** : lot B1 en cours — étapes B1 à B6 livrées
 - **Date** : 2026-11-11
 - **Auteur** : Frédéric Peignot (assisté d'un agent IA)
 - **PRD associé** : [banques_prd.md](../prds/banques_prd.md), §9.2 « Découpage en lots »
@@ -137,10 +137,11 @@ Approche réalisée : `App\Qcm\Models\Question` et `Bank` sont des sous-classes 
 
 ### Étape B6 — Déplacer et copier des questions (UC-03)
 
-- [ ] Service `QuestionMover` : déplacement (la question garde ses utilisations ; retrait des progressions des suites dont la banque cible n'est pas source, annoncé) et copie (nouvelle question, image dupliquée).
-- [ ] Actions groupées « Déplacer vers » et « Copier vers » dans la liste des questions ; confirmation qui annonce les suites touchées ; notification avec le nombre de questions.
-- [ ] Tests : déplacement depuis la banque par défaut ; questionnaire QCM inchangé après déplacement ; suite Leitner qui perd la question ; copie indépendante ; thème conservé.
-- [ ] `composer qa` vert ; commit.
+- [x] Service `QuestionMover` : déplacement (la question garde ses utilisations ; retrait des progressions des suites dont la banque cible n'est pas source, annoncé) et copie (nouvelle question, image dupliquée).
+- [x] Contrat `QuestionUsage` complété (`moveNotice()`, `applyMove()`) : le module Leitner annonce et applique le retrait des suites, le module QCM ne change rien ; le module Banques reste indépendant.
+- [x] Actions groupées « Déplacer vers » et « Copier vers » dans la liste des questions ; confirmation qui annonce les suites touchées ; notification avec le nombre de questions.
+- [x] Tests : déplacement depuis la banque par défaut ; questionnaire QCM inchangé après déplacement ; suite Leitner qui perd la question ; copie indépendante ; thème conservé.
+- [x] `composer qa` vert ; commit.
 
 ### Étape B7 — Documentation utilisateur
 

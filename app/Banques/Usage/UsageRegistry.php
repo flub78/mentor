@@ -41,6 +41,16 @@ final class UsageRegistry
         return $this->join(fn (QuestionUsage $usage): ?string => $usage->applySubstantiveChange($question));
     }
 
+    public function moveNotice(Question $question, Bank $target): string
+    {
+        return $this->join(fn (QuestionUsage $usage): ?string => $usage->moveNotice($question, $target));
+    }
+
+    public function applyMove(Question $question): string
+    {
+        return $this->join(fn (QuestionUsage $usage): ?string => $usage->applyMove($question));
+    }
+
     /**
      * @param  callable(QuestionUsage): ?string  $notice
      */

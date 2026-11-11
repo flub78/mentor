@@ -6,6 +6,7 @@ use App\Banques\Models\Bank;
 use App\Banques\Models\Question;
 use App\Leitner\Models\ProgressItem;
 use App\Leitner\Models\Suite;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Usage des banques et des questions par les suites, pour les confirmations
@@ -27,6 +28,40 @@ final class SuiteUsage
     public static function progressionsWithQuestion(Question $question): int
     {
         return ProgressItem::query()->where('question_id', $question->id)->count();
+    }
+
+    /**
+     * Nombre de suites où la question est introduite et qui n'ont pas la
+     * banque `$target` pour source : elles la perdraient si elle y était
+     * déplacée (PRD Leitner UC-02).
+     */
+    public static function suitesLosingQuestion(Question $question, Bank $target): int
+    {
+        return self::itemsOutsideSourceBanks($question, $target->id)->count();
+    }
+
+    /**
+     * Retire la question des progressions des suites qui n'ont pas sa banque
+     * actuelle pour source.
+     *
+     * @return int nombre de progressions touchées
+     */
+    public static function removeFromSuitesWithoutItsBank(Question $question): int
+    {
+        return self::itemsOutsideSourceBanks($question, $question->bank_id)->delete();
+    }
+
+    /**
+     * @return Builder<ProgressItem>
+     */
+    private static function itemsOutsideSourceBanks(Question $question, int $bankId): Builder
+    {
+        return ProgressItem::query()
+            ->where('question_id', $question->id)
+            ->whereHas('progression', fn ($query) => $query->whereDoesntHave(
+                'suite.sources',
+                fn ($sources) => $sources->where('bank_id', $bankId),
+            ));
     }
 
     /**

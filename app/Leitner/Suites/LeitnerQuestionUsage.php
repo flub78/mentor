@@ -39,6 +39,24 @@ final class LeitnerQuestionUsage implements QuestionUsage
         };
     }
 
+    public function moveNotice(Question $question, Bank $target): ?string
+    {
+        return match ($count = SuiteUsage::suitesLosingQuestion($question, $target)) {
+            0 => null,
+            1 => '1 suite Leitner n\'a pas cette banque pour source : la question en sortira, avec sa progression.',
+            default => "{$count} suites Leitner n'ont pas cette banque pour source : la question en sortira, avec sa progression.",
+        };
+    }
+
+    public function applyMove(Question $question): ?string
+    {
+        return match ($count = SuiteUsage::removeFromSuitesWithoutItsBank($question)) {
+            0 => null,
+            1 => 'Question retirée d\'1 suite Leitner qui n\'a pas sa nouvelle banque pour source.',
+            default => "Question retirée de {$count} suites Leitner qui n'ont pas sa nouvelle banque pour source.",
+        };
+    }
+
     public function applySubstantiveChange(Question $question): ?string
     {
         return match ($count = SuiteUsage::resetProgress($question)) {

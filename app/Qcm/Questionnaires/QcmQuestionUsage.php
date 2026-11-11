@@ -45,4 +45,17 @@ final class QcmQuestionUsage implements QuestionUsage
     {
         return null;
     }
+
+    /**
+     * Un questionnaire continue de poser une question déplacée.
+     */
+    public function moveNotice(Question $question, Bank $target): ?string
+    {
+        return null;
+    }
+
+    public function applyMove(Question $question): ?string
+    {
+        return null;
+    }
 }
