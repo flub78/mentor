@@ -71,7 +71,7 @@ class SeancePageTest extends TestCase
         Question::factory()->for($this->bank)->valeurNumerique(4806, 'absolue', 10, 'm')->difficulty(1)->create(['statement' => 'Altitude du mont Blanc ?']);
 
         $page = $this->page($suite)
-            ->assertSee('Séance n° 1 — boîte posée : 1 — 4 questions, dont 4 nouvelles.')
+            ->assertSee('Séance n° 1 — boîtes posées : 1 et 2 — 4 questions, dont 4 nouvelles.')
             ->call('start')
             ->assertSet('step', Seance::STEP_QUESTION);
 
@@ -219,7 +219,7 @@ class SeancePageTest extends TestCase
             ->assertOk()
             ->assertSeeText('En banque (jamais posées) : 2 — Moyen : 1, Difficile : 1')
             ->assertSeeText('Total : 3 question(s) = 2 en banque + 1 dans les boîtes + 0 maîtrisée(s) + 0 suspendue(s).')
-            ->assertSee('Séance n° 2 — boîtes posées : 1 et 2 — 2 questions, dont 1 nouvelle.')
+            ->assertSee('Séance n° 2 — boîtes posées : 1 et 3 — 1 question, dont 1 nouvelle.')
             ->assertSee('1 séance(s) sur les 7 derniers jours')
             ->assertDontSee('Rythme insuffisant');
 

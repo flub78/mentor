@@ -128,39 +128,40 @@ class SessionServicesTest extends TestCase
         $this->question('q4', 3);
         $this->question('q5', 3);
 
-        // S1 (boîte 1) : q1, q2 introduites ; q1 juste → 2, q2 fausse → reste en 1.
+        // S1 (boîtes 1 et 2) : q1, q2 introduites ; q1 juste → 2, q2 fausse → reste en 1.
         $this->assertEqualsCanonicalizing(['q1', 'q2'], $this->playSession($suite, ['q1' => true, 'q2' => false]));
         $this->assertSame(['1' => ['q2'], '2' => ['q1']], $this->boxes($suite));
 
-        // S2 (boîtes 1, 2), boîte 1 d'abord : q3 introduite ; tout juste.
-        $asked = $this->playSession($suite, ['q1' => true, 'q2' => true, 'q3' => true]);
-        $this->assertEqualsCanonicalizing(['q2', 'q3'], array_slice($asked, 0, 2));
-        $this->assertSame('q1', $asked[2]);
-        $this->assertSame(['2' => ['q2', 'q3'], '3' => ['q1']], $this->boxes($suite));
+        // S2 (boîtes 1 et 3) : q3 introduite ; la boîte 2 n'est pas posée ; tout juste.
+        $this->assertEqualsCanonicalizing(['q2', 'q3'], $this->playSession($suite, ['q2' => true, 'q3' => true]));
+        $this->assertSame(['2' => ['q1', 'q2', 'q3']], $this->boxes($suite));
 
-        // S3 (boîte 1) : q4, q5 introduites ; q4 juste → 2, q5 fausse → 1.
-        $this->assertEqualsCanonicalizing(['q4', 'q5'], $this->playSession($suite, ['q4' => true, 'q5' => false]));
-        $this->assertSame(['1' => ['q5'], '2' => ['q2', 'q3', 'q4'], '3' => ['q1']], $this->boxes($suite));
+        // S3 (boîtes 1 et 2), boîte 1 d'abord : q4, q5 introduites ; q5 fausse (reste en 1), q3 fausse (recule en 1).
+        $asked = $this->playSession($suite, ['q4' => true, 'q5' => false, 'q1' => true, 'q2' => true, 'q3' => false]);
+        $this->assertEqualsCanonicalizing(['q4', 'q5'], array_slice($asked, 0, 2));
+        $this->assertEqualsCanonicalizing(['q1', 'q2', 'q3'], array_slice($asked, 2));
+        $this->assertSame(['1' => ['q3', 'q5'], '2' => ['q4'], '3' => ['q1', 'q2']], $this->boxes($suite));
 
-        // S4 (boîtes 1, 2, 3) : banque vide ; q5 fausse (reste en 1), q3 fausse (recule en 1), q2, q4, q1 justes.
-        $this->assertEqualsCanonicalizing(['q5', 'q2', 'q3', 'q4', 'q1'], $this->playSession($suite, ['q5' => false, 'q2' => true, 'q3' => false, 'q4' => true, 'q1' => true]));
-        $this->assertSame(['1' => ['q3', 'q5'], '3' => ['q2', 'q4'], '4' => ['q1']], $this->boxes($suite));
-
-        // S5 (boîte 1) : q5 et q3 justes → 2.
-        $this->playSession($suite, ['q5' => true, 'q3' => true]);
-        $this->assertSame(['2' => ['q3', 'q5'], '3' => ['q2', 'q4'], '4' => ['q1']], $this->boxes($suite));
-
-        // S6 (boîtes 1, 2) : q5 fausse → recule en 1, q3 juste → 3.
+        // S4 (boîtes 1 et 4, vide) : q5 de nouveau fausse (reste en 1), q3 juste → 2.
         $this->assertEqualsCanonicalizing(['q5', 'q3'], $this->playSession($suite, ['q5' => false, 'q3' => true]));
-        $this->assertSame(['1' => ['q5'], '3' => ['q2', 'q3', 'q4'], '4' => ['q1']], $this->boxes($suite));
+        $this->assertSame(['1' => ['q5'], '2' => ['q3', 'q4'], '3' => ['q1', 'q2']], $this->boxes($suite));
 
-        // S7 (boîte 1) : q5 juste → 2.
-        $this->assertSame(['q5'], $this->playSession($suite, ['q5' => true]));
+        // S5 (boîtes 1 et 2) : banque vide ; q5 juste → 2, q4 fausse → recule en 1, q3 juste → 3.
+        $this->assertEqualsCanonicalizing(['q5', 'q4', 'q3'], $this->playSession($suite, ['q5' => true, 'q4' => false, 'q3' => true]));
+        $this->assertSame(['1' => ['q4'], '2' => ['q5'], '3' => ['q1', 'q2', 'q3']], $this->boxes($suite));
 
-        // S8 (boîtes 1 à 4) : q4 fausse → recule en 2, les autres justes ; q1 atteint la boîte 5.
-        $this->assertEqualsCanonicalizing(['q5', 'q2', 'q3', 'q4', 'q1'], $this->playSession($suite, ['q5' => true, 'q2' => true, 'q3' => true, 'q4' => false, 'q1' => true]));
-        $this->assertSame(['2' => ['q4'], '3' => ['q5'], '4' => ['q2', 'q3'], '5' => ['q1']], $this->boxes($suite));
-        $this->assertSame([1 => 0, 2 => 1, 3 => 1, 4 => 2, 5 => 1], $suite->progression->fresh()->counts()['boxes']);
+        // S6 (boîtes 1 et 3) : q4 juste → 2 ; q1 et q3 justes → 4, q2 fausse → recule en 2.
+        $this->assertEqualsCanonicalizing(['q4', 'q1', 'q2', 'q3'], $this->playSession($suite, ['q4' => true, 'q1' => true, 'q2' => false, 'q3' => true]));
+        $this->assertSame(['2' => ['q2', 'q4', 'q5'], '4' => ['q1', 'q3']], $this->boxes($suite));
+
+        // S7 (boîtes 1 et 2) : q4, q5 justes → 3 ; q2 fausse pour la seconde fois de suite → boîte 1.
+        $this->assertEqualsCanonicalizing(['q5', 'q4', 'q2'], $this->playSession($suite, ['q5' => true, 'q4' => true, 'q2' => false]));
+        $this->assertSame(['1' => ['q2'], '3' => ['q4', 'q5'], '4' => ['q1', 'q3']], $this->boxes($suite));
+
+        // S8 (boîtes 1 et 5, vide) : q2 juste → 2.
+        $this->assertSame(['q2'], $this->playSession($suite, ['q2' => true]));
+        $this->assertSame(['2' => ['q2'], '3' => ['q4', 'q5'], '4' => ['q1', 'q3']], $this->boxes($suite));
+        $this->assertSame([1 => 0, 2 => 1, 3 => 2, 4 => 2, 5 => 0], $suite->progression->fresh()->counts()['boxes']);
         $this->assertSame(8, $suite->progression->fresh()->last_session_number);
     }
 
@@ -169,7 +170,7 @@ class SessionServicesTest extends TestCase
         $suite = $this->suite(['box_count' => 3, 'min_box_one' => 1]);
         $question = $this->question('q1');
         $suite->progression->items()->create(['question_id' => $question->id, 'box' => 3, 'introduced_at' => now()]);
-        $suite->progression->update(['last_session_number' => 3]);
+        $suite->progression->update(['last_session_number' => 1]);
 
         $this->playSession($suite, ['q1' => true]);
 
@@ -246,7 +247,7 @@ class SessionServicesTest extends TestCase
         $suite = $this->suite(['retry_errors' => true, 'min_box_one' => 1]);
         $question = $this->question('q1');
         $suite->progression->items()->create(['question_id' => $question->id, 'box' => 3, 'introduced_at' => now()]);
-        $suite->progression->update(['last_session_number' => 3]);
+        $suite->progression->update(['last_session_number' => 1]);
         $session = $this->start($suite);
 
         $this->answer($session, $session->nextEntry(), false);
@@ -282,7 +283,6 @@ class SessionServicesTest extends TestCase
         $suite = $this->suite(['retry_errors' => true, 'min_box_one' => 1]);
         $question = $this->question('q1');
         $suite->progression->items()->create(['question_id' => $question->id, 'box' => 2, 'consecutive_failures' => 0, 'introduced_at' => now()]);
-        $suite->progression->update(['last_session_number' => 1]);
         $session = $this->start($suite);
         $entry = $session->nextEntry();
         $this->answer($session, $entry, false);
@@ -318,7 +318,7 @@ class SessionServicesTest extends TestCase
         $suite = $this->suite(['box_count' => 3, 'min_box_one' => 1]);
         $question = $this->question('q1');
         $suite->progression->items()->create(['question_id' => $question->id, 'box' => 3, 'introduced_at' => now()]);
-        $suite->progression->update(['last_session_number' => 3]);
+        $suite->progression->update(['last_session_number' => 1]);
         $session = $this->start($suite);
         $this->answer($session, $session->nextEntry(), true);
 
@@ -423,9 +423,9 @@ class SessionServicesTest extends TestCase
         $this->assertSame(67, $summary->successRate());
         $this->assertSame(['1 → 1' => 1, '1 → 2' => 2], $summary->moves);
         $this->assertCount(1, $summary->failed);
-        $this->assertEquals(new NextSession(2, [1, 2], [1 => 1, 2 => 2], 1), $summary->next);
-        $this->assertSame(4, $summary->next->total());
-        $this->assertSame('Séance n° 2 — boîtes posées : 1 et 2 — 4 questions, dont 1 nouvelle.', $summary->next->describe());
+        $this->assertEquals(new NextSession(2, [1, 3], [1 => 1, 3 => 0], 1), $summary->next);
+        $this->assertSame(2, $summary->next->total());
+        $this->assertSame('Séance n° 2 — boîtes posées : 1 et 3 — 2 questions, dont 1 nouvelle.', $summary->next->describe());
     }
 
     private function assertRefused(callable $action, string $message): void

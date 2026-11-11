@@ -26,19 +26,29 @@ class EngineTest extends TestCase
     public function test_box_schedule_matches_the_prd_table(): void
     {
         $expected = [
-            1 => [1], 2 => [1, 2], 3 => [1], 4 => [1, 2, 3], 5 => [1], 6 => [1, 2], 7 => [1],
-            8 => [1, 2, 3, 4], 9 => [1], 10 => [1, 2], 11 => [1], 12 => [1, 2, 3], 13 => [1],
-            14 => [1, 2], 15 => [1], 16 => [1, 2, 3, 4, 5],
+            1 => [1, 2], 2 => [1, 3], 3 => [1, 2], 4 => [1, 4], 5 => [1, 2], 6 => [1, 3], 7 => [1, 2],
+            8 => [1, 5], 9 => [1, 2], 10 => [1, 3], 11 => [1, 2], 12 => [1, 4], 13 => [1, 2],
+            14 => [1, 3], 15 => [1, 2], 16 => [1],
         ];
 
         foreach ($expected as $session => $boxes) {
             $this->assertSame($boxes, BoxSchedule::boxesDue($session, 5), "Séance {$session}, 5 boîtes");
         }
 
-        $this->assertSame([1, 2, 3, 4, 5], BoxSchedule::boxesDue(32, 5));
-        $this->assertSame([1, 2, 3, 4, 5, 6, 7], BoxSchedule::boxesDue(64, 7));
-        $this->assertSame([1, 2, 3, 4, 5, 6], BoxSchedule::boxesDue(32, 7));
-        $this->assertSame([1, 2, 3, 4, 5], BoxSchedule::boxesDue(16, 7));
+        $this->assertSame([1, 6], BoxSchedule::boxesDue(16, 7));
+        $this->assertSame([1, 7], BoxSchedule::boxesDue(32, 7));
+        $this->assertSame([1], BoxSchedule::boxesDue(64, 7));
+        $this->assertSame([1, 2], BoxSchedule::boxesDue(33, 3));
+    }
+
+    public function test_each_high_box_comes_back_every_two_to_the_k_minus_one_sessions(): void
+    {
+        for ($box = 2; $box <= 6; $box++) {
+            $sessions = array_values(array_filter(range(1, 128), fn (int $n): bool => in_array($box, BoxSchedule::boxesDue($n, 6), true)));
+            $gaps = array_unique(array_map(fn (int $a, int $b): int => $b - $a, array_slice($sessions, 0, -1), array_slice($sessions, 1)));
+
+            $this->assertSame([2 ** ($box - 1)], array_values($gaps), "Boîte {$box}");
+        }
     }
 
     /**
@@ -127,22 +137,22 @@ class EngineTest extends TestCase
     {
         $items = $this->items([[1, ''], [2, ''], [3, ''], [2, 'suspendue'], [null, 'maîtrisée'], [1, 'suspendue']]);
 
-        $this->assertEqualsCanonicalizing([1], SessionComposer::compose($items, 1, 5, PresentationOrder::Melange)->pluck('question_id')->all());
-        $this->assertEqualsCanonicalizing([1, 2], SessionComposer::compose($items, 2, 5, PresentationOrder::Melange)->pluck('question_id')->all());
-        $this->assertEqualsCanonicalizing([1, 2, 3], SessionComposer::compose($items, 4, 5, PresentationOrder::Melange)->pluck('question_id')->all());
+        $this->assertEqualsCanonicalizing([1, 2], SessionComposer::compose($items, 1, 5, PresentationOrder::Melange)->pluck('question_id')->all());
+        $this->assertEqualsCanonicalizing([1, 3], SessionComposer::compose($items, 2, 5, PresentationOrder::Melange)->pluck('question_id')->all());
+        $this->assertEqualsCanonicalizing([1], SessionComposer::compose($items, 4, 5, PresentationOrder::Melange)->pluck('question_id')->all());
     }
 
     public function test_composer_presentation_orders(): void
     {
         $items = $this->items([[3, ''], [1, ''], [2, ''], [1, ''], [3, '']]);
 
-        $boxOneFirst = SessionComposer::compose($items, 4, 5, PresentationOrder::BoiteUnDAbord, 3)->pluck('box')->all();
-        $highFirst = SessionComposer::compose($items, 4, 5, PresentationOrder::BoitesHautesDAbord, 3)->pluck('box')->all();
-        $mixed = SessionComposer::compose($items, 4, 5, PresentationOrder::Melange, 3)->pluck('box')->all();
+        $boxOneFirst = SessionComposer::compose($items, 2, 5, PresentationOrder::BoiteUnDAbord, 3)->pluck('box')->all();
+        $highFirst = SessionComposer::compose($items, 2, 5, PresentationOrder::BoitesHautesDAbord, 3)->pluck('box')->all();
+        $mixed = SessionComposer::compose($items, 2, 5, PresentationOrder::Melange, 3)->pluck('box')->all();
 
-        $this->assertSame([1, 1, 2, 3, 3], $boxOneFirst);
-        $this->assertSame([3, 3, 2, 1, 1], $highFirst);
-        $this->assertEqualsCanonicalizing([1, 1, 2, 3, 3], $mixed);
+        $this->assertSame([1, 1, 3, 3], $boxOneFirst, 'Séance 2 : boîtes 1 et 3, la boîte 2 n\'est pas posée.');
+        $this->assertSame([3, 3, 1, 1], $highFirst);
+        $this->assertEqualsCanonicalizing([1, 1, 3, 3], $mixed);
     }
 
     public function test_regularity_counts_a_sliding_window(): void

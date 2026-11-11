@@ -207,7 +207,7 @@ valeurs `controle` et `placement` au lot 2.
 
 **Logique pure (`App\Leitner\Engine\`)**
 
-- [x] `BoxSchedule::boxesDue(int $sessionNumber, int $boxCount): list<int>` : la boîte *k* est posée si *n* est multiple de 2<sup>k−1</sup>.
+- [x] `BoxSchedule::boxesDue(int $sessionNumber, int $boxCount): list<int>` : la boîte 1 et une seule boîte haute, 2 + *v* où *v* est le nombre de fois que *n* est divisible par 2 (la boîte *k* revient une séance sur 2<sup>k−1</sup>) ; boîte 1 seule quand ce numéro dépasse le nombre de boîtes (PRD v0.9, §7.1).
 - [x] `BoxMover::move(box, consecutiveFailures, verdict, boxCount): Move` : juste → boîte suivante, ou maîtrisée depuis la dernière boîte, échecs remis à zéro ; fausse → recul d'une boîte (boîte 1 reste en boîte 1), ou boîte 1 si l'échec précédent était déjà un échec ; échecs incrémentés.
 - [x] `Introducer::pick(candidates, count, ?seed)` : difficulté effective croissante, hasard au sein d'un niveau (Q8, choix provisoire).
 - [x] `SessionComposer::compose(progression, number, order, ?seed)` : questions de la boîte 1 et des boîtes dues, hors suspendues ; ordre de présentation (mélangé, boîte 1 d'abord, boîtes hautes d'abord, mélange à l'intérieur d'une boîte).

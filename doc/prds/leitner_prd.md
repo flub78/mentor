@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| **Version** | 0.8 (brouillon) |
+| **Version** | 0.9 (brouillon) |
 | **Date** | 11 novembre 2026 |
 | **Auteur** | Frédéric |
 | **Statut** | À valider — voir §10 « Questions ouvertes » |
 | **PRD d'ensemble** | [Mentor](mentor_prd.md), §1.4 « Architecture modulaire » |
 | **Module utilisé** | [Banques de questions](banques_prd.md) |
 | **Plan** | [leitner_plan.md](../plans/leitner_plan.md) |
+
+**Évolutions de la version 0.9** : chaque séance pose la boîte 1 et une seule boîte haute, en rotation (mêmes fréquences, charge régulière d'une séance à l'autre, §7.1).
 
 **Évolutions de la version 0.8** : les banques et leurs questions passent au module [Banques de questions](banques_prd.md), partagé avec le module QCM (Q11 tranchée) : gestion des banques et des questions, types de questions et fichier d'échange y sont décrits ; Leitner ne dépend plus du module QCM ; imports et exports au niveau des banques (Q27, Q28 tranchées).
 
@@ -313,15 +315,19 @@ Les types de questions, leur contenu, leur saisie et leur correction sont décri
 
 ### 7.1 Boîtes posées à une séance
 
-À la séance numéro *n*, la boîte *k* est posée si *n* est un multiple de 2<sup>k−1</sup> :
+Chaque séance pose la **boîte 1** et **une seule boîte haute**, en rotation :
 
 - la boîte 1 est posée à **toutes** les séances ;
 - la boîte 2, **une séance sur deux** ;
-- la boîte 3, **une sur quatre** ; la boîte 4, une sur huit ; et ainsi de suite.
+- la boîte 3, **une sur quatre** ; la boîte 4, une sur huit ; la boîte *k*, une séance sur 2<sup>k−1</sup>.
 
 | Séance | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | … | 16 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Boîtes posées | 1 | 1, 2 | 1 | 1, 2, 3 | 1 | 1, 2 | 1 | 1 à 4 | … | 1 à 5 |
+| Boîtes posées (5 boîtes) | 1, 2 | 1, 3 | 1, 2 | 1, 4 | 1, 2 | 1, 3 | 1, 2 | 1, 5 | … | 1 |
+
+À la séance *n*, la boîte haute est la boîte 2 + *v*, où *v* est le nombre de fois que *n* est divisible par 2. Quand ce numéro dépasse le nombre de boîtes (séances 16, 48… avec 5 boîtes), seule la boîte 1 est posée : les fréquences restent exactes.
+
+Les boîtes hautes sont réparties sur les séances plutôt que cumulées : la charge reste régulière d'une séance à l'autre, ce qui convient au rythme d'une séance par jour.
 
 Le rythme est compté en **séances**, pas en jours : l'étudiant choisit quand il travaille, et le numéro de séance n'avance que lorsqu'il fait une séance (Q1, tranchée). Plusieurs séances le même jour comptent chacune. Le mode de calcul (numéro de séance commun à la suite ou compteur propre à chaque question) est à confirmer (Q2).
 
@@ -425,7 +431,7 @@ Les imports et exports se font au niveau des banques, dans le format décrit au 
 **Rythme et boîtes**
 
 - ~~Q1. Rythme des révisions : en séances, en jours, ou en séances avec au plus une séance comptée par jour ?~~ **Tranché** : en séances, librement choisies par l'étudiant, sans limite par jour ; avertissement en dessous de trois séances par semaine (§7.1, §7.5). Repris dans le [PRD Mentor](mentor_prd.md) (UC-10).
-- Q2. Calcul de l'échéance — options : (a) **numéro de séance commun** (choix provisoire, §7.1) : simple et prévisible, mais une question arrivée en boîte 2 juste avant une séance paire est reposée dès la séance suivante ; (b) **compteur propre à chaque question** : la question est reposée exactement 2<sup>k−1</sup> séances après son arrivée dans la boîte *k*, la charge par séance est plus irrégulière.
+- Q2. Calcul de l'échéance — options : (a) **numéro de séance commun** (choix provisoire, §7.1) : simple et prévisible, mais une question qui arrive dans une boîte juste avant une séance où cette boîte est posée est reposée dès la séance suivante ; (b) **compteur propre à chaque question** : la question est reposée exactement 2<sup>k−1</sup> séances après son arrivée dans la boîte *k*, la charge par séance est plus irrégulière.
 - ~~Q3. Dernière boîte : la question maîtrisée sort-elle du circuit, reste-t-elle dans la dernière boîte, ou revient-elle de temps en temps ?~~ **Tranché** : elle est maîtrisée et sort du circuit ; la suite acquise est vérifiée par des contrôles d'entretien sur échantillon (UC-14, §7.6).
 - ~~Q4. Nombre de boîtes par défaut ?~~ **Tranché** : 5 boîtes (environ 2 à 3 mois pour terminer une banque), modifiable ; paramètre de la suite, pas de la banque (UC-05, §7.2).
 - Q4b. Nombre minimal de questions en boîte 1 par défaut : 10 (provisoire) ?

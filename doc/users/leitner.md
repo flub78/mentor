@@ -97,7 +97,7 @@ Si vous avez fait moins de 3 séances sur les 7 derniers jours, un avertissement
 
 ## Comprendre les boîtes et le rythme
 
-Les séances sont numérotées. La boîte 1 est posée à chaque séance, la boîte 2 une séance sur deux, la boîte 3 une sur quatre, la boîte 4 une sur huit, et ainsi de suite. Le rythme compte en séances, pas en jours : l'idéal est une séance par jour, ou par jour ouvré.
+Les séances sont numérotées. Chaque séance pose la boîte 1 et une seule boîte plus haute, à tour de rôle : la boîte 2 une séance sur deux, la boîte 3 une sur quatre, la boîte 4 une sur huit, et ainsi de suite. Avec 5 boîtes, les séances 1 à 8 posent les boîtes 1 et 2, 1 et 3, 1 et 2, 1 et 4, 1 et 2, 1 et 3, 1 et 2, puis 1 et 5. La charge reste ainsi à peu près la même d'une séance à l'autre. Le rythme compte en séances, pas en jours : l'idéal est une séance par jour, ou par jour ouvré.
 
 - Une **bonne réponse** fait monter la question d'une boîte ; dans la dernière boîte, elle devient **maîtrisée** et n'est plus posée.
 - Une **mauvaise réponse** fait reculer la question d'une boîte ; si la réponse précédente était déjà fausse, elle revient en boîte 1.
